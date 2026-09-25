@@ -961,7 +961,6 @@ const screens = {
 };
 
 const RAIL = [
-  ["Class", ["consent"]],
   ["Terms", ["landing", "opening", "briefing"]],
   ["Record", ["setup", "move1", "move2", "overnight", "log", "hold"]],
   ["Morning", ["morning"]],
@@ -969,7 +968,6 @@ const RAIL = [
 ];
 
 const MAST = {
-  consent: ["INTL 6010", "Before you start"],
   landing: ["Terms of reference", "Opened"],
   opening: ["The record", "Opening"],
   briefing: ["Warrant", "06:10"],
@@ -1005,6 +1003,22 @@ function paintChrome() {
 }
 
 function render() {
+  const before = document.querySelector("#before");
+  const site = document.querySelector(".site");
+  document.body.dataset.step = state.step;
+  document.title = state.step === "consent"
+    ? "INTL 6010 · Research Methods"
+    : "File 26-441 · Araknes Commission of Inquiry";
+  if (state.step === "consent") {
+    if (before) {
+      before.hidden = false;
+      before.replaceChildren(consent());
+    }
+    if (site) site.hidden = true;
+    return;
+  }
+  if (before) before.hidden = true;
+  if (site) site.hidden = false;
   const screen = screens[state.step] || landing;
   app.replaceChildren(screen());
   paintChrome();

@@ -76,6 +76,16 @@ body {
 }
 
 .site { min-height: 100vh; }
+.site[hidden] { display: none; }
+
+.before {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: 3rem 8vw;
+}
+
+.before[hidden] { display: none; }
 
 .frame {
   max-width: 92rem;
@@ -913,6 +923,7 @@ th { color: var(--navy); }
 }
 
 @media (max-width: 1040px) {
-  .site { display: none; }
+  .site,
+  .before { display: none; }
   .computer-only { display: flex; }
 }

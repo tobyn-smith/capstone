@@ -102,7 +102,7 @@ The course is about asking a policy question with social science, not about stat
 
 That means the fundamentals on the syllabus have to show up in the design, not just in a paragraph I add later.
 
-The file runs in that order, and it does not announce the order. The two versions are the conjecture: advice, or a system that can act. What I expect, and the result that would weaken it, are not on the page until the finding is in. The night is the observation. The finding is where I see whether one actor can still be named. The last page says this file is one go, and that later files can make me more sure or make me change my mind. The page before the file only says it is for INTL 6010 at UGA, and that starting means I can save the answers.
+The file runs in that order, and it does not announce the order. The two versions are the conjecture: advice, or a system that can act. What I expect, and the result that would weaken it, are not on the page until the finding is in. The night is the observation. The finding is where I see whether one actor can still be named. The last page says this file is one go, and that later files can make me more sure or make me change my mind. The page before the file only says it is for INTL 6010 at UGA, and that starting means I can save the answers. That page is not the commission. The banner, the flags, and the file open after they start.
 
 Concept formation. Two concepts. Autonomy is how far the system can choose and carry out a step without a person approving it. Accountability clarity is whether, afterwards, you can point to one actor who had the authority to prevent, approve, supervise, or explain the action. If I cannot say what those mean, I cannot measure them.
 
