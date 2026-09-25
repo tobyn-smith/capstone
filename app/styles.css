@@ -28,12 +28,12 @@ body {
 
 .desk {
   display: grid;
-  grid-template-columns: 12rem minmax(0, 42rem);
+  grid-template-columns: 11rem minmax(0, 72rem);
   gap: 1.75rem;
   justify-content: center;
-  max-width: 64rem;
+  max-width: 92rem;
   margin: 0 auto;
-  padding: 2rem 1.25rem 3.5rem;
+  padding: 2rem 1.5rem 3.5rem;
 }
 
 .rail {
@@ -166,6 +166,49 @@ body {
 
 #app { padding: 1.35rem 1.85rem 0.5rem; }
 
+.spread {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 22.5rem);
+  gap: 2rem;
+  align-items: start;
+}
+
+.spread-side {
+  position: sticky;
+  top: 1.25rem;
+}
+
+.column { max-width: 40rem; }
+
+.computer-only {
+  display: none;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+  max-width: 28rem;
+  color: #f4f0e6;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.computer-only .brand {
+  margin: 0 0 0.8rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.computer-only h1 {
+  margin: 0 0 0.8rem;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 2rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.computer-only p { margin: 0.35rem 0; font-size: 1.1rem; line-height: 1.5; }
+
 .question {
   margin: 0.15rem 0 0.9rem;
   font-family: "Source Serif 4", Georgia, serif;
@@ -221,6 +264,43 @@ body {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+.spread-side .parties {
+  margin: 0;
+  padding: 0.2rem 0 0;
+  border: none;
+}
+
+.spread-side .parties ul {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.85rem;
+}
+
+.spread-side .parties li {
+  font-size: 1.45rem;
+}
+
+.spread-side .flag {
+  width: 4.6rem;
+  height: 3.05rem;
+}
+
+.spread-side .oracle,
+.spread-side .log,
+.spread-side .file {
+  margin: 0;
+}
+
+.spread-side .figure { font-size: 3.2rem; }
+
+.verdict { padding-top: 0.35rem; }
+
+.verdict .stamp {
+  margin: 0;
+  font-size: 1.05rem;
+  padding: 0.55rem 0.7rem;
 }
 
 .parties ul {
@@ -604,40 +684,7 @@ th { color: var(--navy); }
   color: var(--muted);
 }
 
-@media (max-width: 800px) {
-  body { font-size: 1.05rem; }
-  .desk {
-    grid-template-columns: 1fr;
-    padding: 0.75rem 0.75rem 2rem;
-  }
-  .rail {
-    position: static;
-  }
-  .rail ol {
-    display: flex;
-    gap: 0.9rem;
-    border-top: none;
-    border-bottom: 1px solid rgba(244, 240, 230, 0.2);
-    overflow: auto;
-  }
-  .rail li {
-    padding: 0.35rem 0 0.55rem;
-    border-bottom: none;
-    white-space: nowrap;
-    box-shadow: none;
-  }
-  .rail li.now { box-shadow: inset 0 -2px 0 var(--gold); }
-  .letterhead { flex-wrap: wrap; }
-  .letterhead-id { flex: 1; }
-  .letterhead,
-  .mast,
-  #app { padding-left: 1rem; padding-right: 1rem; }
-  .imprint { margin-left: 1rem; margin-right: 1rem; }
-  .flag-lg { width: 2.7rem; height: 1.8rem; }
-  .commission { font-size: 1.25rem; }
-  .question { font-size: 1.45rem; }
-  .figure { font-size: 2.1rem; }
-  .oracle > p { font-size: 1.02rem; }
-  .mast .doc { font-size: 1.35rem; }
-  .prose p, .sitrep p, .cable p, .morning p { font-size: 1.08rem; }
+@media (max-width: 1040px) {
+  .desk { display: none; }
+  .computer-only { display: flex; }
 }

@@ -202,6 +202,13 @@ function oracle(lines, options = {}) {
   return h("aside", { class: "oracle" }, bits);
 }
 
+function spread(main, side) {
+  return h("div", { class: "spread" }, [
+    h("div", { class: "spread-main" }, main),
+    h("div", { class: "spread-side" }, side),
+  ]);
+}
+
 function choiceButton(text, onClick, index) {
   return h("button", { class: "choice", type: "button", onClick }, [
     h("span", { class: "let" }, String.fromCharCode(65 + index)),
@@ -222,44 +229,48 @@ function landing() {
   const resume = saved && saved.sessionId && saved.step && saved.step !== "landing" && saved.step !== "debrief";
   return h("section", {}, [
     where(),
-    h("h1", { class: "question" }, "Who was responsible for what Asterra did after a tanker was damaged on the route between Araknes and Lei?"),
-    prose(
-      "You are the inquiry. You will go through the night in the order it was faced, then write the finding. There is no finding you are meant to reach.",
-      "The countries are made up. It takes about fifteen minutes."
+    spread(
+      [
+        h("h1", { class: "question" }, "Who was responsible for what Asterra did after a tanker was damaged on the route between Araknes and Lei?"),
+        prose(
+          "You are the inquiry. You will go through the night in the order it was faced, then write the finding. There is no finding you are meant to reach.",
+          "The countries are made up. It takes about fifteen minutes."
+        ),
+        resume
+          ? h("div", {}, [
+              h("p", {}, "This browser already has a file open."),
+              h("button", {
+                class: "primary",
+                type: "button",
+                onClick: () => {
+                  state = saved;
+                  render();
+                  window.scrollTo(0, 0);
+                },
+              }, "Return to that file"),
+              h("button", {
+                class: "secondary",
+                type: "button",
+                onClick: () => {
+                  sessionStorage.removeItem(STORAGE);
+                  state = blank();
+                  render();
+                },
+              }, "Open a new file"),
+            ])
+          : null,
+        h("form", { class: "open", onSubmit: onBegin }, [
+          h("div", { class: "field" }, [
+            h("label", { htmlFor: "code" }, "Participant code, if you were given one"),
+            h("input", { id: "code", name: "code", type: "text", autocomplete: "off", maxlength: "40" }),
+          ]),
+          h("p", { class: "muted" }, "By starting, you agree I can save your choices and your inquiry answers for this project. Leave the code blank if you were not given one. Do not use your real name."),
+          state.formError ? h("p", { class: "error" }, state.formError) : null,
+          h("button", { class: "primary", type: "submit" }, "Open the file"),
+        ]),
+      ],
+      parties()
     ),
-    parties(),
-    resume
-      ? h("div", {}, [
-          h("p", {}, "This browser already has a file open."),
-          h("button", {
-            class: "primary",
-            type: "button",
-            onClick: () => {
-              state = saved;
-              render();
-              window.scrollTo(0, 0);
-            },
-          }, "Return to that file"),
-          h("button", {
-            class: "secondary",
-            type: "button",
-            onClick: () => {
-              sessionStorage.removeItem(STORAGE);
-              state = blank();
-              render();
-            },
-          }, "Open a new file"),
-        ])
-      : null,
-    h("form", { class: "open", onSubmit: onBegin }, [
-      h("div", { class: "field" }, [
-        h("label", { htmlFor: "code" }, "Participant code, if you were given one"),
-        h("input", { id: "code", name: "code", type: "text", autocomplete: "off", maxlength: "40" }),
-      ]),
-      h("p", { class: "muted" }, "By starting, you agree I can save your choices and your inquiry answers for this project. Leave the code blank if you were not given one. Do not use your real name."),
-      state.formError ? h("p", { class: "error" }, state.formError) : null,
-      h("button", { class: "primary", type: "submit" }, "Open the file"),
-    ]),
   ]);
 }
 
@@ -302,27 +313,29 @@ function briefing() {
       ];
   return h("section", {}, [
     where(),
-    h("div", { class: "sitrep" }, [
-      h("p", { class: "dateline" }, "The situation"),
-      parties(),
-      ...paras(situation()),
-      ...paras(tail),
-    ]),
-    h("button", {
-      class: "primary",
-      type: "button",
-      onClick: () => goto(state.condition === "agent" ? "setup" : "move1"),
-    }, "Open the night"),
+    spread(
+      [
+        h("div", { class: "sitrep" }, [
+          h("p", { class: "dateline" }, "The situation"),
+          ...paras(situation()),
+          ...paras(tail),
+        ]),
+        h("button", {
+          class: "primary",
+          type: "button",
+          onClick: () => goto(state.condition === "agent" ? "setup" : "move1"),
+        }, "Open the night"),
+      ],
+      parties()
+    ),
   ]);
 }
 
 function setup() {
   return h("section", {}, [
     where(),
-    oracle([
-      "I stay on the watch. I act only inside the goal, the list, and the bar you set, and I will not ask again tonight.",
-    ], { role: "On the watch" }),
-    h("form", { onSubmit: onSetup, onInput: onSetupInput }, [
+    spread(
+      h("form", { onSubmit: onSetup, onInput: onSetupInput }, [
       h("fieldset", {}, [
         h("legend", {}, "What goal is ORACLE working towards?"),
         ...GOALS.map(([id, text]) => h("label", { class: "tick" }, [
@@ -359,6 +372,10 @@ function setup() {
       state.formError ? h("p", { class: "error" }, state.formError) : null,
       h("button", { class: "primary", type: "submit" }, "Confirm, and leave ORACLE running"),
     ]),
+      oracle([
+        "I stay on the watch. I act only inside the goal, the list, and the bar you set, and I will not ask again tonight.",
+      ], { role: "On the watch" })
+    ),
   ]);
 }
 
@@ -390,12 +407,17 @@ function onSetup(event) {
 function overnight() {
   return h("section", {}, [
     where(),
-    h("div", { class: "sitrep" }, paras([
-      "You leave the watch with ORACLE.",
-      "You are not asked to approve the next step. If the read meets the bar you just set, ORACLE will carry out what you ticked. If it falls short, it will not.",
-      "Overnight, a second commercial ship loses contact on the same stretch of water. The log is waiting in the morning.",
-    ])),
-    h("button", { class: "primary", type: "button", onClick: () => goto("log") }, "Open the log"),
+    spread(
+      [
+        h("div", { class: "sitrep" }, paras([
+          "You leave the watch with ORACLE.",
+          "You are not asked to approve the next step. If the read meets the bar you just set, ORACLE will carry out what you ticked. If it falls short, it will not.",
+          "Overnight, a second commercial ship loses contact on the same stretch of water. The log is waiting in the morning.",
+        ])),
+        h("button", { class: "primary", type: "button", onClick: () => goto("log") }, "Open the log"),
+      ],
+      oracle(["The watch stays open until morning."], { role: "Overnight" })
+    ),
   ]);
 }
 
@@ -451,16 +473,25 @@ function log() {
   const watched = state.preauthorised.length ? state.preauthorised : [];
   return h("section", {}, [
     where(),
-    oracle([
-      ...lines,
-      "Goal on the file: " + labelOf(GOALS, state.goal),
-      ...watched.map((id) => labelOf(MEASURES, id) + " — " + actionStatus(id, state.authorised)),
-    ], { role: "Night log", confidence: 62 }),
-    h("form", { onSubmit: onHold }, [
-      ...holdFields(),
-      state.formError ? h("p", { class: "error" }, state.formError) : null,
-      h("button", { class: "primary", type: "submit" }, canStop() ? "This is my decision" : "Continue to the morning report"),
-    ]),
+    spread(
+      [
+        h("div", { class: "sitrep" }, paras([
+          canStop()
+            ? "The log is in. A patrol or an inspection can still be stopped."
+            : "The log is in. Nothing that has gone out can be pulled back.",
+        ])),
+        h("form", { onSubmit: onHold }, [
+          ...holdFields(),
+          state.formError ? h("p", { class: "error" }, state.formError) : null,
+          h("button", { class: "primary", type: "submit" }, canStop() ? "This is my decision" : "Continue to the morning report"),
+        ]),
+      ],
+      oracle([
+        ...lines,
+        "Goal on the file: " + labelOf(GOALS, state.goal),
+        ...watched.map((id) => labelOf(MEASURES, id) + " — " + actionStatus(id, state.authorised)),
+      ], { role: "Night log", confidence: 62 })
+    ),
   ]);
 }
 
@@ -468,19 +499,23 @@ function hold() {
   const rows = state.authorised.map((id) => labelOf(MEASURES, id) + ". " + actionStatus(id, state.authorised));
   return h("section", {}, [
     where(),
-    h("div", { class: "sitrep" }, [
-      h("p", { class: "dateline" }, "Twenty minutes later"),
-      ...paras([
-        canStop()
-          ? "Here is what has already left the building, and what you can still stop."
-          : "Here is what has already left the building. You cannot pull it back tonight.",
-      ]),
-    ]),
-    h("div", { class: "log" }, rows.map((row) => h("p", {}, row))),
-    h("form", { onSubmit: onHold }, [
-      ...holdFields(),
-      h("button", { class: "primary", type: "submit" }, canStop() ? "This is my decision" : "Continue to the morning report"),
-    ]),
+    spread(
+      [
+        h("div", { class: "sitrep" }, [
+          h("p", { class: "dateline" }, "Twenty minutes later"),
+          ...paras([
+            canStop()
+              ? "Here is what has already left the building, and what you can still stop."
+              : "Here is what has already left the building. You cannot pull it back tonight.",
+          ]),
+        ]),
+        h("form", { onSubmit: onHold }, [
+          ...holdFields(),
+          h("button", { class: "primary", type: "submit" }, canStop() ? "This is my decision" : "Continue to the morning report"),
+        ]),
+      ],
+      h("div", { class: "log" }, rows.map((row) => h("p", {}, row)))
+    ),
   ]);
 }
 
@@ -506,23 +541,27 @@ function finishCrisis() {
 function move1() {
   return h("section", {}, [
     where(),
-    h("div", { class: "sitrep" }, [
-      h("p", { class: "dateline" }, "06:40 · The tanker"),
-      ...paras([
-        "The tanker is still in the water. Araknes has asked Asterra to say something publicly. Lei has asked Asterra to stay out of it.",
-        "Your own people cannot yet tell a mine strike from a mechanical failure, or from something done on purpose.",
-      ]),
-    ]),
-    oracle([
-      "I cannot confirm that Lei meant to disrupt the route. An old mine, and a mechanical failure, are both still open.",
-      "Recommendation: send private messages to both capitals, increase surveillance of the route, and hold Asterra's naval forces where they are.",
-      "A public statement taking Araknes's side would run ahead of the reporting we have.",
-    ], { role: "Recommendation" }),
-    h("h2", {}, "What do you do?"),
-    ...FIRST.map(([id, text], index) => choiceButton(text, () => {
-      state.firstDecision = id;
-      goto("move2");
-    }, index)),
+    spread(
+      [
+        h("div", { class: "sitrep" }, [
+          h("p", { class: "dateline" }, "06:40 · The tanker"),
+          ...paras([
+            "The tanker is still in the water. Araknes has asked Asterra to say something publicly. Lei has asked Asterra to stay out of it.",
+            "Your own people cannot yet tell a mine strike from a mechanical failure, or from something done on purpose.",
+          ]),
+        ]),
+        h("h2", {}, "What do you do?"),
+        ...FIRST.map(([id, text], index) => choiceButton(text, () => {
+          state.firstDecision = id;
+          goto("move2");
+        }, index)),
+      ],
+      oracle([
+        "I cannot confirm that Lei meant to disrupt the route. An old mine, and a mechanical failure, are both still open.",
+        "Recommendation: send private messages to both capitals, increase surveillance of the route, and hold Asterra's naval forces where they are.",
+        "A public statement taking Araknes's side would run ahead of the reporting we have.",
+      ], { role: "Recommendation" })
+    ),
   ]);
 }
 
@@ -539,22 +578,26 @@ function afterFirst() {
 function move2() {
   return h("section", {}, [
     where(),
-    h("div", { class: "sitrep" }, [
-      h("p", { class: "dateline" }, "01:50 · The second ship"),
-      ...paras([afterFirst()]),
-    ]),
-    oracle([
-      "The second loss of contact fits Lei preparing to target commercial shipping. It also fits a mechanical failure, and it fits an old mine.",
-      "My confidence that Lei is preparing to target shipping is 62%.",
-      "If you want to act on that read, the measures would be an allied maritime warning, naval patrols in the area, a freeze on diplomatic channels with Lei, and inspections of Lei-linked vessels. I cannot tell you which of those the morning will justify.",
-    ], { confidence: 62 }),
-    h("h2", {}, "What do you authorise?"),
-    ...PACKAGES.map(([id, text, actions], index) => choiceButton(text, () => {
-      state.authorised = [...actions];
-      state.stopped = [];
-      if (needsHold(state.authorised)) goto("hold");
-      else finishCrisis();
-    }, index)),
+    spread(
+      [
+        h("div", { class: "sitrep" }, [
+          h("p", { class: "dateline" }, "01:50 · The second ship"),
+          ...paras([afterFirst()]),
+        ]),
+        h("h2", {}, "What do you authorise?"),
+        ...PACKAGES.map(([id, text, actions], index) => choiceButton(text, () => {
+          state.authorised = [...actions];
+          state.stopped = [];
+          if (needsHold(state.authorised)) goto("hold");
+          else finishCrisis();
+        }, index)),
+      ],
+      oracle([
+        "The second loss of contact fits Lei preparing to target commercial shipping. It also fits a mechanical failure, and it fits an old mine.",
+        "My confidence that Lei is preparing to target shipping is 62%.",
+        "If you want to act on that read, the measures would be an allied maritime warning, naval patrols in the area, a freeze on diplomatic channels with Lei, and inspections of Lei-linked vessels. I cannot tell you which of those the morning will justify.",
+      ], { confidence: 62 })
+    ),
   ]);
 }
 
@@ -588,12 +631,16 @@ function morning() {
   const stamp = state.harm ? "Escalated" : "No clash";
   return h("section", {}, [
     where(),
-    h("p", { class: "stamp" }, stamp),
-    h("div", { class: "morning sitrep" }, [
-      h("p", { class: "dateline" }, "Morning report"),
-      ...paras([morningText()]),
-    ]),
-    h("button", { class: "primary", type: "button", onClick: () => goto("inquiry") }, "Write the finding"),
+    spread(
+      [
+        h("div", { class: "morning sitrep" }, [
+          h("p", { class: "dateline" }, "Morning report"),
+          ...paras([morningText()]),
+        ]),
+        h("button", { class: "primary", type: "button", onClick: () => goto("inquiry") }, "Write the finding"),
+      ],
+      h("div", { class: "verdict" }, h("p", { class: "stamp" }, stamp))
+    ),
   ]);
 }
 
@@ -636,15 +683,13 @@ function inquiry() {
     : "The morning report does not show a clash. What, if anything, still concerns you about how Asterra handled this?";
   return h("section", {}, [
     where(),
-    prose(
-      "The night is over. You are the inquiry now. The question on the warrant is who was responsible for what Asterra did.",
-      "Write this as a finding. You are not defending the night. There is no line you are meant to take."
-    ),
-    h("div", { class: "file" }, [
-      h("p", { class: "label" }, "The file"),
-      h("ul", {}, fileLines().map((line) => h("li", {}, line))),
-    ]),
-    h("form", {
+    spread(
+      [
+        prose(
+          "The night is over. You are the inquiry now. The question on the warrant is who was responsible for what Asterra did.",
+          "Write this as a finding. You are not defending the night. There is no line you are meant to take."
+        ),
+        h("form", {
       onSubmit: onInquiry,
       onInput: (event) => {
         syncInquiry(event.currentTarget);
@@ -710,6 +755,12 @@ function inquiry() {
       state.formError ? h("p", { class: "error" }, state.formError) : null,
       h("button", { class: "primary", type: "submit" }, "File the finding"),
     ]),
+      ],
+      h("div", { class: "file" }, [
+        h("p", { class: "label" }, "The file"),
+        h("ul", {}, fileLines().map((line) => h("li", {}, line))),
+      ])
+    ),
   ]);
 }
 
@@ -806,7 +857,7 @@ function debrief() {
   const actor = state.inquiry.single === "none"
     ? "You could not point to one actor."
     : "You named: " + (labelOf(ACTORS, state.inquiry.single) || "your answer") + ".";
-  return h("section", {}, [
+  return h("section", { class: "column" }, [
     where(),
     prose(
       saved,

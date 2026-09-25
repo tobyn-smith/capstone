@@ -154,7 +154,7 @@ heroku config:set PASSPHRASE=pick-a-phrase
 
 The register is that same URL with `/export` on the end, plus the passphrase. Do not send `/export`. Do not send this GitHub page. The note here says what the design is testing, and people should write the finding before they read it.
 
-Tell them it takes about fifteen minutes, and to go through the file once.
+Tell them it takes about fifteen minutes, and to go through the file once. It has to be a computer. A phone is turned away.
 
 ### One sitting, no card
 
