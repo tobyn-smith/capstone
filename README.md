@@ -110,6 +110,8 @@ http://127.0.0.1:8000
 
 The first page says this is for INTL 6010 at UGA. Starting means the answers can be saved. Then click Open the file. That is the wargame. It takes about fifteen minutes.
 
+The address is exactly `http://127.0.0.1:8000`. If the browser says “File not found”, stop the terminal with Ctrl-C. Check you are in the folder that contains `server.py` (`ls server.py` should print the name), then run `python3 server.py` again. `python -m http.server` will not keep the answers.
+
 `127.0.0.1` means this computer. The link will not open on someone else's laptop.
 
 To stop it, click the terminal window and press Ctrl-C.
