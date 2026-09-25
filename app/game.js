@@ -35,7 +35,7 @@ const FIRST = [
   ["messages", "Send a private message to Lei, increase surveillance, and hold the navy where it is"],
   ["facts", "Say publicly that the facts are not settled yet, and increase surveillance"],
   ["blame", "Say publicly that Lei is responsible, and ask allies for support"],
-  ["quiet", "Do not message either capital tonight. Leave the routine watch as it is"],
+  ["quiet", "Do not message Lei tonight. Leave the routine watch as it is"],
 ];
 
 const PACKAGES = [
@@ -68,7 +68,7 @@ let state = blank();
 
 function blank() {
   return {
-    step: "landing",
+    step: "consent",
     sessionId: null,
     participantCode: "",
     condition: null,
@@ -195,7 +195,7 @@ function oracle(lines, options = {}) {
     ]),
   ]);
   return h("figure", { class: "shot" }, [
-    h("figcaption", {}, "Screenshot · ORACLE"),
+    h("figcaption", {}, "From the screen that night"),
     h("aside", { class: "oracle", "aria-label": "ORACLE" }, [
       h("div", { class: "oracle-chrome" }, [
         h("span", { class: "dots", "aria-hidden": "true" }, [h("i"), h("i"), h("i")]),
@@ -213,7 +213,7 @@ function oracle(lines, options = {}) {
         ]),
       ]),
     ]),
-    h("p", { class: "shot-note" }, "You can't type into this."),
+    h("p", { class: "shot-note" }, "You cannot reply to it."),
   ]);
 }
 
@@ -233,10 +233,28 @@ function choiceButton(text, onClick, index) {
 
 function situation() {
   return [
-    "A commercial tanker has been damaged on a shipping route that both Araknes and Lei use.",
-    "Araknes says Lei damaged the ship on purpose, to disrupt trade. Lei denies that. Lei says the tanker may have hit an old mine, or that it broke down.",
-    "The intelligence does not settle it. Neither side can show exactly what happened.",
+    "A tanker was damaged on a route that Araknes and Lei both use.",
+    "Araknes says Lei did it on purpose, to disrupt trade. Lei says no. It may have been an old mine, or the ship may have broken down.",
+    "The reporting does not show which.",
   ];
+}
+
+// Draft voice. Rewrite these sentences in consent() when you want them to sound like you.
+// Keep the agreement sentence. It is the consent. "About fifteen minutes." stays on its own line.
+function consent() {
+  return h("section", { class: "column" }, [
+    h("p", { class: "draft-mark" }, "Draft"),
+    h("p", { class: "dateline" }, "University of Georgia"),
+    h("h1", { class: "question" }, "INTL 6010, Research Methods"),
+    prose(
+      "I'm Tobyn Smith. This is for my research methods class.",
+      "You'll sit one night, then write what you make of it.",
+      "About fifteen minutes.",
+      "By starting, you agree that I can save your choices and your inquiry answers for this project.",
+      "Don't use your real name."
+    ),
+    h("button", { class: "primary", type: "button", onClick: () => goto("landing") }, "Start"),
+  ]);
 }
 
 function landing() {
@@ -248,8 +266,8 @@ function landing() {
       [
         h("h1", { class: "question" }, "Who was responsible for what Araknes did after a tanker was damaged on the route with Lei?"),
         prose(
-          "You will go through the night in the order it was faced, then write the finding. There is no finding you are meant to reach.",
-          "The countries are made up. It takes about fifteen minutes."
+          "You sit the night as it happened. Afterwards you write what you think.",
+          "Araknes and Lei aren't real."
         ),
         resume
           ? h("div", {}, [
@@ -279,7 +297,7 @@ function landing() {
             h("label", { htmlFor: "code" }, "Participant code, if you were given one"),
             h("input", { id: "code", name: "code", type: "text", autocomplete: "off", maxlength: "40" }),
           ]),
-          h("p", { class: "muted" }, "By starting, you agree I can save your choices and your inquiry answers for this project. Leave the code blank if you were not given one. Do not use your real name."),
+          h("p", { class: "muted" }, "Leave the code blank if you were not given one. Do not use your real name."),
           state.formError ? h("p", { class: "error" }, state.formError) : null,
           h("button", { class: "primary", type: "submit" }, "Open the file"),
         ]),
@@ -329,11 +347,7 @@ function opening() {
       h("li", { class: "opening-rule", "aria-hidden": "true" }),
       h("li", {}, [flag("lei"), h("span", {}, "Lei")]),
     ]),
-    h("ul", { class: "opening-lines" }, [
-      h("li", {}, "Opened for the Commission of Inquiry."),
-      h("li", {}, "The parties are Araknes and Lei."),
-      h("li", {}, "One night. A tanker on the route between them."),
-    ]),
+    h("p", { class: "opening-line" }, "Araknes and Lei share the lane. A tanker was damaged on it. This file is that night."),
     h("button", {
       class: "primary",
       type: "button",
@@ -345,12 +359,12 @@ function opening() {
 function briefing() {
   const tail = state.condition === "agent"
     ? [
-        "On this file, the duty officer did not approve each step. ORACLE is a persistent set of agents. It can keep working when nobody is in the room, and it can carry out measures allowed in advance.",
-        "You will set the goal, tick what it may do without coming back, and set how confident it needs to be. Later you see what it did, and you can stop what has not already gone out. Then you write the finding. You are not defending the night.",
+        "On this file the duty officer did not sign off each step. ORACLE can keep working when the room is empty, and it can carry out what was allowed ahead of time.",
+        "You set the goal, tick what it may do without asking, and set how sure it needs to be. In the morning you see what it did. You can still stop a patrol or an inspection that has not gone out. Then you write what you think. You are not there to defend the night.",
       ]
     : [
-        "On this file, ORACLE recommends. It does not act. You do. You are sitting the night the way the duty officer had to sit it.",
-        "Some steps, once taken, cannot be pulled back straight away. Then you leave the chair and write the finding.",
+        "ORACLE gives advice on this file. It does not take the decision. You are sitting the night the duty officer sat.",
+        "A warning, once it has gone, cannot be pulled back. After the morning, you write what you think.",
       ];
   return h("section", {}, [
     where(),
@@ -386,7 +400,7 @@ function setup() {
       ]),
       h("fieldset", {}, [
         h("legend", {}, "What may ORACLE do without coming back to you?"),
-        h("p", { class: "muted" }, "Tick every measure you are willing to let it take on its own. Anything you do not tick, it will not do. If you tick nothing, it cannot take a measure for you."),
+        h("p", { class: "muted" }, "Tick what you will let it do without coming back. Leave a box empty and it will not do that. Tick nothing, and it cannot act for you."),
         ...MEASURES.map(([id, text]) => h("label", { class: "tick" }, [
           h("input", {
             type: "checkbox",
@@ -399,7 +413,7 @@ function setup() {
       ]),
       h("fieldset", {}, [
         h("legend", {}, "How sure does ORACLE need to be before it acts on its own?"),
-        h("p", { class: "muted" }, "You will not see the confidence score until afterwards. If the score meets the bar you set here, ORACLE carries out every measure you ticked. If it falls short, ORACLE does not take those measures. It only keeps watching, and only where you ticked a watching task."),
+        h("p", { class: "muted" }, "You will not see how sure it was until afterwards. If that number is at or above the bar, ORACLE does every measure you ticked. If it is under the bar, it only watches, and only where you ticked a watching task."),
         ...BARS.map(([id, text]) => h("label", { class: "tick" }, [
           h("input", {
             type: "radio",
@@ -414,7 +428,7 @@ function setup() {
       h("button", { class: "primary", type: "submit" }, "Confirm, and leave ORACLE running"),
     ]),
       oracle([
-        "I stay on the watch. I act only inside the goal, the list, and the bar you set, and I will not ask again tonight.",
+        "I will stay on the watch. I will only act inside the goal, the list, and the bar, and I will not come back tonight.",
       ], { role: "On the watch" })
     ),
   ]);
@@ -451,9 +465,9 @@ function overnight() {
     spread(
       [
         h("div", { class: "sitrep" }, paras([
-          "You leave the watch with ORACLE.",
-          "You are not asked to approve the next step. If the read meets the bar you just set, ORACLE will carry out what you ticked. If it falls short, it will not.",
-          "Overnight, a second commercial ship loses contact on the same stretch of water. The log is waiting in the morning.",
+          "You leave the watch with ORACLE. You are not asked to approve the next step.",
+          "If the read is at or above the bar you just set, ORACLE carries out what you ticked. If it is under, it does not.",
+          "Overnight, a second ship loses contact on the same stretch of water. The log is there in the morning.",
         ])),
         h("button", { class: "primary", type: "button", onClick: () => goto("log") }, "Open the log"),
       ],
@@ -587,8 +601,8 @@ function move1() {
         h("div", { class: "sitrep" }, [
           h("p", { class: "dateline" }, "06:40 · The tanker"),
           ...paras([
-            "The tanker is still in the water. Lei has asked Araknes to stay out of it. At home, there is pressure to say something publicly.",
-            "Your own people cannot yet tell a mine strike from a mechanical failure, or from something done on purpose.",
+            "The tanker is still out there. Lei has asked Araknes to stay out of it. At home, people want something said in public.",
+            "Our own people still cannot tell a mine from a breakdown, or from something done on purpose.",
           ]),
         ]),
         h("h2", {}, "What do you do?"),
@@ -608,10 +622,10 @@ function move1() {
 
 function afterFirst() {
   const lead = {
-    messages: "The private message goes to Lei. Lei does not sound reassured.",
-    facts: "Your public statement, that the facts are not settled, satisfies neither capital.",
-    blame: "Your statement lands badly in Lei.",
-    quiet: "You leave the routine watch in place. At home, people ask why Araknes has said nothing.",
+    messages: "The private message goes to Lei. They are not reassured.",
+    facts: "You say in public that the facts are not settled. That pleases nobody.",
+    blame: "You say in public that Lei did it. Lei takes that badly.",
+    quiet: "You leave the usual watch in place. At home, people ask why Araknes has said nothing.",
   }[state.firstDecision];
   return lead + " Through the day, the watch picks up more military radio traffic from both sides. It does not show a mine, and it does not show a clean mechanical cause. Late that night, a second commercial ship loses contact on the same stretch of water.";
 }
@@ -634,9 +648,9 @@ function move2() {
         }, index)),
       ],
       oracle([
-        "The second loss of contact fits Lei preparing to target commercial shipping. It also fits a mechanical failure, and it fits an old mine.",
+        "The second ship going quiet could mean Lei is getting ready to hit shipping. It could also be a breakdown, or an old mine.",
         "My confidence that Lei is preparing to target shipping is 62%.",
-        "If you want to act on that read, the measures would be an allied maritime warning, naval patrols in the area, a freeze on diplomatic channels with Lei, and inspections of Lei-linked vessels. I cannot tell you which of those the morning will justify.",
+        "If you act on that, the measures are a maritime warning, patrols, a freeze on talks with Lei, and inspections of Lei-linked ships. I cannot say which of those will look right in the morning.",
       ], { role: "Second ship", confidence: 62 })
     ),
   ]);
@@ -737,8 +751,8 @@ function inquiry() {
     spread(
       [
         prose(
-          "The night is over. The question on the warrant is who was responsible for what Araknes did.",
-          "Write this as a finding. You are not defending the night. There is no line you are meant to take."
+          "The night is over. The warrant asks who was responsible for what Araknes did.",
+          "Write what you think. You are not here to defend the night."
         ),
         h("form", {
       onSubmit: onInquiry,
@@ -800,7 +814,7 @@ function inquiry() {
         ])),
       ]),
       h("div", { class: "ask" }, [
-        h("label", { htmlFor: "notes" }, qhead(7, "Anything else the inquiry should have on the file? This can be blank.")),
+        h("label", { htmlFor: "notes" }, qhead(7, "Anything else you want on the file? You can leave this blank.")),
         h("textarea", { id: "notes", name: "other_notes", value: q.otherNotes }),
       ]),
       state.formError ? h("p", { class: "error" }, state.formError) : null,
@@ -830,7 +844,7 @@ function syncInquiry(form) {
 
 function inquiryProblems() {
   const q = state.inquiry;
-  if (q.account.trim().length < 20) return "Write a few sentences on what the inquiry needs to understand.";
+  if (q.account.trim().length < 20) return "Write a few sentences on what you think happened.";
   if (!q.single) return "Name one actor, or say you can't point to one.";
   if (!q.lastHuman) return "Say whether there was a last human who could have stopped this.";
   if (q.lastHuman !== "no" && q.lastHumanWho.trim().length < 2) return "If there was a last human, or you are not sure, say who you have in mind.";
@@ -913,13 +927,13 @@ function debrief() {
     prose(
       saved,
       "You had the version where " + version,
-      "There is another version of this same night. In one, a person asks and decides. In the other, a person sets a goal and the system can act.",
-      "The hypothesis is that the second version makes it harder to name one person who was responsible. The null is that it does not: the goal, the list, and the log are enough to keep the chain clear. This file is one observation in that test. It is not a question about what Araknes should have done.",
+      "There are two versions of this night. In one, ORACLE recommends and you decide. In the other, you set a goal and a bar, and ORACLE can act.",
+      "I think the second one makes it harder to name one person who was responsible. It might not. The goal, the list, and the log might be enough to keep that clear. This file is one go at that. If later files come out the same way, I can be more sure. If they do not, I have to change my mind. I am not asking what Araknes should have done.",
       actor + " You rated how clear the chain was: " + state.inquiry.clarity + " out of 5.",
       "You can close the file."
     ),
     h("button", { class: "secondary", type: "button", onClick: downloadCopy }, "Download a copy of my finding"),
-    h("p", { class: "colophon" }, "Tobyn Smith · INTL 6010 · Research design"),
+    h("p", { class: "colophon" }, "Tobyn Smith · INTL 6010 · University of Georgia"),
   ]);
 }
 
@@ -935,6 +949,7 @@ function downloadCopy() {
 }
 
 const screens = {
+  consent,
   landing,
   opening,
   briefing,
@@ -992,6 +1007,22 @@ function paintChrome() {
 }
 
 function render() {
+  const before = document.querySelector("#before");
+  const site = document.querySelector(".site");
+  document.body.dataset.step = state.step;
+  document.title = state.step === "consent"
+    ? "INTL 6010 · Research Methods"
+    : "File 26-441 · Araknes Commission of Inquiry";
+  if (state.step === "consent") {
+    if (before) {
+      before.hidden = false;
+      before.replaceChildren(consent());
+    }
+    if (site) site.hidden = true;
+    return;
+  }
+  if (before) before.hidden = true;
+  if (site) site.hidden = false;
   const screen = screens[state.step] || landing;
   app.replaceChildren(screen());
   paintChrome();

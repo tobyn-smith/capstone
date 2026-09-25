@@ -102,6 +102,8 @@ The course is about asking a policy question with social science, not about stat
 
 That means the fundamentals on the syllabus have to show up in the design, not just in a paragraph I add later.
 
+The file runs in that order, and it does not announce the order. The two versions are the conjecture: advice, or a system that can act. What I expect, and the result that would weaken it, are not on the page until the finding is in. The night is the observation. The finding is where I see whether one actor can still be named. The last page says this file is one go, and that later files can make me more sure or make me change my mind. The page before the file only says it is for INTL 6010 at UGA, and that starting means I can save the answers. That page is not the commission. The banner, the flags, and the file open after they start.
+
 Concept formation. Two concepts. Autonomy is how far the system can choose and carry out a step without a person approving it. Accountability clarity is whether, afterwards, you can point to one actor who had the authority to prevent, approve, supervise, or explain the action. If I cannot say what those mean, I cannot measure them.
 
 Hypothesis construction. The sign comes from the theory. Matthias, Thompson, Moe, and the meaningful-control point all point the same way. Greater autonomy should make a single responsible actor harder to name. The null is the other result, and it has to be real: the goal, the pre-authorised list, and the log are enough, and clarity does not fall. McCubbins, Noll and Weingast is why the null is allowed to win.
@@ -111,6 +113,18 @@ Measurement. Autonomy is operationalised as which file a person gets. Advice, or
 Causal inference. The thing I am trying to isolate is the form of delegation, not how bad the morning was and not what people already think about a real country. The tanker, the second ship, the 62% read, the menu of measures, and the morning evidence are the same in both files. The countries are made up so a person's politics about a real adversary are not doing the work. What I cannot hold still is the harm. If someone never authorises the escalatory steps, the morning stays quiet, and accountability may feel clearer for that reason. Those files are marked, and I can look at them apart from the ones that escalate. Playing both versions would contaminate the second finding. Reading this note before playing would do the same, because they would know what I expect.
 
 Program evaluation is a later question. This design does not evaluate a real ministry's oversight programme. It asks whether the form of delegation changes what an inquiry can say. If that holds, a programme evaluation would be the next study: did a named supervisor, an audit rule, or a confidence bar, in an actual office, keep the chain clear. I should not pretend a fifteen-minute file is that.
+
+## Lines I still want in my own voice
+
+The pages are marked Draft, on the class page and in the footer of the file. I will come back and change the wording. The facts stay.
+
+The class page, before the commission, is `consent()` in `app/game.js`. That is the setup. About fifteen minutes is its own line. The agreement sentence is the consent, so the meaning of that one stays: by starting, I can save the choices and the inquiry answers.
+
+The question on the cover, the night, ORACLE's lines, the finding, and the last page are in the same file. Search for the sentence and change it there.
+
+The arms are `app/arms-araknes.svg`. Sand over brick, a pale lane, a ship. That is Araknes. Lei is still the green and slate flag, `app/flag-lei.svg`. The two flags stay on the party line. The arms sit in the banner, for the commission, not as a third country.
+
+Do not put what I expect, or the result that would weaken it, on the class page or in the night. That still waits until the finding is filed.
 
 ## The playable version
 
