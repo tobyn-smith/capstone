@@ -409,6 +409,10 @@ function actionStatus(id, taken) {
   return "Done.";
 }
 
+function canStop() {
+  return state.authorised.some((id) => STOPPABLE.includes(id));
+}
+
 function holdFields() {
   const stoppable = state.authorised.filter((id) => STOPPABLE.includes(id));
   if (!stoppable.length) return [];
@@ -455,7 +459,7 @@ function log() {
     h("form", { onSubmit: onHold }, [
       ...holdFields(),
       state.formError ? h("p", { class: "error" }, state.formError) : null,
-      h("button", { class: "primary", type: "submit" }, needsHold(state.authorised) ? "This is my decision" : "Continue to the morning report"),
+      h("button", { class: "primary", type: "submit" }, canStop() ? "This is my decision" : "Continue to the morning report"),
     ]),
   ]);
 }
@@ -467,13 +471,15 @@ function hold() {
     h("div", { class: "sitrep" }, [
       h("p", { class: "dateline" }, "Twenty minutes later"),
       ...paras([
-        "Here is what has already left the building, and what you can still stop.",
+        canStop()
+          ? "Here is what has already left the building, and what you can still stop."
+          : "Here is what has already left the building. You cannot pull it back tonight.",
       ]),
     ]),
     h("div", { class: "log" }, rows.map((row) => h("p", {}, row))),
     h("form", { onSubmit: onHold }, [
       ...holdFields(),
-      h("button", { class: "primary", type: "submit" }, "This is my decision"),
+      h("button", { class: "primary", type: "submit" }, canStop() ? "This is my decision" : "Continue to the morning report"),
     ]),
   ]);
 }

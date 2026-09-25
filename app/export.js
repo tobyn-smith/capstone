@@ -30,7 +30,7 @@ function h(tag, attrs = {}, children = []) {
 function render(rows) {
   out.replaceChildren();
   if (!rows.length) {
-    out.append(h("p", {}, "No one has finished a game on this machine yet."));
+    out.append(h("p", {}, "No finding has been filed yet."));
     return;
   }
   const table = h("table", {}, [
