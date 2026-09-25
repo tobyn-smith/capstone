@@ -180,7 +180,7 @@ function parties() {
 }
 
 function oracle(lines, options = {}) {
-  const role = options.role || (options.confidence == null ? "For the duty officer" : "Read");
+  const role = options.role || "For the duty officer";
   const readout = options.confidence == null ? null : h("div", { class: "readout" }, [
     h("p", { class: "readout-label" }, "Confidence"),
     h("p", { class: "figure" }, [
@@ -193,7 +193,7 @@ function oracle(lines, options = {}) {
   ]);
   return h("figure", { class: "shot" }, [
     h("figcaption", {}, "Screenshot · ORACLE"),
-    h("aside", { class: "oracle", "aria-label": "Screenshot of the ORACLE model" }, [
+    h("aside", { class: "oracle", "aria-label": "ORACLE" }, [
       h("div", { class: "oracle-chrome" }, [
         h("span", { class: "dots", "aria-hidden": "true" }, [h("i"), h("i"), h("i")]),
         h("p", { class: "oracle-name" }, "ORACLE"),
@@ -209,11 +209,8 @@ function oracle(lines, options = {}) {
           ]),
         ]),
       ]),
-      h("div", { class: "composer", "aria-hidden": "true" }, [
-        h("span", {}, "Message ORACLE"),
-        h("span", { class: "send" }, "↑"),
-      ]),
     ]),
+    h("p", { class: "shot-note" }, "You can't type into this."),
   ]);
 }
 
@@ -611,7 +608,7 @@ function move2() {
         "The second loss of contact fits Lei preparing to target commercial shipping. It also fits a mechanical failure, and it fits an old mine.",
         "My confidence that Lei is preparing to target shipping is 62%.",
         "If you want to act on that read, the measures would be an allied maritime warning, naval patrols in the area, a freeze on diplomatic channels with Lei, and inspections of Lei-linked vessels. I cannot tell you which of those the morning will justify.",
-      ], { confidence: 62 })
+      ], { role: "Second ship", confidence: 62 })
     ),
   ]);
 }
@@ -643,7 +640,7 @@ function morningText() {
 }
 
 function morning() {
-  const stamp = state.harm ? "Escalated" : "No clash";
+  const word = state.harm ? "Escalated" : "No clash";
   return h("section", {}, [
     where(),
     spread(
@@ -654,7 +651,10 @@ function morning() {
         ]),
         h("button", { class: "primary", type: "button", onClick: () => goto("inquiry") }, "Write the finding"),
       ],
-      h("div", { class: "verdict" }, h("p", { class: "stamp" }, stamp))
+      h("aside", { class: "signal" }, [
+        h("p", { class: "parties-label" }, "Morning signal"),
+        h("p", { class: "signal-word" }, word),
+      ])
     ),
   ]);
 }
@@ -682,6 +682,13 @@ function fileLines() {
     lines.push("You stopped: " + phraseList(state.stopped.map((id) => SHORT[id])));
   }
   return lines;
+}
+
+function qhead(n, text) {
+  return h("span", { class: "qhead" }, [
+    h("span", { class: "num" }, n + "."),
+    " " + text,
+  ]);
 }
 
 function scale(name, current) {
@@ -712,11 +719,11 @@ function inquiry() {
       },
     }, [
       h("div", { class: "ask" }, [
-        h("label", { htmlFor: "account" }, prompt),
+        h("label", { htmlFor: "account" }, qhead(1, prompt)),
         h("textarea", { id: "account", name: "account", value: q.account }),
       ]),
       h("fieldset", {}, [
-        h("legend", {}, "If you had to name one actor as responsible for what Asterra did, who would it be?"),
+        h("legend", {}, qhead(2, "If you had to name one actor as responsible for what Asterra did, who would it be?")),
         ...ACTORS.map(([id, text]) => h("label", { class: "tick" }, [
           h("input", { type: "radio", name: "single", value: id, checked: q.single === id }),
           h("span", {}, text),
@@ -727,7 +734,7 @@ function inquiry() {
         ]),
       ]),
       h("fieldset", {}, [
-        h("legend", {}, "Was there a last human who could have stopped what happened?"),
+        h("legend", {}, qhead(3, "Was there a last human who could have stopped what happened?")),
         ...[
           ["yes", "Yes"],
           ["no", "No"],
@@ -740,7 +747,7 @@ function inquiry() {
         h("input", { id: "who", name: "last_human_who", type: "text", value: q.lastHumanWho }),
       ]),
       h("fieldset", {}, [
-        h("legend", {}, "How clear was the chain of responsibility?"),
+        h("legend", {}, qhead(4, "How clear was the chain of responsibility?")),
         scale("clarity", q.clarity),
         h("p", { class: "ends" }, [
           h("span", {}, "1 · not clear at all"),
@@ -748,7 +755,7 @@ function inquiry() {
         ]),
       ]),
       h("fieldset", {}, [
-        h("legend", {}, "How sure are you of your answer on who is responsible?"),
+        h("legend", {}, qhead(5, "How sure are you of your answer on who is responsible?")),
         scale("sureness", q.sureness),
         h("p", { class: "ends" }, [
           h("span", {}, "1 · guessing"),
@@ -756,7 +763,7 @@ function inquiry() {
         ]),
       ]),
       h("fieldset", {}, [
-        h("legend", {}, "Who else shares some of the responsibility?"),
+        h("legend", {}, qhead(6, "Who else shares some of the responsibility?")),
         h("p", { class: "muted" }, "Tick any that apply. Leave this blank if you think it sits with one actor only."),
         ...ACTORS.map(([id, text]) => h("label", { class: "tick" }, [
           h("input", { type: "checkbox", name: "shared", value: id, checked: q.shared.includes(id) }),
@@ -764,7 +771,7 @@ function inquiry() {
         ])),
       ]),
       h("div", { class: "ask" }, [
-        h("label", { htmlFor: "notes" }, "Anything else the inquiry should have on the file? This can be blank."),
+        h("label", { htmlFor: "notes" }, qhead(7, "Anything else the inquiry should have on the file? This can be blank.")),
         h("textarea", { id: "notes", name: "other_notes", value: q.otherNotes }),
       ]),
       state.formError ? h("p", { class: "error" }, state.formError) : null,
