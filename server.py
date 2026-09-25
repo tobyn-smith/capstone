@@ -276,9 +276,20 @@ def main():
     import os
 
     port = int(os.environ.get("PORT", "8000"))
-    print("Open http://127.0.0.1:%s" % port)
-    print("Export page: http://127.0.0.1:%s/export" % port)
-    print("Export passphrase: %s" % passphrase())
+    code = passphrase()
+    def say(line=""):
+        print(line, flush=True)
+
+    say("")
+    say("The wargame is running. Leave this window open.")
+    say("")
+    say("  Play:    http://127.0.0.1:%s" % port)
+    say("  Answers: http://127.0.0.1:%s/export" % port)
+    say("  Passphrase for the answers page: %s" % code)
+    say("")
+    say("That address only works on this computer.")
+    say("Press Ctrl-C here when you want to stop.")
+    say("")
     server = ThreadingHTTPServer(("0.0.0.0", port), Handler)
     server.serve_forever()
 
