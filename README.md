@@ -108,7 +108,7 @@ Open Chrome, Safari, or Firefox and paste this into the address bar:
 
 http://127.0.0.1:8000
 
-Click Open the file. That is the wargame. It takes about fifteen minutes.
+The first page says this is for INTL 6010 at UGA. Starting means the answers can be saved. Then click Open the file. That is the wargame. It takes about fifteen minutes.
 
 `127.0.0.1` means this computer. The link will not open on someone else's laptop.
 

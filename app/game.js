@@ -68,7 +68,7 @@ let state = blank();
 
 function blank() {
   return {
-    step: "landing",
+    step: "consent",
     sessionId: null,
     participantCode: "",
     condition: null,
@@ -239,6 +239,20 @@ function situation() {
   ];
 }
 
+function consent() {
+  return h("section", { class: "column" }, [
+    h("p", { class: "dateline" }, "University of Georgia"),
+    h("h1", { class: "question" }, "INTL 6010, Research Methods"),
+    prose(
+      "I am Tobyn Smith. This is for my research methods class.",
+      "You go through one night, and then you write what you think. About fifteen minutes.",
+      "By starting, you agree that I can save your choices and your inquiry answers for this project.",
+      "Do not use your real name."
+    ),
+    h("button", { class: "primary", type: "button", onClick: () => goto("landing") }, "Start"),
+  ]);
+}
+
 function landing() {
   const saved = loadSaved();
   const resume = saved && saved.sessionId && saved.step && saved.step !== "landing" && saved.step !== "debrief";
@@ -279,7 +293,7 @@ function landing() {
             h("label", { htmlFor: "code" }, "Participant code, if you were given one"),
             h("input", { id: "code", name: "code", type: "text", autocomplete: "off", maxlength: "40" }),
           ]),
-          h("p", { class: "muted" }, "By starting, you agree I can save your choices and your inquiry answers for this project. Leave the code blank if you were not given one. Do not use your real name."),
+          h("p", { class: "muted" }, "Leave the code blank if you were not given one. Do not use your real name."),
           state.formError ? h("p", { class: "error" }, state.formError) : null,
           h("button", { class: "primary", type: "submit" }, "Open the file"),
         ]),
@@ -910,12 +924,12 @@ function debrief() {
       saved,
       "You had the version where " + version,
       "There are two versions of this night. In one, ORACLE recommends and you decide. In the other, you set a goal and a bar, and ORACLE can act.",
-      "I think the second one makes it harder to name one person who was responsible. It might not. The goal, the list, and the log might be enough to keep that clear. This file is one go at that. I am not asking what Araknes should have done.",
+      "I think the second one makes it harder to name one person who was responsible. It might not. The goal, the list, and the log might be enough to keep that clear. This file is one go at that. If later files come out the same way, I can be more sure. If they do not, I have to change my mind. I am not asking what Araknes should have done.",
       actor + " You rated how clear the chain was: " + state.inquiry.clarity + " out of 5.",
       "You can close the file."
     ),
     h("button", { class: "secondary", type: "button", onClick: downloadCopy }, "Download a copy of my finding"),
-    h("p", { class: "colophon" }, "Tobyn Smith · INTL 6010 · Research design"),
+    h("p", { class: "colophon" }, "Tobyn Smith · INTL 6010 · University of Georgia"),
   ]);
 }
 
@@ -931,6 +945,7 @@ function downloadCopy() {
 }
 
 const screens = {
+  consent,
   landing,
   opening,
   briefing,
@@ -946,6 +961,7 @@ const screens = {
 };
 
 const RAIL = [
+  ["Class", ["consent"]],
   ["Terms", ["landing", "opening", "briefing"]],
   ["Record", ["setup", "move1", "move2", "overnight", "log", "hold"]],
   ["Morning", ["morning"]],
@@ -953,6 +969,7 @@ const RAIL = [
 ];
 
 const MAST = {
+  consent: ["INTL 6010", "Before you start"],
   landing: ["Terms of reference", "Opened"],
   opening: ["The record", "Opening"],
   briefing: ["Warrant", "06:10"],
