@@ -118,7 +118,7 @@ Program evaluation is a later question. This design does not evaluate a real min
 
 The pages are marked Draft, on the class page and in the footer of the file. I will come back and change the wording. The facts stay.
 
-The class page, before the commission, is `consent()` in `app/game.js`. That is the setup. About fifteen minutes is its own line. The agreement sentence is the consent, so the meaning of that one stays: by starting, I can save the choices and the inquiry answers.
+The class page, before the commission, is `consent()` in `app/game.js`. That is the setup. It says the project is mine, that it takes about fifteen minutes, and that clicking Start means I can save the choices and the inquiry answers. It also asks them not to use a real name, and gives tobynsmith@uga.edu for questions.
 
 That page follows the University of Georgia visual style: Arch Black, Bulldog Red, and Chapel Bell White, with Creamery behind the sheet. Oswald for the heading, Merriweather for the sentences, Merriweather Sans for the small lines. The mark at the top is the official logo, `app/uga-logo.png`, not a wordmark I set myself. Those rules live on `.welcome` and `.before` in `app/styles.css`. The commission keeps its own header.
 

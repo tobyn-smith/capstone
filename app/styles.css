@@ -126,7 +126,7 @@ body {
 }
 
 .welcome .question {
-  margin: 0 0 1.15rem;
+  margin: 0 0 0.45rem;
   max-width: 12em;
   color: #000;
   font-family: Oswald, sans-serif;
@@ -136,12 +136,32 @@ body {
   line-height: 1.05;
 }
 
+.welcome .byline {
+  margin: 0 0 1.25rem;
+  color: #000;
+  font-family: Merriweather, Georgia, serif;
+  font-size: 1.2rem;
+  line-height: 1.4;
+}
+
 .welcome .prose p {
   color: #000;
   font-family: Merriweather, Georgia, serif;
   font-size: 1.05rem;
   font-weight: 400;
   line-height: 1.65;
+}
+
+.welcome .reach {
+  margin: 0.2rem 0 0;
+  color: #000;
+  font-family: Merriweather, Georgia, serif;
+  font-size: 1.05rem;
+  line-height: 1.65;
+}
+
+.welcome a {
+  color: #ba0c2f;
 }
 
 .welcome .minutes {
