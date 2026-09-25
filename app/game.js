@@ -153,7 +153,10 @@ function save() {
   sessionStorage.setItem(STORAGE, JSON.stringify(state));
 }
 
+let openTimer = 0;
+
 function goto(step) {
+  window.clearTimeout(openTimer);
   state.step = step;
   state.formError = "";
   save();
@@ -306,11 +309,37 @@ async function onBegin(event) {
     state.forced = Boolean(data.forced_condition);
     state.startedAt = data.started_at;
     state.participantCode = code || data.session_id;
-    goto("briefing");
+    goto("opening");
   } catch {
     state.formError = "The file did not open. Use the address from the server window, then try again.";
     render();
   }
+}
+
+function opening() {
+  window.clearTimeout(openTimer);
+  openTimer = window.setTimeout(() => {
+    if (state.step === "opening") goto("briefing");
+  }, 4200);
+  return h("section", { class: "opening" }, [
+    h("p", { class: "opening-kicker" }, "The record"),
+    h("h1", { class: "opening-file" }, "File 26-441"),
+    h("ul", { class: "opening-parties", "aria-label": "The parties" }, [
+      h("li", {}, [flag("araknes"), h("span", {}, "Araknes")]),
+      h("li", { class: "opening-rule", "aria-hidden": "true" }),
+      h("li", {}, [flag("lei"), h("span", {}, "Lei")]),
+    ]),
+    h("ul", { class: "opening-lines" }, [
+      h("li", {}, "Opened for the Commission of Inquiry."),
+      h("li", {}, "The parties are Araknes and Lei."),
+      h("li", {}, "One night. A tanker on the route between them."),
+    ]),
+    h("button", {
+      class: "primary",
+      type: "button",
+      onClick: () => goto("briefing"),
+    }, "Open the warrant"),
+  ]);
 }
 
 function briefing() {
@@ -907,6 +936,7 @@ function downloadCopy() {
 
 const screens = {
   landing,
+  opening,
   briefing,
   setup,
   move1,
@@ -920,7 +950,7 @@ const screens = {
 };
 
 const RAIL = [
-  ["Terms", ["landing", "briefing"]],
+  ["Terms", ["landing", "opening", "briefing"]],
   ["Record", ["setup", "move1", "move2", "overnight", "log", "hold"]],
   ["Morning", ["morning"]],
   ["Finding", ["inquiry", "debrief"]],
@@ -928,6 +958,7 @@ const RAIL = [
 
 const MAST = {
   landing: ["Terms of reference", "Opened"],
+  opening: ["The record", "Opening"],
   briefing: ["Warrant", "06:10"],
   setup: ["Delegation", "18:00"],
   move1: ["Cable", "06:40"],
