@@ -242,14 +242,16 @@ function situation() {
 // Draft voice. Rewrite these sentences in consent() when you want them to sound like you.
 // Keep the agreement sentence. It is the consent. "About fifteen minutes." stays on its own line.
 function consent() {
-  return h("section", { class: "column" }, [
+  return h("section", { class: "welcome" }, [
     h("p", { class: "draft-mark" }, "Draft"),
     h("p", { class: "dateline" }, "University of Georgia"),
     h("h1", { class: "question" }, "INTL 6010, Research Methods"),
     prose(
       "I'm Tobyn Smith. This is for my research methods class.",
-      "You'll sit one night, then write what you make of it.",
-      "About fifteen minutes.",
+      "You'll sit one night, then write what you make of it."
+    ),
+    h("p", { class: "minutes" }, "About fifteen minutes."),
+    prose(
       "By starting, you agree that I can save your choices and your inquiry answers for this project.",
       "Don't use your real name."
     ),
@@ -260,15 +262,12 @@ function consent() {
 function landing() {
   const saved = loadSaved();
   const resume = saved && saved.sessionId && saved.step && saved.step !== "landing" && saved.step !== "debrief";
-  return h("section", {}, [
-    where(),
-    spread(
-      [
-        h("h1", { class: "question" }, "Who was responsible for what Araknes did after a tanker was damaged on the route with Lei?"),
-        prose(
-          "You sit the night as it happened. Afterwards you write what you think.",
-          "Araknes and Lei aren't real."
-        ),
+  return h("section", { class: "cover" }, [
+    h("h1", { class: "question" }, "Who was responsible for what Araknes did after a tanker was damaged on the route with Lei?"),
+    prose(
+      "You sit the night as it happened. Afterwards you write what you think.",
+      "Araknes and Lei aren't real."
+    ),
         resume
           ? h("div", {}, [
               h("p", {}, "This browser already has a file open."),
@@ -301,9 +300,6 @@ function landing() {
           state.formError ? h("p", { class: "error" }, state.formError) : null,
           h("button", { class: "primary", type: "submit" }, "Open the file"),
         ]),
-      ],
-      parties()
-    ),
   ]);
 }
 
