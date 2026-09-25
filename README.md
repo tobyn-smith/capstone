@@ -1,23 +1,70 @@
 # Who answers when it goes wrong?
 
-Scenario wargame for my MIP capstone. The other file, `who-answers-when-it-goes-wrong.md`, is the thinking. This file is how to get the game on screen.
+Scenario wargame for my MIP capstone. The other file, `who-answers-when-it-goes-wrong.md`, is the thinking. This file is how to get the game onto your computer and onto the screen.
 
-Do not double-click `index.html`. That opens the pages with nothing behind them, and the answers will not save. Start it the way below, then use the browser address.
+Do not double-click `index.html`. That opens the pages with nothing behind them, and the answers will not save. Download the folder, start `server.py`, then use the browser address.
+
+## What needs to be installed
+
+Two things.
+
+1. A normal web browser. Chrome, Safari, Firefox, or Edge. You already have one.
+2. Python 3. Nothing else. There is no `pip install`. There is no Node. Git is optional. You only need Git if you want to clone the repository instead of downloading the zip.
+
+Check whether Python is already there.
+
+On a Mac, open Terminal and type:
+
+```bash
+python3 --version
+```
+
+On Windows, open Command Prompt and type:
+
+```bash
+py --version
+```
+
+If you see something like `Python 3.12.3`, you are done. If the computer says it cannot find Python, install it from https://www.python.org/downloads/ and take the latest Python 3. On Windows, on the first screen of the installer, tick **Add python.exe to PATH**, then click Install Now. Close the terminal, open it again, and run the version command once more.
+
+## Download it from GitHub
+
+The page is https://github.com/tobyn-smith/capstone
+
+You do not need an account to download it.
+
+1. Open that page in your browser.
+2. Click the green **Code** button.
+3. Click **Download ZIP**.
+4. The file lands in Downloads. It is called `capstone-main.zip`.
+5. Double-click the zip to unzip it.
+6. You now have a folder called `capstone-main`. Open it. You should see `server.py` in there. That is the right folder.
+
+Direct link to the same zip, if the Code button is fiddly: https://github.com/tobyn-smith/capstone/archive/refs/heads/main.zip
+
+The other way, if you already use Git:
+
+```bash
+git clone https://github.com/tobyn-smith/capstone.git
+cd capstone
+```
+
+Either way you end up with a folder that contains `server.py`. The steps below assume the zip, so the folder is called `capstone-main`. If you used Git, the folder is called `capstone` instead.
 
 ## On your own computer
 
-You need this folder on your machine. It has to be the folder that contains `server.py`. You also need Python, which is already on most Macs.
+You have to be inside the folder that contains `server.py`.
 
 **Mac**
 
 1. Open Terminal.
-2. Go into the folder. If the folder is in Downloads, it looks like this:
+2. Go into the unzipped folder. If it is still in Downloads, it looks like this:
 
 ```bash
-cd ~/Downloads/capstone
+cd ~/Downloads/capstone-main
 ```
 
-If you cloned it somewhere else, use that path instead. Check you are in the right place:
+If you used Git, the folder is `capstone`, not `capstone-main`. Check you are in the right place:
 
 ```bash
 ls server.py
