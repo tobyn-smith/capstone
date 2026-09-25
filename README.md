@@ -110,9 +110,45 @@ http://127.0.0.1:8000
 
 Click Begin. That is the wargame. It takes about fifteen minutes.
 
-`127.0.0.1` means this computer. The link will not open on someone else's laptop. For now, play it on the machine where you started it. If you want other people to play from their own computers, the game has to be put somewhere they can reach. I have not done that yet.
+`127.0.0.1` means this computer. The link will not open on someone else's laptop.
 
 To stop it, click the terminal window and press Ctrl-C.
+
+## Letting the class play
+
+Campus Wi-Fi will usually not let a classmate open your laptop by its own address. For INTL 6010, keep the game running on your laptop and hand the seminar a temporary public link. The findings still save in the `data` folder on your machine. Your laptop has to stay awake, and both windows below have to stay open, until everyone has finished.
+
+1. Start the game, and leave that window open.
+
+```bash
+python3 server.py
+```
+
+2. Install Cloudflare's tunnel program once, if you do not already have it. On a Mac with Homebrew:
+
+```bash
+brew install cloudflared
+```
+
+Otherwise download it from https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
+
+3. Open a second terminal and run:
+
+```bash
+cloudflared tunnel --url http://127.0.0.1:8000
+```
+
+4. That window prints an `https://` address ending in `trycloudflare.com`. Send that address to the class. That is the play link.
+
+Do not add `/export` to the link. Do not send the passphrase. Do not send the GitHub page. The note in the repository says what the design is testing, and people should not read that before they write a finding.
+
+5. Tell them it takes about fifteen minutes, and to go through it once. A second time through is a different observation, because they already know the question.
+
+6. When the room is done, press Ctrl-C in both windows. On your laptop, open http://127.0.0.1:8000/export and use the passphrase the first window printed.
+
+If Cloudflare is blocked, the same idea works with ngrok: `ngrok http 8000`, then send the https address it prints. Same rule. Laptop stays open. Answers stay on the laptop.
+
+A free website host is a poor fit for the game as it is written. Those hosts forget the `data` folder when they restart, so the findings disappear. If the link has to stay up for several days, the findings need to go to a Google Sheet instead of a file on one computer.
 
 ## Reading the answers
 
