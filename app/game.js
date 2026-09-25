@@ -181,25 +181,40 @@ function parties() {
 
 function oracle(lines, options = {}) {
   const role = options.role || (options.confidence == null ? "For the duty officer" : "Read");
-  const bits = [
-    h("div", { class: "oracle-top" }, [
-      h("p", { class: "oracle-name" }, "ORACLE"),
-      h("p", { class: "oracle-role" }, role),
+  const readout = options.confidence == null ? null : h("div", { class: "readout" }, [
+    h("p", { class: "readout-label" }, "Confidence"),
+    h("p", { class: "figure" }, [
+      String(options.confidence),
+      h("span", { class: "unit" }, "%"),
     ]),
-  ];
-  if (options.confidence != null) {
-    bits.push(h("div", { class: "readout" }, [
-      h("p", { class: "figure" }, [
-        String(options.confidence),
-        h("span", { class: "unit" }, "%"),
+    h("div", { class: "meter" }, [
+      h("span", { style: "--fill:" + options.confidence + "%" }),
+    ]),
+  ]);
+  return h("figure", { class: "shot" }, [
+    h("figcaption", {}, "Screenshot · ORACLE"),
+    h("aside", { class: "oracle", "aria-label": "Screenshot of the ORACLE model" }, [
+      h("div", { class: "oracle-chrome" }, [
+        h("span", { class: "dots", "aria-hidden": "true" }, [h("i"), h("i"), h("i")]),
+        h("p", { class: "oracle-name" }, "ORACLE"),
+        h("p", { class: "oracle-role" }, role),
       ]),
-      h("div", { class: "meter" }, [
-        h("span", { style: "--fill:" + options.confidence + "%" }),
+      h("div", { class: "oracle-body" }, [
+        h("div", { class: "turn" }, [
+          h("span", { class: "mark", "aria-hidden": "true" }),
+          h("div", { class: "turn-copy" }, [
+            h("p", { class: "model-name" }, "ORACLE"),
+            h("div", { class: "model-out" }, paras(lines)),
+            readout,
+          ]),
+        ]),
       ]),
-    ]));
-  }
-  bits.push(...paras(lines));
-  return h("aside", { class: "oracle" }, bits);
+      h("div", { class: "composer", "aria-hidden": "true" }, [
+        h("span", {}, "Message ORACLE"),
+        h("span", { class: "send" }, "↑"),
+      ]),
+    ]),
+  ]);
 }
 
 function spread(main, side) {

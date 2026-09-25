@@ -265,7 +265,6 @@ body {
 }
 
 .spread-side .parties,
-.spread-side .oracle,
 .spread-side .log,
 .spread-side .file,
 .spread-side .verdict {
@@ -295,13 +294,44 @@ body {
   height: 3.05rem;
 }
 
-.spread-side .oracle,
 .spread-side .log,
 .spread-side .file {
   margin: 0;
 }
 
-.spread-side .figure { font-size: 3.2rem; }
+.oracle .readout {
+  display: block;
+  margin: 0.75rem 0 0.15rem;
+}
+
+.oracle .readout-label {
+  margin: 0 0 0.2rem;
+  color: #9aa3ad;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.oracle .figure {
+  color: #f3efe6;
+  font-size: 2.35rem;
+}
+
+.oracle .figure .unit { color: #d9c7a2; }
+
+.oracle .meter {
+  height: 6px;
+  margin: 0.45rem 0 0.15rem;
+  background: #2c3138;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.oracle .meter span {
+  background: #d9c7a2;
+  border-radius: 99px;
+}
 
 .verdict { padding-top: 0.35rem; }
 
@@ -344,55 +374,142 @@ body {
   height: 2.4rem;
 }
 
-.oracle {
-  margin: 1.15rem 0 1.25rem;
-  padding: 0.95rem 1.05rem 0.35rem;
-  background: #f7f9fb;
-  color: var(--ink);
-  border: 1px solid #cfd6de;
-  border-top: 4px solid var(--navy);
-  box-shadow: none;
+.shot {
+  margin: 0;
 }
 
-.oracle-top {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 1rem;
-  margin-bottom: 0.55rem;
+.shot figcaption {
+  margin: 0 0 0.45rem;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
+
+.spread-side .shot { margin: 0; }
+
+.oracle,
+.spread-side .oracle {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: #17191e;
+  color: #eceae4;
+  border: 1px solid #2a2e35;
+  border-radius: 12px;
+  box-shadow: 0 16px 36px rgba(16, 22, 32, 0.18);
+}
+
+.oracle-chrome {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.55rem 0.75rem;
+  background: #22262d;
+  border-bottom: 1px solid #32373f;
+}
+
+.dots {
+  display: flex;
+  gap: 0.28rem;
+}
+
+.dots i {
+  display: block;
+  width: 0.42rem;
+  height: 0.42rem;
+  border-radius: 50%;
+  background: #5c6570;
+}
+
+.dots i:first-child { background: #8d6a62; }
+.dots i:nth-child(2) { background: #8a7a58; }
+.dots i:nth-child(3) { background: #5d7364; }
 
 .oracle-name,
 .oracle-role { margin: 0; }
 
 .oracle-name {
-  color: var(--navy);
+  color: #f3efe6;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+
+.oracle-role {
+  margin-left: auto;
+  padding: 0.12rem 0.45rem;
+  color: #d9c7a2;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: #2c3138;
+  border-radius: 99px;
+}
+
+.oracle-body { padding: 0.85rem 0.8rem 0.35rem; }
+
+.turn {
+  display: grid;
+  grid-template-columns: 1.45rem minmax(0, 1fr);
+  gap: 0.6rem;
+  align-items: start;
+}
+
+.mark {
+  width: 1.45rem;
+  height: 1.45rem;
+  margin-top: 0.05rem;
+  border-radius: 5px;
+  background:
+    linear-gradient(#14324c, #14324c) 0.28rem 0.72rem / 0.9rem 0.28rem no-repeat,
+    #f3efe6;
+}
+
+.model-name {
+  margin: 0 0 0.35rem;
+  color: #f3efe6;
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.14em;
 }
 
-.oracle-name::before {
-  content: "";
-  display: inline-block;
-  width: 0.45rem;
-  height: 0.45rem;
-  margin-right: 0.45rem;
-  background: var(--navy);
-  vertical-align: 0.05rem;
-}
-
-.oracle-role {
-  color: #3e4c59;
-  font-size: 0.92rem;
-  font-weight: 600;
-}
-
-.oracle > p {
-  color: var(--ink);
+.model-out p {
+  margin: 0 0 0.55rem;
+  color: #eceae4;
   font-family: "Source Sans 3", sans-serif;
-  font-size: 1.05rem;
+  font-size: 1.02rem;
   line-height: 1.5;
+}
+
+.model-out p:last-child { margin-bottom: 0; }
+
+.composer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin: 0.35rem 0.7rem 0.7rem;
+  padding: 0.42rem 0.42rem 0.42rem 0.75rem;
+  color: #8b939e;
+  font-size: 0.88rem;
+  background: #12141a;
+  border: 1px solid #32373f;
+  border-radius: 999px;
+}
+
+.send {
+  display: grid;
+  place-items: center;
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 50%;
+  background: #2c3138;
+  color: #d9c7a2;
+  font-size: 0.8rem;
+  line-height: 1;
 }
 
 .readout {
