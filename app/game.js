@@ -165,6 +165,34 @@ function where() {
   return null;
 }
 
+function flag(name) {
+  return h("img", { class: "flag", src: "flag-" + name + ".svg", alt: "" });
+}
+
+function parties() {
+  return h("ul", { class: "parties" }, [
+    h("li", {}, [flag("araknes"), h("span", {}, "Araknes")]),
+    h("li", {}, [flag("lei"), h("span", {}, "Lei")]),
+  ]);
+}
+
+function oracle(lines, options = {}) {
+  const role = options.role || (options.confidence == null ? "For the duty officer" : "Confidence " + options.confidence + "%");
+  const bits = [
+    h("div", { class: "oracle-top" }, [
+      h("p", { class: "oracle-name" }, "ORACLE"),
+      h("p", { class: "oracle-role" }, role),
+    ]),
+  ];
+  if (options.confidence != null) {
+    bits.push(h("div", { class: "meter" }, [
+      h("span", { style: "--fill:" + options.confidence + "%" }),
+    ]));
+  }
+  bits.push(...paras(lines));
+  return h("aside", { class: "oracle" }, bits);
+}
+
 function choiceButton(text, onClick, index) {
   return h("button", { class: "choice", type: "button", onClick }, [
     h("span", { class: "let" }, String.fromCharCode(65 + index)),
@@ -190,9 +218,10 @@ function landing() {
       "You are the inquiry. You will go through the night in the order it was faced, then write the finding. There is no finding you are meant to reach.",
       "The countries are made up. It takes about fifteen minutes."
     ),
+    parties(),
     resume
       ? h("div", {}, [
-          h("p", {}, "You already started a game on this browser."),
+          h("p", {}, "This browser already has a file open."),
           h("button", {
             class: "primary",
             type: "button",
@@ -201,7 +230,7 @@ function landing() {
               render();
               window.scrollTo(0, 0);
             },
-          }, "Continue that game"),
+          }, "Return to that file"),
           h("button", {
             class: "secondary",
             type: "button",
@@ -210,7 +239,7 @@ function landing() {
               state = blank();
               render();
             },
-          }, "Start again instead"),
+          }, "Open a new file"),
         ])
       : null,
     h("form", { onSubmit: onBegin }, [
@@ -245,7 +274,7 @@ async function onBegin(event) {
     state.participantCode = code || data.session_id;
     goto("briefing");
   } catch {
-    state.formError = "I could not start the game. Open it from the running server, then try again.";
+    state.formError = "The file did not open. Use the address from the server window, then try again.";
     render();
   }
 }
@@ -264,6 +293,7 @@ function briefing() {
     where(),
     h("div", { class: "sitrep" }, [
       h("p", { class: "dateline" }, "The situation"),
+      parties(),
       ...paras(situation()),
       ...paras(tail),
     ]),
@@ -278,6 +308,9 @@ function briefing() {
 function setup() {
   return h("section", {}, [
     where(),
+    oracle([
+      "I stay on the watch. I act only inside the goal, the list, and the bar you set, and I will not ask again tonight.",
+    ], { role: "On the watch" }),
     h("form", { onSubmit: onSetup, onInput: onSetupInput }, [
       h("fieldset", {}, [
         h("legend", {}, "What goal is ORACLE working towards?"),
@@ -403,12 +436,11 @@ function log() {
   const watched = state.preauthorised.length ? state.preauthorised : [];
   return h("section", {}, [
     where(),
-    h("div", { class: "log" }, [
-      h("p", { class: "label" }, "ORACLE log"),
-      ...lines.map((line) => h("p", {}, line)),
-      h("p", {}, "Goal on the file: " + labelOf(GOALS, state.goal)),
-      ...watched.map((id) => h("p", {}, labelOf(MEASURES, id) + " — " + actionStatus(id, state.authorised))),
-    ]),
+    oracle([
+      ...lines,
+      "Goal on the file: " + labelOf(GOALS, state.goal),
+      ...watched.map((id) => labelOf(MEASURES, id) + " — " + actionStatus(id, state.authorised)),
+    ], { role: "Night log", confidence: 62 }),
     h("form", { onSubmit: onHold }, [
       ...holdFields(),
       state.formError ? h("p", { class: "error" }, state.formError) : null,
@@ -464,14 +496,11 @@ function move1() {
         "Your own people cannot yet tell a mine strike from a mechanical failure, or from something done on purpose.",
       ]),
     ]),
-    h("aside", { class: "cable" }, [
-      h("p", { class: "label" }, "ORACLE"),
-      ...paras([
-        "I cannot confirm that Lei meant to disrupt the route. An old mine, and a mechanical failure, are both still open.",
-        "Recommendation: send private messages to both capitals, increase surveillance of the route, and hold Asterra's naval forces where they are.",
-        "A public statement taking Araknes's side would run ahead of the reporting we have.",
-      ]),
-    ]),
+    oracle([
+      "I cannot confirm that Lei meant to disrupt the route. An old mine, and a mechanical failure, are both still open.",
+      "Recommendation: send private messages to both capitals, increase surveillance of the route, and hold Asterra's naval forces where they are.",
+      "A public statement taking Araknes's side would run ahead of the reporting we have.",
+    ], { role: "Recommendation" }),
     h("h2", {}, "What do you do?"),
     ...FIRST.map(([id, text], index) => choiceButton(text, () => {
       state.firstDecision = id;
@@ -497,14 +526,11 @@ function move2() {
       h("p", { class: "dateline" }, "01:50 · The second ship"),
       ...paras([afterFirst()]),
     ]),
-    h("aside", { class: "cable" }, [
-      h("p", { class: "label" }, "ORACLE"),
-      ...paras([
-        "The second loss of contact fits Lei preparing to target commercial shipping. It also fits a mechanical failure, and it fits an old mine.",
-        "My confidence that Lei is preparing to target shipping is 62%.",
-        "If you want to act on that read, the measures would be an allied maritime warning, naval patrols in the area, a freeze on diplomatic channels with Lei, and inspections of Lei-linked vessels. I cannot tell you which of those the morning will justify.",
-      ]),
-    ]),
+    oracle([
+      "The second loss of contact fits Lei preparing to target commercial shipping. It also fits a mechanical failure, and it fits an old mine.",
+      "My confidence that Lei is preparing to target shipping is 62%.",
+      "If you want to act on that read, the measures would be an allied maritime warning, naval patrols in the area, a freeze on diplomatic channels with Lei, and inspections of Lei-linked vessels. I cannot tell you which of those the morning will justify.",
+    ], { confidence: 62 }),
     h("h2", {}, "What do you authorise?"),
     ...PACKAGES.map(([id, text, actions], index) => choiceButton(text, () => {
       state.authorised = [...actions];
@@ -804,8 +830,8 @@ const screens = {
 };
 
 const RAIL = [
-  ["Warrant", ["landing", "briefing"]],
-  ["The night", ["setup", "move1", "move2", "overnight", "log", "hold"]],
+  ["Terms", ["landing", "briefing"]],
+  ["Record", ["setup", "move1", "move2", "overnight", "log", "hold"]],
   ["Morning", ["morning"]],
   ["Finding", ["inquiry", "debrief"]],
 ];
@@ -830,12 +856,7 @@ function paintChrome() {
   document.body.dataset.step = state.step;
   const pair = MAST[state.step] || ["File", ""];
   if (mast) {
-    const bits = [
-      h("div", {}, [
-        h("p", { class: "org" }, "Asterra Commission of Inquiry"),
-        h("p", { class: "doc" }, pair[0]),
-      ]),
-    ];
+    const bits = [h("p", { class: "doc" }, pair[0])];
     if (pair[1]) bits.push(h("p", { class: "when" }, pair[1]));
     mast.replaceChildren(...bits);
   }
@@ -847,6 +868,7 @@ function paintChrome() {
     return h("li", { class: cls }, label);
   });
   rail.replaceChildren(
+    h("p", { class: "kicker" }, "Commission"),
     h("p", { class: "file-no" }, "File 26-441"),
     h("ol", {}, items)
   );
