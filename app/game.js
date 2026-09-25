@@ -170,14 +170,17 @@ function flag(name) {
 }
 
 function parties() {
-  return h("ul", { class: "parties" }, [
-    h("li", {}, [flag("araknes"), h("span", {}, "Araknes")]),
-    h("li", {}, [flag("lei"), h("span", {}, "Lei")]),
+  return h("section", { class: "parties", "aria-label": "The parties" }, [
+    h("p", { class: "parties-label" }, "The parties"),
+    h("ul", {}, [
+      h("li", {}, [flag("araknes"), h("span", {}, "Araknes")]),
+      h("li", {}, [flag("lei"), h("span", {}, "Lei")]),
+    ]),
   ]);
 }
 
 function oracle(lines, options = {}) {
-  const role = options.role || (options.confidence == null ? "For the duty officer" : "Confidence " + options.confidence + "%");
+  const role = options.role || (options.confidence == null ? "For the duty officer" : "Read");
   const bits = [
     h("div", { class: "oracle-top" }, [
       h("p", { class: "oracle-name" }, "ORACLE"),
@@ -185,8 +188,14 @@ function oracle(lines, options = {}) {
     ]),
   ];
   if (options.confidence != null) {
-    bits.push(h("div", { class: "meter" }, [
-      h("span", { style: "--fill:" + options.confidence + "%" }),
+    bits.push(h("div", { class: "readout" }, [
+      h("p", { class: "figure" }, [
+        String(options.confidence),
+        h("span", { class: "unit" }, "%"),
+      ]),
+      h("div", { class: "meter" }, [
+        h("span", { style: "--fill:" + options.confidence + "%" }),
+      ]),
     ]));
   }
   bits.push(...paras(lines));
@@ -213,8 +222,8 @@ function landing() {
   const resume = saved && saved.sessionId && saved.step && saved.step !== "landing" && saved.step !== "debrief";
   return h("section", {}, [
     where(),
+    h("h1", { class: "question" }, "Who was responsible for what Asterra did after a tanker was damaged on the route between Araknes and Lei?"),
     prose(
-      "Who was responsible for what Asterra did after a tanker was damaged on the route between Araknes and Lei?",
       "You are the inquiry. You will go through the night in the order it was faced, then write the finding. There is no finding you are meant to reach.",
       "The countries are made up. It takes about fifteen minutes."
     ),
@@ -242,9 +251,11 @@ function landing() {
           }, "Open a new file"),
         ])
       : null,
-    h("form", { onSubmit: onBegin }, [
-      h("label", { htmlFor: "code" }, "Participant code, if you were given one"),
-      h("p", {}, h("input", { id: "code", name: "code", type: "text", autocomplete: "off", maxlength: "40" })),
+    h("form", { class: "open", onSubmit: onBegin }, [
+      h("div", { class: "field" }, [
+        h("label", { htmlFor: "code" }, "Participant code, if you were given one"),
+        h("input", { id: "code", name: "code", type: "text", autocomplete: "off", maxlength: "40" }),
+      ]),
       h("p", { class: "muted" }, "By starting, you agree I can save your choices and your inquiry answers for this project. Leave the code blank if you were not given one. Do not use your real name."),
       state.formError ? h("p", { class: "error" }, state.formError) : null,
       h("button", { class: "primary", type: "submit" }, "Open the file"),
