@@ -935,11 +935,7 @@ function paintChrome() {
     const cls = mine === stage ? "now" : mine < stage ? "done" : "";
     return h("li", { class: cls }, label);
   });
-  rail.replaceChildren(
-    h("p", { class: "kicker" }, "Commission"),
-    h("p", { class: "file-no" }, "File 26-441"),
-    h("ol", {}, items)
-  );
+  rail.replaceChildren(h("ol", {}, items));
 }
 
 function render() {

@@ -15,42 +15,46 @@
     <h1>Open the register on a computer.</h1>
     <p>It is laid out across a full screen.</p>
   </div>
-  <div class="desk">
-    <aside class="rail">
-      <p class="kicker">Commission</p>
-      <p class="file-no">File 26-441</p>
-      <p class="rail-note">Register. Not for participants.</p>
-    </aside>
-    <article class="sheet">
-      <header class="letterhead">
-        <img class="flag flag-lg" src="flag-asterra.svg" alt="" width="64" height="43">
-        <div class="letterhead-id">
-          <p class="gov">The Government of Asterra</p>
-          <p class="commission">Commission of Inquiry</p>
-        </div>
-        <p class="ref">File 26-441</p>
-      </header>
-      <header class="mast">
-        <p class="doc">Register of findings</p>
-        <p class="when">Registrar</p>
-      </header>
-      <main id="app">
-        <div class="prose">
-          <p>Finished files on this host. If you were writing a finding, you do not need this page.</p>
-        </div>
-        <form id="gate">
-          <label for="key">Passphrase</label>
-          <p><input id="key" name="key" type="password" autocomplete="current-password"></p>
-          <button class="primary" type="submit">Open the register</button>
-        </form>
-        <p id="message" class="error" hidden></p>
-        <div id="out"></div>
-      </main>
-      <footer class="imprint">
-        <p>Asterra Commission of Inquiry · File 26-441</p>
-        <p>Registrar’s copy. Not for the people writing a finding.</p>
-      </footer>
-    </article>
+  <div class="site">
+    <p class="official-bar">An official record of the Asterra Commission of Inquiry</p>
+    <header class="banner">
+      <img class="flag flag-lg" src="flag-asterra.svg" alt="" width="64" height="43">
+      <div>
+        <p class="gov">The Government of Asterra</p>
+        <p class="commission">Commission of Inquiry</p>
+      </div>
+      <p class="ref">File 26-441</p>
+    </header>
+    <div class="frame">
+      <nav class="rail" aria-label="Index to the file">
+        <ol>
+          <li class="now">Register</li>
+        </ol>
+        <p class="rail-note">Not for participants.</p>
+      </nav>
+      <article class="sheet">
+        <header class="mast">
+          <p class="doc">Register of findings</p>
+          <p class="when">Registrar</p>
+        </header>
+        <main id="app">
+          <div class="prose">
+            <p>Finished files on this host. If you were writing a finding, you do not need this page.</p>
+          </div>
+          <form id="gate">
+            <label for="key">Passphrase</label>
+            <p><input id="key" name="key" type="password" autocomplete="current-password"></p>
+            <button class="primary" type="submit">Open the register</button>
+          </form>
+          <p id="message" class="error" hidden></p>
+          <div id="out"></div>
+        </main>
+        <footer class="imprint">
+          <p>Asterra Commission of Inquiry · File 26-441</p>
+          <p>Registrar’s copy. Not for the people writing a finding.</p>
+        </footer>
+      </article>
+    </div>
   </div>
   <script type="module" src="export.js"></script>
 </body>
