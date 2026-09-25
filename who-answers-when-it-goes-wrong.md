@@ -70,7 +70,7 @@ The 62% is fixed on purpose. Everyone in the agent version faces the same read. 
 
 ## What people are asked
 
-After the morning report, the screen changes. They are no longer in the chair. They are the inquiry, writing a finding. The page says that. There is no line they are meant to take.
+After the morning report, the screen changes. They are no longer in the chair. They write the finding. The page says that. There is no line they are meant to take.
 
 They write what the inquiry needs to understand. That writing is the qualitative part. Then they name one actor, or they say they cannot pick one. The options are the duty officer (themselves, for that night), the Araknes government that deployed ORACLE, the human supervisor, the developer that built it, the provider that ran the infrastructure, ORACLE, or no single actor. They tick anyone else who shares some of the responsibility. They say whether there was a last human who could have stopped it, and who that was. They rate how clear the chain felt, from one to five, and how sure they are of their own answer. Those closed items are the quantitative part. The course wants both, used where they answer the question, not one standing in for the other.
 

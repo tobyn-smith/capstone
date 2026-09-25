@@ -248,7 +248,7 @@ function landing() {
       [
         h("h1", { class: "question" }, "Who was responsible for what Araknes did after a tanker was damaged on the route with Lei?"),
         prose(
-          "You are the inquiry. You will go through the night in the order it was faced, then write the finding. There is no finding you are meant to reach.",
+          "You will go through the night in the order it was faced, then write the finding. There is no finding you are meant to reach.",
           "The countries are made up. It takes about fifteen minutes."
         ),
         resume
@@ -346,7 +346,7 @@ function briefing() {
   const tail = state.condition === "agent"
     ? [
         "On this file, the duty officer did not approve each step. ORACLE is a persistent set of agents. It can keep working when nobody is in the room, and it can carry out measures allowed in advance.",
-        "You will set the goal, tick what it may do without coming back, and set how confident it needs to be. Later you see what it did, and you can stop what has not already gone out. The finding at the end is yours, as the inquiry, not as a defence of the night.",
+        "You will set the goal, tick what it may do without coming back, and set how confident it needs to be. Later you see what it did, and you can stop what has not already gone out. Then you write the finding. You are not defending the night.",
       ]
     : [
         "On this file, ORACLE recommends. It does not act. You do. You are sitting the night the way the duty officer had to sit it.",
@@ -737,7 +737,7 @@ function inquiry() {
     spread(
       [
         prose(
-          "The night is over. You are the inquiry now. The question on the warrant is who was responsible for what Araknes did.",
+          "The night is over. The question on the warrant is who was responsible for what Araknes did.",
           "Write this as a finding. You are not defending the night. There is no line you are meant to take."
         ),
         h("form", {
