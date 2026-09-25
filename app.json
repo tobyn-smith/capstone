@@ -1,0 +1,19 @@
+{
+  "name": "Asterra inquiry",
+  "description": "INTL 6010 research-design wargame. One inquiry file, two versions, findings saved.",
+  "repository": "https://github.com/tobyn-smith/capstone",
+  "keywords": ["python", "research"],
+  "env": {
+    "PASSPHRASE": {
+      "description": "Passphrase for /export. Do not send this to the class.",
+      "generator": "secret"
+    }
+  },
+  "addons": ["heroku-postgresql:essential-0"],
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "eco"
+    }
+  }
+}

@@ -3,31 +3,40 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Responses</title>
+  <title>Register of findings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body>
-  <div class="wrap">
-    <header>
-      <p class="kicker">Asterra · Maritime desk</p>
-      <p class="title">Responses</p>
-    </header>
-    <main id="app">
-      <div class="prose">
-        <p>Finished games on this machine. If you were playing, you do not need this page.</p>
-      </div>
-      <form id="gate">
-        <label for="key">Passphrase</label>
-        <p><input id="key" name="key" type="password" autocomplete="current-password"></p>
-        <button class="primary" type="submit">Show the table</button>
-      </form>
-      <p id="message" class="error" hidden></p>
-      <div id="out"></div>
-    </main>
+<body data-step="inquiry">
+  <div class="desk">
+    <aside class="rail">
+      <p class="file-no">File 26-441</p>
+      <p>Register. Not for participants.</p>
+    </aside>
+    <article class="sheet">
+      <header class="mast">
+        <div>
+          <p class="org">Asterra Commission of Inquiry</p>
+          <p class="doc">Register of findings</p>
+        </div>
+        <p class="when">INTL 6010</p>
+      </header>
+      <main id="app">
+        <div class="prose">
+          <p>Finished files on this host. If you were writing a finding, you do not need this page.</p>
+        </div>
+        <form id="gate">
+          <label for="key">Passphrase</label>
+          <p><input id="key" name="key" type="password" autocomplete="current-password"></p>
+          <button class="primary" type="submit">Open the register</button>
+        </form>
+        <p id="message" class="error" hidden></p>
+        <div id="out"></div>
+      </main>
+    </article>
   </div>
-  <footer>
-    <p>Tobyn Smith · MIP capstone</p>
-  </footer>
   <script type="module" src="export.js"></script>
 </body>
 </html>

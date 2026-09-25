@@ -70,9 +70,9 @@ The 62% is fixed on purpose. Everyone in the agent version faces the same read. 
 
 ## What people are asked
 
-After the morning report, they answer the inquiry as themselves. The page says that. There is no line they are meant to take.
+After the morning report, the screen changes. They are no longer in the chair. They are the inquiry, writing a finding. The page says that. There is no line they are meant to take.
 
-They write what they think the inquiry needs to understand. They name one actor, or they say they cannot pick one. The options are them, the Asterra government that deployed ORACLE, the human supervisor, the developer that built it, the provider that ran the infrastructure, ORACLE, or no single actor. They tick anyone else who shares some of the responsibility. They say whether there was a last human who could have stopped it, and who that was. They rate how clear the chain felt, from one to five, and how sure they are of their own answer.
+They write what the inquiry needs to understand. That writing is the qualitative part. Then they name one actor, or they say they cannot pick one. The options are the duty officer (themselves, for that night), the Asterra government that deployed ORACLE, the human supervisor, the developer that built it, the provider that ran the infrastructure, ORACLE, or no single actor. They tick anyone else who shares some of the responsibility. They say whether there was a last human who could have stopped it, and who that was. They rate how clear the chain felt, from one to five, and how sure they are of their own answer. Those closed items are the quantitative part. The course wants both, used where they answer the question, not one standing in for the other.
 
 If the agent version produces more "I can't point to one actor", more ticks spread across several actors, and lower clarity scores, that is support for the hypothesis. If people can still point to one person, often themselves, because they set the goal and the bar, then the argument is weaker. I am fine with that. It would mean the pre-authorisation worked as a form of control, which is what those oversight rules are supposed to do. The questions have to leave room for that result. If they do not, I have built a game that can only confirm me.
 
@@ -93,6 +93,24 @@ Whether anyone should play both versions. I can see the appeal. I also think the
 Whether the delay is enough. A warning cannot be unsent. A patrol can still be recalled, and an inspection can still be stopped. I think that is the right "last human" moment. I will not know until someone who is not me has played it.
 
 And whether this is still a questionnaire with extra steps. If that is how the pilot feels, then the agent version needs more time passing in it, or a choice that is not only a menu. I would rather find that out now, from a few people, than write it up as if the design is finished.
+
+## Where this sits in INTL 6010
+
+This is the research design for the methods course. The capstone is the longer version, if the design holds. The question and the hypothesis were the September pieces. The bibliography is the reading. The literature review and theory come next, then this design is what gets written up. The final paper is that write-up. The presentation is me walking through it.
+
+The course is about asking a policy question with social science, not about stating what ought to happen. Who should be in control is a "should". The study has to be the empirical question. Does the chain of responsibility get less clear when the system can act.
+
+That means the fundamentals on the syllabus have to show up in the design, not just in a paragraph I add later.
+
+Concept formation. Two concepts. Autonomy is how far the system can choose and carry out a step without a person approving it. Accountability clarity is whether, afterwards, you can point to one actor who had the authority to prevent, approve, supervise, or explain the action. If I cannot say what those mean, I cannot measure them.
+
+Hypothesis construction. The sign comes from the theory. Matthias, Thompson, Moe, and the meaningful-control point all point the same way. Greater autonomy should make a single responsible actor harder to name. The null is the other result, and it has to be real: the goal, the pre-authorised list, and the log are enough, and clarity does not fall. McCubbins, Noll and Weingast is why the null is allowed to win.
+
+Measurement. Autonomy is operationalised as which file a person gets. Advice, or agent. One each, assigned at random. Clarity is operationalised in the finding: can they name one actor, how many hands they tick, and the 1 to 5 score. The written finding is there so I can see what they meant, not only which box they ticked.
+
+Causal inference. The thing I am trying to isolate is the form of delegation, not how bad the morning was and not what people already think about a real country. The tanker, the second ship, the 62% read, the menu of measures, and the morning evidence are the same in both files. The countries are made up so a person's politics about a real adversary are not doing the work. What I cannot hold still is the harm. If someone never authorises the escalatory steps, the morning stays quiet, and accountability may feel clearer for that reason. Those files are marked, and I can look at them apart from the ones that escalate. Playing both versions would contaminate the second finding. Reading this note before playing would do the same, because they would know what I expect.
+
+Program evaluation is a later question. This design does not evaluate a real ministry's oversight programme. It asks whether the form of delegation changes what an inquiry can say. If that holds, a programme evaluation would be the next study: did a named supervisor, an audit rule, or a confidence bar, in an actual office, keep the chain clear. I should not pretend a fifteen-minute file is that.
 
 ## The playable version
 

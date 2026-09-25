@@ -6,6 +6,7 @@ from __future__ import annotations
 import csv
 import io
 import json
+import os
 import secrets
 import threading
 from datetime import datetime, timezone
@@ -55,7 +56,17 @@ COLUMNS = [
 ]
 
 
+def database_url() -> str:
+    url = os.environ.get("DATABASE_URL", "").strip()
+    if url.startswith("postgres://"):
+        return "postgresql://" + url[len("postgres://") :]
+    return url
+
+
 def passphrase() -> str:
+    env = os.environ.get("PASSPHRASE", "").strip()
+    if env:
+        return env
     if PASSPHRASE_FILE.exists():
         value = PASSPHRASE_FILE.read_text(encoding="utf-8").strip()
         if value:
@@ -113,9 +124,107 @@ def csv_safe(value) -> str:
     return text
 
 
+def db_connect():
+    import psycopg
+
+    return psycopg.connect(database_url())
+
+
+def init_db() -> None:
+    if not database_url():
+        return
+    with db_connect() as conn:
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS assignments (
+                session_id TEXT PRIMARY KEY,
+                condition TEXT NOT NULL,
+                forced BOOLEAN NOT NULL,
+                started_at TEXT NOT NULL
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS responses (
+                session_id TEXT PRIMARY KEY,
+                payload JSONB NOT NULL
+            )
+            """
+        )
+        conn.commit()
+
+
+def save_assignment(record: dict) -> None:
+    with db_connect() as conn:
+        conn.execute(
+            """
+            INSERT INTO assignments (session_id, condition, forced, started_at)
+            VALUES (%s, %s, %s, %s)
+            ON CONFLICT (session_id) DO NOTHING
+            """,
+            (
+                record["session_id"],
+                record["condition"],
+                bool(record["forced_condition"]),
+                record["started_at"],
+            ),
+        )
+        conn.commit()
+
+
+def save_response(record: dict) -> None:
+    from psycopg.types.json import Jsonb
+
+    with db_connect() as conn:
+        conn.execute(
+            """
+            INSERT INTO responses (session_id, payload)
+            VALUES (%s, %s)
+            ON CONFLICT (session_id) DO UPDATE SET payload = EXCLUDED.payload
+            """,
+            (record.get("session_id") or secrets.token_hex(8), Jsonb(record)),
+        )
+        conn.commit()
+
+
+def load_assignments() -> list[dict]:
+    if not database_url():
+        return read_jsonl(ASSIGNMENTS)
+    with db_connect() as conn:
+        rows = conn.execute(
+            "SELECT session_id, condition, forced, started_at FROM assignments"
+        ).fetchall()
+    return [
+        {
+            "session_id": session_id,
+            "condition": condition,
+            "forced_condition": forced,
+            "started_at": started_at,
+        }
+        for session_id, condition, forced, started_at in rows
+    ]
+
+
+def load_responses() -> list[dict]:
+    if not database_url():
+        return read_jsonl(RESPONSES)
+    with db_connect() as conn:
+        rows = conn.execute(
+            "SELECT payload FROM responses ORDER BY payload->>'received_at'"
+        ).fetchall()
+    loaded = []
+    for (payload,) in rows:
+        if isinstance(payload, str):
+            payload = json.loads(payload)
+        if isinstance(payload, dict):
+            loaded.append(payload)
+    return loaded
+
+
 def assignment_counts() -> tuple[int, int]:
     advice = agent = 0
-    for row in read_jsonl(ASSIGNMENTS):
+    for row in load_assignments():
         if row.get("forced_condition"):
             continue
         if row.get("condition") == "advice":
@@ -229,8 +338,11 @@ class Handler(SimpleHTTPRequestHandler):
             "started_at": now(),
         }
         with LOCK:
-            with ASSIGNMENTS.open("a", encoding="utf-8") as handle:
-                handle.write(json.dumps(record) + "\n")
+            if database_url():
+                save_assignment(record)
+            else:
+                with ASSIGNMENTS.open("a", encoding="utf-8") as handle:
+                    handle.write(json.dumps(record) + "\n")
         self.send_json(record)
 
     def handle_save(self):
@@ -241,15 +353,18 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_error(400, "Bad response")
             return
         with LOCK:
-            with RESPONSES.open("a", encoding="utf-8") as handle:
-                handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+            if database_url():
+                save_response(record)
+            else:
+                with RESPONSES.open("a", encoding="utf-8") as handle:
+                    handle.write(json.dumps(record, ensure_ascii=False) + "\n")
         self.send_json({"ok": True})
 
     def handle_export(self):
         if not self.authorised_export():
             self.send_error(401, "Wrong passphrase")
             return
-        rows = read_jsonl(RESPONSES)
+        rows = load_responses()
         accept = self.headers.get("Accept", "")
         if "text/csv" in accept:
             buffer = io.StringIO()
@@ -290,6 +405,7 @@ def main():
     say("That address only works on this computer.")
     say("Press Ctrl-C here when you want to stop.")
     say("")
+    init_db()
     server = ThreadingHTTPServer(("0.0.0.0", port), Handler)
     server.serve_forever()
 

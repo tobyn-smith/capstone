@@ -1,5 +1,5 @@
 const ACTORS = {
-  me: "the official",
+  me: "the duty officer",
   government: "Asterra",
   supervisor: "the supervisor",
   developer: "the developer",
