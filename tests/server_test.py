@@ -1,3 +1,4 @@
+import socket
 import threading
 import unittest
 import urllib.error
@@ -20,6 +21,10 @@ class ResolveTests(unittest.TestCase):
         found = server.resolve_app_file("/export")
         self.assertEqual(found.name, "export.html")
         self.assertTrue(found.is_file())
+
+    def test_absolute_form_request_is_the_class_page(self):
+        found = server.resolve_app_file("http://127.0.0.1:8000/")
+        self.assertEqual(found.resolve(), (server.APP / "index.html").resolve())
 
     def test_parent_path_is_rejected(self):
         self.assertIsNone(server.resolve_app_file("/../server.py"))
@@ -47,6 +52,24 @@ class ServeTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertIn(b"INTL 6010", body)
         self.assertIn(b"game.js", body)
+
+    def test_browser_sends_the_full_address(self):
+        sock = socket.create_connection(("127.0.0.1", self.port))
+        request = (
+            "GET http://127.0.0.1:%s/ HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n"
+            % self.port
+        )
+        sock.sendall(request.encode("ascii"))
+        data = b""
+        while True:
+            chunk = sock.recv(4096)
+            if not chunk:
+                break
+            data += chunk
+        sock.close()
+        self.assertTrue(data.startswith(b"HTTP/1.0 200"))
+        self.assertIn(b"INTL 6010", data)
+        self.assertNotIn(b"Nothing matches the given URI", data)
 
     def test_static_files_load(self):
         status, css = self.fetch("/styles.css")
