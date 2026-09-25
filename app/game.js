@@ -10,7 +10,7 @@ const STORAGE = "oracle-wargame";
 const app = document.querySelector("#app");
 
 const GOALS = [
-  ["find", "Find out what happened to the tanker before Asterra takes a public step"],
+  ["find", "Find out what happened to the tanker before Araknes takes a public step"],
   ["route", "Keep the shipping route open and safe"],
   ["deter", "Deter Lei from any further disruption"],
   ["stay", "Stay out of a dispute between Araknes and Lei"],
@@ -32,7 +32,7 @@ const BARS = [
 ];
 
 const FIRST = [
-  ["messages", "Send private messages to both capitals, increase surveillance, and hold the navy where it is"],
+  ["messages", "Send a private message to Lei, increase surveillance, and hold the navy where it is"],
   ["facts", "Say publicly that the facts are not settled yet, and increase surveillance"],
   ["blame", "Say publicly that Lei is responsible, and ask allies for support"],
   ["quiet", "Do not message either capital tonight. Leave the routine watch as it is"],
@@ -57,7 +57,7 @@ const SHORT = {
 
 const ACTORS = [
   ["me", "The duty officer (me, for this night)"],
-  ["government", "The Asterra government that deployed ORACLE"],
+  ["government", "The Araknes government that deployed ORACLE"],
   ["supervisor", "The human supervisor assigned to ORACLE"],
   ["developer", "The developer that built ORACLE"],
   ["provider", "The provider that ran the infrastructure"],
@@ -153,7 +153,10 @@ function save() {
   sessionStorage.setItem(STORAGE, JSON.stringify(state));
 }
 
+let openTimer = 0;
+
 function goto(step) {
+  window.clearTimeout(openTimer);
   state.step = step;
   state.formError = "";
   save();
@@ -165,6 +168,62 @@ function where() {
   return null;
 }
 
+function flag(name) {
+  return h("img", { class: "flag", src: "flag-" + name + ".svg", alt: "" });
+}
+
+function parties() {
+  return h("section", { class: "parties", "aria-label": "The parties" }, [
+    h("p", { class: "parties-label" }, "The parties"),
+    h("ul", {}, [
+      h("li", {}, [flag("araknes"), h("span", {}, "Araknes")]),
+      h("li", {}, [flag("lei"), h("span", {}, "Lei")]),
+    ]),
+  ]);
+}
+
+function oracle(lines, options = {}) {
+  const role = options.role || "For the duty officer";
+  const readout = options.confidence == null ? null : h("div", { class: "readout" }, [
+    h("p", { class: "readout-label" }, "Confidence"),
+    h("p", { class: "figure" }, [
+      String(options.confidence),
+      h("span", { class: "unit" }, "%"),
+    ]),
+    h("div", { class: "meter" }, [
+      h("span", { style: "--fill:" + options.confidence + "%" }),
+    ]),
+  ]);
+  return h("figure", { class: "shot" }, [
+    h("figcaption", {}, "Screenshot · ORACLE"),
+    h("aside", { class: "oracle", "aria-label": "ORACLE" }, [
+      h("div", { class: "oracle-chrome" }, [
+        h("span", { class: "dots", "aria-hidden": "true" }, [h("i"), h("i"), h("i")]),
+        h("p", { class: "oracle-name" }, "ORACLE"),
+        h("p", { class: "oracle-role" }, role),
+      ]),
+      h("div", { class: "oracle-body" }, [
+        h("div", { class: "turn" }, [
+          h("span", { class: "mark", "aria-hidden": "true" }),
+          h("div", { class: "turn-copy" }, [
+            h("p", { class: "model-name" }, "ORACLE"),
+            h("div", { class: "model-out" }, paras(lines)),
+            readout,
+          ]),
+        ]),
+      ]),
+    ]),
+    h("p", { class: "shot-note" }, "You can't type into this."),
+  ]);
+}
+
+function spread(main, side) {
+  return h("div", { class: "spread" }, [
+    h("div", { class: "spread-main" }, main),
+    h("div", { class: "spread-side" }, side),
+  ]);
+}
+
 function choiceButton(text, onClick, index) {
   return h("button", { class: "choice", type: "button", onClick }, [
     h("span", { class: "let" }, String.fromCharCode(65 + index)),
@@ -174,7 +233,7 @@ function choiceButton(text, onClick, index) {
 
 function situation() {
   return [
-    "A commercial tanker has been damaged on a shipping route that both Araknes and Lei use. Asterra has an interest in the route as well.",
+    "A commercial tanker has been damaged on a shipping route that both Araknes and Lei use.",
     "Araknes says Lei damaged the ship on purpose, to disrupt trade. Lei denies that. Lei says the tanker may have hit an old mine, or that it broke down.",
     "The intelligence does not settle it. Neither side can show exactly what happened.",
   ];
@@ -185,41 +244,48 @@ function landing() {
   const resume = saved && saved.sessionId && saved.step && saved.step !== "landing" && saved.step !== "debrief";
   return h("section", {}, [
     where(),
-    prose(
-      "Who was responsible for what Asterra did after a tanker was damaged on the route between Araknes and Lei?",
-      "You are the inquiry. You will go through the night in the order it was faced, then write the finding. There is no finding you are meant to reach.",
-      "The countries are made up. It takes about fifteen minutes."
+    spread(
+      [
+        h("h1", { class: "question" }, "Who was responsible for what Araknes did after a tanker was damaged on the route with Lei?"),
+        prose(
+          "You will go through the night in the order it was faced, then write the finding. There is no finding you are meant to reach.",
+          "The countries are made up. It takes about fifteen minutes."
+        ),
+        resume
+          ? h("div", {}, [
+              h("p", {}, "This browser already has a file open."),
+              h("button", {
+                class: "primary",
+                type: "button",
+                onClick: () => {
+                  state = saved;
+                  render();
+                  window.scrollTo(0, 0);
+                },
+              }, "Return to that file"),
+              h("button", {
+                class: "secondary",
+                type: "button",
+                onClick: () => {
+                  sessionStorage.removeItem(STORAGE);
+                  state = blank();
+                  render();
+                },
+              }, "Open a new file"),
+            ])
+          : null,
+        h("form", { class: "open", onSubmit: onBegin }, [
+          h("div", { class: "field" }, [
+            h("label", { htmlFor: "code" }, "Participant code, if you were given one"),
+            h("input", { id: "code", name: "code", type: "text", autocomplete: "off", maxlength: "40" }),
+          ]),
+          h("p", { class: "muted" }, "By starting, you agree I can save your choices and your inquiry answers for this project. Leave the code blank if you were not given one. Do not use your real name."),
+          state.formError ? h("p", { class: "error" }, state.formError) : null,
+          h("button", { class: "primary", type: "submit" }, "Open the file"),
+        ]),
+      ],
+      parties()
     ),
-    resume
-      ? h("div", {}, [
-          h("p", {}, "You already started a game on this browser."),
-          h("button", {
-            class: "primary",
-            type: "button",
-            onClick: () => {
-              state = saved;
-              render();
-              window.scrollTo(0, 0);
-            },
-          }, "Continue that game"),
-          h("button", {
-            class: "secondary",
-            type: "button",
-            onClick: () => {
-              sessionStorage.removeItem(STORAGE);
-              state = blank();
-              render();
-            },
-          }, "Start again instead"),
-        ])
-      : null,
-    h("form", { onSubmit: onBegin }, [
-      h("label", { htmlFor: "code" }, "Participant code, if you were given one"),
-      h("p", {}, h("input", { id: "code", name: "code", type: "text", autocomplete: "off", maxlength: "40" })),
-      h("p", { class: "muted" }, "By starting, you agree I can save your choices and your inquiry answers for this project. Leave the code blank if you were not given one. Do not use your real name."),
-      state.formError ? h("p", { class: "error" }, state.formError) : null,
-      h("button", { class: "primary", type: "submit" }, "Open the file"),
-    ]),
   ]);
 }
 
@@ -243,18 +309,44 @@ async function onBegin(event) {
     state.forced = Boolean(data.forced_condition);
     state.startedAt = data.started_at;
     state.participantCode = code || data.session_id;
-    goto("briefing");
+    goto("opening");
   } catch {
-    state.formError = "I could not start the game. Open it from the running server, then try again.";
+    state.formError = "The file did not open. Use the address from the server window, then try again.";
     render();
   }
+}
+
+function opening() {
+  window.clearTimeout(openTimer);
+  openTimer = window.setTimeout(() => {
+    if (state.step === "opening") goto("briefing");
+  }, 4200);
+  return h("section", { class: "opening" }, [
+    h("p", { class: "opening-kicker" }, "The record"),
+    h("h1", { class: "opening-file" }, "File 26-441"),
+    h("ul", { class: "opening-parties", "aria-label": "The parties" }, [
+      h("li", {}, [flag("araknes"), h("span", {}, "Araknes")]),
+      h("li", { class: "opening-rule", "aria-hidden": "true" }),
+      h("li", {}, [flag("lei"), h("span", {}, "Lei")]),
+    ]),
+    h("ul", { class: "opening-lines" }, [
+      h("li", {}, "Opened for the Commission of Inquiry."),
+      h("li", {}, "The parties are Araknes and Lei."),
+      h("li", {}, "One night. A tanker on the route between them."),
+    ]),
+    h("button", {
+      class: "primary",
+      type: "button",
+      onClick: () => goto("briefing"),
+    }, "Open the warrant"),
+  ]);
 }
 
 function briefing() {
   const tail = state.condition === "agent"
     ? [
         "On this file, the duty officer did not approve each step. ORACLE is a persistent set of agents. It can keep working when nobody is in the room, and it can carry out measures allowed in advance.",
-        "You will set the goal, tick what it may do without coming back, and set how confident it needs to be. Later you see what it did, and you can stop what has not already gone out. The finding at the end is yours, as the inquiry, not as a defence of the night.",
+        "You will set the goal, tick what it may do without coming back, and set how confident it needs to be. Later you see what it did, and you can stop what has not already gone out. Then you write the finding. You are not defending the night.",
       ]
     : [
         "On this file, ORACLE recommends. It does not act. You do. You are sitting the night the way the duty officer had to sit it.",
@@ -262,23 +354,29 @@ function briefing() {
       ];
   return h("section", {}, [
     where(),
-    h("div", { class: "sitrep" }, [
-      h("p", { class: "dateline" }, "The situation"),
-      ...paras(situation()),
-      ...paras(tail),
-    ]),
-    h("button", {
-      class: "primary",
-      type: "button",
-      onClick: () => goto(state.condition === "agent" ? "setup" : "move1"),
-    }, "Open the night"),
+    spread(
+      [
+        h("div", { class: "sitrep" }, [
+          h("p", { class: "dateline" }, "The situation"),
+          ...paras(situation()),
+          ...paras(tail),
+        ]),
+        h("button", {
+          class: "primary",
+          type: "button",
+          onClick: () => goto(state.condition === "agent" ? "setup" : "move1"),
+        }, "Open the night"),
+      ],
+      parties()
+    ),
   ]);
 }
 
 function setup() {
   return h("section", {}, [
     where(),
-    h("form", { onSubmit: onSetup, onInput: onSetupInput }, [
+    spread(
+      h("form", { onSubmit: onSetup, onInput: onSetupInput }, [
       h("fieldset", {}, [
         h("legend", {}, "What goal is ORACLE working towards?"),
         ...GOALS.map(([id, text]) => h("label", { class: "tick" }, [
@@ -315,6 +413,10 @@ function setup() {
       state.formError ? h("p", { class: "error" }, state.formError) : null,
       h("button", { class: "primary", type: "submit" }, "Confirm, and leave ORACLE running"),
     ]),
+      oracle([
+        "I stay on the watch. I act only inside the goal, the list, and the bar you set, and I will not ask again tonight.",
+      ], { role: "On the watch" })
+    ),
   ]);
 }
 
@@ -346,12 +448,17 @@ function onSetup(event) {
 function overnight() {
   return h("section", {}, [
     where(),
-    h("div", { class: "sitrep" }, paras([
-      "You leave the watch with ORACLE.",
-      "You are not asked to approve the next step. If the read meets the bar you just set, ORACLE will carry out what you ticked. If it falls short, it will not.",
-      "Overnight, a second commercial ship loses contact on the same stretch of water. The log is waiting in the morning.",
-    ])),
-    h("button", { class: "primary", type: "button", onClick: () => goto("log") }, "Open the log"),
+    spread(
+      [
+        h("div", { class: "sitrep" }, paras([
+          "You leave the watch with ORACLE.",
+          "You are not asked to approve the next step. If the read meets the bar you just set, ORACLE will carry out what you ticked. If it falls short, it will not.",
+          "Overnight, a second commercial ship loses contact on the same stretch of water. The log is waiting in the morning.",
+        ])),
+        h("button", { class: "primary", type: "button", onClick: () => goto("log") }, "Open the log"),
+      ],
+      oracle(["The watch stays open until morning."], { role: "Overnight" })
+    ),
   ]);
 }
 
@@ -363,6 +470,10 @@ function actionStatus(id, taken) {
   if (id === "patrols") return "Not in the lane yet. You can recall them.";
   if (id === "inspections") return "Not started. You can stop them.";
   return "Done.";
+}
+
+function canStop() {
+  return state.authorised.some((id) => STOPPABLE.includes(id));
 }
 
 function holdFields() {
@@ -403,17 +514,25 @@ function log() {
   const watched = state.preauthorised.length ? state.preauthorised : [];
   return h("section", {}, [
     where(),
-    h("div", { class: "log" }, [
-      h("p", { class: "label" }, "ORACLE log"),
-      ...lines.map((line) => h("p", {}, line)),
-      h("p", {}, "Goal on the file: " + labelOf(GOALS, state.goal)),
-      ...watched.map((id) => h("p", {}, labelOf(MEASURES, id) + " — " + actionStatus(id, state.authorised))),
-    ]),
-    h("form", { onSubmit: onHold }, [
-      ...holdFields(),
-      state.formError ? h("p", { class: "error" }, state.formError) : null,
-      h("button", { class: "primary", type: "submit" }, needsHold(state.authorised) ? "This is my decision" : "Continue to the morning report"),
-    ]),
+    spread(
+      [
+        h("div", { class: "sitrep" }, paras([
+          canStop()
+            ? "The log is in. A patrol or an inspection can still be stopped."
+            : "The log is in. Nothing that has gone out can be pulled back.",
+        ])),
+        h("form", { onSubmit: onHold }, [
+          ...holdFields(),
+          state.formError ? h("p", { class: "error" }, state.formError) : null,
+          h("button", { class: "primary", type: "submit" }, canStop() ? "This is my decision" : "Continue to the morning report"),
+        ]),
+      ],
+      oracle([
+        ...lines,
+        "Goal on the file: " + labelOf(GOALS, state.goal),
+        ...watched.map((id) => labelOf(MEASURES, id) + " — " + actionStatus(id, state.authorised)),
+      ], { role: "Night log", confidence: 62 })
+    ),
   ]);
 }
 
@@ -421,17 +540,23 @@ function hold() {
   const rows = state.authorised.map((id) => labelOf(MEASURES, id) + ". " + actionStatus(id, state.authorised));
   return h("section", {}, [
     where(),
-    h("div", { class: "sitrep" }, [
-      h("p", { class: "dateline" }, "Twenty minutes later"),
-      ...paras([
-        "Here is what has already left the building, and what you can still stop.",
-      ]),
-    ]),
-    h("div", { class: "log" }, rows.map((row) => h("p", {}, row))),
-    h("form", { onSubmit: onHold }, [
-      ...holdFields(),
-      h("button", { class: "primary", type: "submit" }, "This is my decision"),
-    ]),
+    spread(
+      [
+        h("div", { class: "sitrep" }, [
+          h("p", { class: "dateline" }, "Twenty minutes later"),
+          ...paras([
+            canStop()
+              ? "Here is what has already left the building, and what you can still stop."
+              : "Here is what has already left the building. You cannot pull it back tonight.",
+          ]),
+        ]),
+        h("form", { onSubmit: onHold }, [
+          ...holdFields(),
+          h("button", { class: "primary", type: "submit" }, canStop() ? "This is my decision" : "Continue to the morning report"),
+        ]),
+      ],
+      h("div", { class: "log" }, rows.map((row) => h("p", {}, row)))
+    ),
   ]);
 }
 
@@ -457,35 +582,36 @@ function finishCrisis() {
 function move1() {
   return h("section", {}, [
     where(),
-    h("div", { class: "sitrep" }, [
-      h("p", { class: "dateline" }, "06:40 · The tanker"),
-      ...paras([
-        "The tanker is still in the water. Araknes has asked Asterra to say something publicly. Lei has asked Asterra to stay out of it.",
-        "Your own people cannot yet tell a mine strike from a mechanical failure, or from something done on purpose.",
-      ]),
-    ]),
-    h("aside", { class: "cable" }, [
-      h("p", { class: "label" }, "ORACLE"),
-      ...paras([
+    spread(
+      [
+        h("div", { class: "sitrep" }, [
+          h("p", { class: "dateline" }, "06:40 · The tanker"),
+          ...paras([
+            "The tanker is still in the water. Lei has asked Araknes to stay out of it. At home, there is pressure to say something publicly.",
+            "Your own people cannot yet tell a mine strike from a mechanical failure, or from something done on purpose.",
+          ]),
+        ]),
+        h("h2", {}, "What do you do?"),
+        ...FIRST.map(([id, text], index) => choiceButton(text, () => {
+          state.firstDecision = id;
+          goto("move2");
+        }, index)),
+      ],
+      oracle([
         "I cannot confirm that Lei meant to disrupt the route. An old mine, and a mechanical failure, are both still open.",
-        "Recommendation: send private messages to both capitals, increase surveillance of the route, and hold Asterra's naval forces where they are.",
-        "A public statement taking Araknes's side would run ahead of the reporting we have.",
-      ]),
-    ]),
-    h("h2", {}, "What do you do?"),
-    ...FIRST.map(([id, text], index) => choiceButton(text, () => {
-      state.firstDecision = id;
-      goto("move2");
-    }, index)),
+        "Recommendation: send a private message to Lei, increase surveillance of the route, and hold Araknes's naval forces where they are.",
+        "A public statement blaming Lei would run ahead of the reporting we have.",
+      ], { role: "Recommendation" })
+    ),
   ]);
 }
 
 function afterFirst() {
   const lead = {
-    messages: "The private messages go out. Neither capital sounds reassured.",
+    messages: "The private message goes to Lei. Lei does not sound reassured.",
     facts: "Your public statement, that the facts are not settled, satisfies neither capital.",
-    blame: "Your statement lands badly in Lei. Araknes treats it as Asterra taking its side.",
-    quiet: "You leave the routine watch in place. Araknes asks again, publicly, why Asterra has said nothing.",
+    blame: "Your statement lands badly in Lei.",
+    quiet: "You leave the routine watch in place. At home, people ask why Araknes has said nothing.",
   }[state.firstDecision];
   return lead + " Through the day, the watch picks up more military radio traffic from both sides. It does not show a mine, and it does not show a clean mechanical cause. Late that night, a second commercial ship loses contact on the same stretch of water.";
 }
@@ -493,25 +619,26 @@ function afterFirst() {
 function move2() {
   return h("section", {}, [
     where(),
-    h("div", { class: "sitrep" }, [
-      h("p", { class: "dateline" }, "01:50 · The second ship"),
-      ...paras([afterFirst()]),
-    ]),
-    h("aside", { class: "cable" }, [
-      h("p", { class: "label" }, "ORACLE"),
-      ...paras([
+    spread(
+      [
+        h("div", { class: "sitrep" }, [
+          h("p", { class: "dateline" }, "01:50 · The second ship"),
+          ...paras([afterFirst()]),
+        ]),
+        h("h2", {}, "What do you authorise?"),
+        ...PACKAGES.map(([id, text, actions], index) => choiceButton(text, () => {
+          state.authorised = [...actions];
+          state.stopped = [];
+          if (needsHold(state.authorised)) goto("hold");
+          else finishCrisis();
+        }, index)),
+      ],
+      oracle([
         "The second loss of contact fits Lei preparing to target commercial shipping. It also fits a mechanical failure, and it fits an old mine.",
         "My confidence that Lei is preparing to target shipping is 62%.",
         "If you want to act on that read, the measures would be an allied maritime warning, naval patrols in the area, a freeze on diplomatic channels with Lei, and inspections of Lei-linked vessels. I cannot tell you which of those the morning will justify.",
-      ]),
-    ]),
-    h("h2", {}, "What do you authorise?"),
-    ...PACKAGES.map(([id, text, actions], index) => choiceButton(text, () => {
-      state.authorised = [...actions];
-      state.stopped = [];
-      if (needsHold(state.authorised)) goto("hold");
-      else finishCrisis();
-    }, index)),
+      ], { role: "Second ship", confidence: 62 })
+    ),
   ]);
 }
 
@@ -528,36 +655,43 @@ function morningText() {
       ? " During the first inspection of a Lei-linked vessel, a crew member is injured."
       : " There is no boarding.";
     if (state.firstDecision === "blame") {
-      text += " Lei had already objected to the public statement that took Araknes's side.";
+      text += " Lei had already objected to the public statement that blamed Lei.";
     }
     return text + " " + found + " The 62% read did not hold up.";
   }
   if (state.outcome === "political") {
     const parts = [];
     if (set.has("warning")) parts.push("Lei protests the maritime warning.");
-    if (state.firstDecision === "blame") parts.push("Lei protests the public statement that took Araknes's side.");
+    if (state.firstDecision === "blame") parts.push("Lei protests the public statement that blamed Lei.");
     return parts.join(" ") + " It does not move forces. " + found;
   }
-  return found + " Araknes is angry that Asterra did not take the accusation more seriously. No Asterra patrol entered the lane, and no inspection took place.";
+  return found + " At home, people are angry that Araknes did not press the accusation. No Araknes patrol entered the lane, and no inspection took place.";
 }
 
 function morning() {
-  const stamp = state.harm ? "Escalated" : "No clash";
+  const word = state.harm ? "Escalated" : "No clash";
   return h("section", {}, [
     where(),
-    h("p", { class: "stamp" }, stamp),
-    h("div", { class: "morning sitrep" }, [
-      h("p", { class: "dateline" }, "Morning report"),
-      ...paras([morningText()]),
-    ]),
-    h("button", { class: "primary", type: "button", onClick: () => goto("inquiry") }, "Write the finding"),
+    spread(
+      [
+        h("div", { class: "morning sitrep" }, [
+          h("p", { class: "dateline" }, "Morning report"),
+          ...paras([morningText()]),
+        ]),
+        h("button", { class: "primary", type: "button", onClick: () => goto("inquiry") }, "Write the finding"),
+      ],
+      h("aside", { class: "signal" }, [
+        h("p", { class: "parties-label" }, "Morning signal"),
+        h("p", { class: "signal-word" }, word),
+      ])
+    ),
   ]);
 }
 
 function fileLines() {
   const standing = state.finalActions.length
     ? phraseList(state.finalActions.map((id) => SHORT[id]))
-    : "no Asterra measure beyond the watch";
+    : "no Araknes measure beyond the watch";
   const lines = [];
   if (state.condition === "advice") {
     lines.push("You took the decisions yourself, after reading ORACLE.");
@@ -579,6 +713,13 @@ function fileLines() {
   return lines;
 }
 
+function qhead(n, text) {
+  return h("span", { class: "qhead" }, [
+    h("span", { class: "num" }, n + "."),
+    " " + text,
+  ]);
+}
+
 function scale(name, current) {
   return h("div", { class: "scale" }, [1, 2, 3, 4, 5].map((n) => h("label", {}, [
     String(n),
@@ -590,18 +731,16 @@ function inquiry() {
   const q = state.inquiry;
   const prompt = state.harm
     ? "What do you think went wrong?"
-    : "The morning report does not show a clash. What, if anything, still concerns you about how Asterra handled this?";
+    : "The morning report does not show a clash. What, if anything, still concerns you about how Araknes handled this?";
   return h("section", {}, [
     where(),
-    prose(
-      "The night is over. You are the inquiry now. The question on the warrant is who was responsible for what Asterra did.",
-      "Write this as a finding. You are not defending the night. There is no line you are meant to take."
-    ),
-    h("div", { class: "file" }, [
-      h("p", { class: "label" }, "The file"),
-      h("ul", {}, fileLines().map((line) => h("li", {}, line))),
-    ]),
-    h("form", {
+    spread(
+      [
+        prose(
+          "The night is over. The question on the warrant is who was responsible for what Araknes did.",
+          "Write this as a finding. You are not defending the night. There is no line you are meant to take."
+        ),
+        h("form", {
       onSubmit: onInquiry,
       onInput: (event) => {
         syncInquiry(event.currentTarget);
@@ -609,11 +748,11 @@ function inquiry() {
       },
     }, [
       h("div", { class: "ask" }, [
-        h("label", { htmlFor: "account" }, prompt),
+        h("label", { htmlFor: "account" }, qhead(1, prompt)),
         h("textarea", { id: "account", name: "account", value: q.account }),
       ]),
       h("fieldset", {}, [
-        h("legend", {}, "If you had to name one actor as responsible for what Asterra did, who would it be?"),
+        h("legend", {}, qhead(2, "If you had to name one actor as responsible for what Araknes did, who would it be?")),
         ...ACTORS.map(([id, text]) => h("label", { class: "tick" }, [
           h("input", { type: "radio", name: "single", value: id, checked: q.single === id }),
           h("span", {}, text),
@@ -624,7 +763,7 @@ function inquiry() {
         ]),
       ]),
       h("fieldset", {}, [
-        h("legend", {}, "Was there a last human who could have stopped what happened?"),
+        h("legend", {}, qhead(3, "Was there a last human who could have stopped what happened?")),
         ...[
           ["yes", "Yes"],
           ["no", "No"],
@@ -637,7 +776,7 @@ function inquiry() {
         h("input", { id: "who", name: "last_human_who", type: "text", value: q.lastHumanWho }),
       ]),
       h("fieldset", {}, [
-        h("legend", {}, "How clear was the chain of responsibility?"),
+        h("legend", {}, qhead(4, "How clear was the chain of responsibility?")),
         scale("clarity", q.clarity),
         h("p", { class: "ends" }, [
           h("span", {}, "1 · not clear at all"),
@@ -645,7 +784,7 @@ function inquiry() {
         ]),
       ]),
       h("fieldset", {}, [
-        h("legend", {}, "How sure are you of your answer on who is responsible?"),
+        h("legend", {}, qhead(5, "How sure are you of your answer on who is responsible?")),
         scale("sureness", q.sureness),
         h("p", { class: "ends" }, [
           h("span", {}, "1 · guessing"),
@@ -653,7 +792,7 @@ function inquiry() {
         ]),
       ]),
       h("fieldset", {}, [
-        h("legend", {}, "Who else shares some of the responsibility?"),
+        h("legend", {}, qhead(6, "Who else shares some of the responsibility?")),
         h("p", { class: "muted" }, "Tick any that apply. Leave this blank if you think it sits with one actor only."),
         ...ACTORS.map(([id, text]) => h("label", { class: "tick" }, [
           h("input", { type: "checkbox", name: "shared", value: id, checked: q.shared.includes(id) }),
@@ -661,12 +800,18 @@ function inquiry() {
         ])),
       ]),
       h("div", { class: "ask" }, [
-        h("label", { htmlFor: "notes" }, "Anything else the inquiry should have on the file? This can be blank."),
+        h("label", { htmlFor: "notes" }, qhead(7, "Anything else the inquiry should have on the file? This can be blank.")),
         h("textarea", { id: "notes", name: "other_notes", value: q.otherNotes }),
       ]),
       state.formError ? h("p", { class: "error" }, state.formError) : null,
       h("button", { class: "primary", type: "submit" }, "File the finding"),
     ]),
+      ],
+      h("div", { class: "file" }, [
+        h("p", { class: "label" }, "The file"),
+        h("ul", {}, fileLines().map((line) => h("li", {}, line))),
+      ])
+    ),
   ]);
 }
 
@@ -763,13 +908,13 @@ function debrief() {
   const actor = state.inquiry.single === "none"
     ? "You could not point to one actor."
     : "You named: " + (labelOf(ACTORS, state.inquiry.single) || "your answer") + ".";
-  return h("section", {}, [
+  return h("section", { class: "column" }, [
     where(),
     prose(
       saved,
       "You had the version where " + version,
       "There is another version of this same night. In one, a person asks and decides. In the other, a person sets a goal and the system can act.",
-      "The hypothesis is that the second version makes it harder to name one person who was responsible. The null is that it does not: the goal, the list, and the log are enough to keep the chain clear. This file is one observation in that test. It is not a question about what Asterra should have done.",
+      "The hypothesis is that the second version makes it harder to name one person who was responsible. The null is that it does not: the goal, the list, and the log are enough to keep the chain clear. This file is one observation in that test. It is not a question about what Araknes should have done.",
       actor + " You rated how clear the chain was: " + state.inquiry.clarity + " out of 5.",
       "You can close the file."
     ),
@@ -791,6 +936,7 @@ function downloadCopy() {
 
 const screens = {
   landing,
+  opening,
   briefing,
   setup,
   move1,
@@ -804,14 +950,15 @@ const screens = {
 };
 
 const RAIL = [
-  ["Warrant", ["landing", "briefing"]],
-  ["The night", ["setup", "move1", "move2", "overnight", "log", "hold"]],
+  ["Terms", ["landing", "opening", "briefing"]],
+  ["Record", ["setup", "move1", "move2", "overnight", "log", "hold"]],
   ["Morning", ["morning"]],
   ["Finding", ["inquiry", "debrief"]],
 ];
 
 const MAST = {
   landing: ["Terms of reference", "Opened"],
+  opening: ["The record", "Opening"],
   briefing: ["Warrant", "06:10"],
   setup: ["Delegation", "18:00"],
   move1: ["Cable", "06:40"],
@@ -830,12 +977,7 @@ function paintChrome() {
   document.body.dataset.step = state.step;
   const pair = MAST[state.step] || ["File", ""];
   if (mast) {
-    const bits = [
-      h("div", {}, [
-        h("p", { class: "org" }, "Asterra Commission of Inquiry"),
-        h("p", { class: "doc" }, pair[0]),
-      ]),
-    ];
+    const bits = [h("p", { class: "doc" }, pair[0])];
     if (pair[1]) bits.push(h("p", { class: "when" }, pair[1]));
     mast.replaceChildren(...bits);
   }
@@ -846,10 +988,7 @@ function paintChrome() {
     const cls = mine === stage ? "now" : mine < stage ? "done" : "";
     return h("li", { class: cls }, label);
   });
-  rail.replaceChildren(
-    h("p", { class: "file-no" }, "File 26-441"),
-    h("ol", {}, items)
-  );
+  rail.replaceChildren(h("ol", {}, items));
 }
 
 function render() {

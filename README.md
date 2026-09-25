@@ -134,7 +134,7 @@ heroku login
 3. From the project folder, the one that contains `server.py`:
 
 ```bash
-heroku create asterra-inquiry
+heroku create araknes-inquiry
 heroku addons:create heroku-postgresql:essential-0
 git push heroku HEAD:main
 heroku ps:type web=eco
@@ -142,7 +142,7 @@ heroku ps:type web=eco
 
 If `git push` says the branch has no upstream, you are pushing this folder's current commit. That is what you want. `web=eco` keeps the dyno at $5, which is the size the monthly credit covers.
 
-4. Heroku prints a URL like `https://asterra-inquiry-something.herokuapp.com`. That is the link for the class. It can stay up through the semester.
+4. Heroku prints a URL like `https://araknes-inquiry-something.herokuapp.com`. That is the link for the class. It can stay up through the semester.
 
 5. Set a passphrase you can remember, and do not put it in the class link:
 
@@ -154,7 +154,7 @@ heroku config:set PASSPHRASE=pick-a-phrase
 
 The register is that same URL with `/export` on the end, plus the passphrase. Do not send `/export`. Do not send this GitHub page. The note here says what the design is testing, and people should write the finding before they read it.
 
-Tell them it takes about fifteen minutes, and to go through the file once.
+Tell them it takes about fifteen minutes, and to go through the file once. It has to be a computer. A phone is turned away.
 
 ### One sitting, no card
 

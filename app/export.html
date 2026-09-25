@@ -3,39 +3,62 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Register of findings</title>
+  <title>Register of findings · File 26-441</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body data-step="inquiry">
-  <div class="desk">
-    <aside class="rail">
-      <p class="file-no">File 26-441</p>
-      <p>Register. Not for participants.</p>
-    </aside>
-    <article class="sheet">
-      <header class="mast">
-        <div>
-          <p class="org">Asterra Commission of Inquiry</p>
+  <div class="computer-only">
+    <p class="brand">Araknes Commission of Inquiry</p>
+    <h1>Open the register on a computer.</h1>
+    <p>It is laid out across a full screen.</p>
+  </div>
+  <div class="site">
+    <p class="official-bar">An official record of the Araknes Commission of Inquiry</p>
+    <header class="banner">
+      <img class="flag flag-lg" src="flag-araknes.svg" alt="" width="64" height="43">
+      <div>
+        <p class="gov">The Government of Araknes</p>
+        <p class="commission">Commission of Inquiry</p>
+      </div>
+      <p class="ref">File 26-441</p>
+    </header>
+    <ul class="party-line" aria-label="The parties">
+      <li><img class="flag" src="flag-araknes.svg" alt="">Araknes</li>
+      <li><img class="flag" src="flag-lei.svg" alt="">Lei</li>
+    </ul>
+    <div class="frame">
+      <nav class="rail" aria-label="Index to the file">
+        <ol>
+          <li class="now">Register</li>
+        </ol>
+        <p class="rail-note">Not for participants.</p>
+      </nav>
+      <article class="sheet">
+        <header class="mast">
           <p class="doc">Register of findings</p>
-        </div>
-        <p class="when">INTL 6010</p>
-      </header>
-      <main id="app">
-        <div class="prose">
-          <p>Finished files on this host. If you were writing a finding, you do not need this page.</p>
-        </div>
-        <form id="gate">
-          <label for="key">Passphrase</label>
-          <p><input id="key" name="key" type="password" autocomplete="current-password"></p>
-          <button class="primary" type="submit">Open the register</button>
-        </form>
-        <p id="message" class="error" hidden></p>
-        <div id="out"></div>
-      </main>
-    </article>
+          <p class="when">Registrar</p>
+        </header>
+        <main id="app">
+          <div class="prose">
+            <p>Finished files on this host. If you were writing a finding, you do not need this page.</p>
+          </div>
+          <form id="gate">
+            <label for="key">Passphrase</label>
+            <p><input id="key" name="key" type="password" autocomplete="current-password"></p>
+            <button class="primary" type="submit">Open the register</button>
+          </form>
+          <p id="message" class="error" hidden></p>
+          <div id="out"></div>
+        </main>
+        <footer class="imprint">
+          <p>Araknes Commission of Inquiry · File 26-441</p>
+          <p>Registrar’s copy. Not for the people writing a finding.</p>
+        </footer>
+      </article>
+    </div>
   </div>
   <script type="module" src="export.js"></script>
 </body>
