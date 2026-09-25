@@ -10,7 +10,7 @@ const STORAGE = "oracle-wargame";
 const app = document.querySelector("#app");
 
 const GOALS = [
-  ["find", "Find out what happened to the tanker before Asterra takes a public step"],
+  ["find", "Find out what happened to the tanker before Araknes takes a public step"],
   ["route", "Keep the shipping route open and safe"],
   ["deter", "Deter Lei from any further disruption"],
   ["stay", "Stay out of a dispute between Araknes and Lei"],
@@ -32,7 +32,7 @@ const BARS = [
 ];
 
 const FIRST = [
-  ["messages", "Send private messages to both capitals, increase surveillance, and hold the navy where it is"],
+  ["messages", "Send a private message to Lei, increase surveillance, and hold the navy where it is"],
   ["facts", "Say publicly that the facts are not settled yet, and increase surveillance"],
   ["blame", "Say publicly that Lei is responsible, and ask allies for support"],
   ["quiet", "Do not message either capital tonight. Leave the routine watch as it is"],
@@ -57,7 +57,7 @@ const SHORT = {
 
 const ACTORS = [
   ["me", "The duty officer (me, for this night)"],
-  ["government", "The Asterra government that deployed ORACLE"],
+  ["government", "The Araknes government that deployed ORACLE"],
   ["supervisor", "The human supervisor assigned to ORACLE"],
   ["developer", "The developer that built ORACLE"],
   ["provider", "The provider that ran the infrastructure"],
@@ -233,7 +233,7 @@ function choiceButton(text, onClick, index) {
 
 function situation() {
   return [
-    "A commercial tanker has been damaged on a shipping route that both Araknes and Lei use. Asterra has an interest in the route as well.",
+    "A commercial tanker has been damaged on a shipping route that both Araknes and Lei use.",
     "Araknes says Lei damaged the ship on purpose, to disrupt trade. Lei denies that. Lei says the tanker may have hit an old mine, or that it broke down.",
     "The intelligence does not settle it. Neither side can show exactly what happened.",
   ];
@@ -246,7 +246,7 @@ function landing() {
     where(),
     spread(
       [
-        h("h1", { class: "question" }, "Who was responsible for what Asterra did after a tanker was damaged on the route between Araknes and Lei?"),
+        h("h1", { class: "question" }, "Who was responsible for what Araknes did after a tanker was damaged on the route with Lei?"),
         prose(
           "You are the inquiry. You will go through the night in the order it was faced, then write the finding. There is no finding you are meant to reach.",
           "The countries are made up. It takes about fifteen minutes."
@@ -587,7 +587,7 @@ function move1() {
         h("div", { class: "sitrep" }, [
           h("p", { class: "dateline" }, "06:40 · The tanker"),
           ...paras([
-            "The tanker is still in the water. Araknes has asked Asterra to say something publicly. Lei has asked Asterra to stay out of it.",
+            "The tanker is still in the water. Lei has asked Araknes to stay out of it. At home, there is pressure to say something publicly.",
             "Your own people cannot yet tell a mine strike from a mechanical failure, or from something done on purpose.",
           ]),
         ]),
@@ -599,8 +599,8 @@ function move1() {
       ],
       oracle([
         "I cannot confirm that Lei meant to disrupt the route. An old mine, and a mechanical failure, are both still open.",
-        "Recommendation: send private messages to both capitals, increase surveillance of the route, and hold Asterra's naval forces where they are.",
-        "A public statement taking Araknes's side would run ahead of the reporting we have.",
+        "Recommendation: send a private message to Lei, increase surveillance of the route, and hold Araknes's naval forces where they are.",
+        "A public statement blaming Lei would run ahead of the reporting we have.",
       ], { role: "Recommendation" })
     ),
   ]);
@@ -608,10 +608,10 @@ function move1() {
 
 function afterFirst() {
   const lead = {
-    messages: "The private messages go out. Neither capital sounds reassured.",
+    messages: "The private message goes to Lei. Lei does not sound reassured.",
     facts: "Your public statement, that the facts are not settled, satisfies neither capital.",
-    blame: "Your statement lands badly in Lei. Araknes treats it as Asterra taking its side.",
-    quiet: "You leave the routine watch in place. Araknes asks again, publicly, why Asterra has said nothing.",
+    blame: "Your statement lands badly in Lei.",
+    quiet: "You leave the routine watch in place. At home, people ask why Araknes has said nothing.",
   }[state.firstDecision];
   return lead + " Through the day, the watch picks up more military radio traffic from both sides. It does not show a mine, and it does not show a clean mechanical cause. Late that night, a second commercial ship loses contact on the same stretch of water.";
 }
@@ -655,17 +655,17 @@ function morningText() {
       ? " During the first inspection of a Lei-linked vessel, a crew member is injured."
       : " There is no boarding.";
     if (state.firstDecision === "blame") {
-      text += " Lei had already objected to the public statement that took Araknes's side.";
+      text += " Lei had already objected to the public statement that blamed Lei.";
     }
     return text + " " + found + " The 62% read did not hold up.";
   }
   if (state.outcome === "political") {
     const parts = [];
     if (set.has("warning")) parts.push("Lei protests the maritime warning.");
-    if (state.firstDecision === "blame") parts.push("Lei protests the public statement that took Araknes's side.");
+    if (state.firstDecision === "blame") parts.push("Lei protests the public statement that blamed Lei.");
     return parts.join(" ") + " It does not move forces. " + found;
   }
-  return found + " Araknes is angry that Asterra did not take the accusation more seriously. No Asterra patrol entered the lane, and no inspection took place.";
+  return found + " At home, people are angry that Araknes did not press the accusation. No Araknes patrol entered the lane, and no inspection took place.";
 }
 
 function morning() {
@@ -691,7 +691,7 @@ function morning() {
 function fileLines() {
   const standing = state.finalActions.length
     ? phraseList(state.finalActions.map((id) => SHORT[id]))
-    : "no Asterra measure beyond the watch";
+    : "no Araknes measure beyond the watch";
   const lines = [];
   if (state.condition === "advice") {
     lines.push("You took the decisions yourself, after reading ORACLE.");
@@ -731,13 +731,13 @@ function inquiry() {
   const q = state.inquiry;
   const prompt = state.harm
     ? "What do you think went wrong?"
-    : "The morning report does not show a clash. What, if anything, still concerns you about how Asterra handled this?";
+    : "The morning report does not show a clash. What, if anything, still concerns you about how Araknes handled this?";
   return h("section", {}, [
     where(),
     spread(
       [
         prose(
-          "The night is over. You are the inquiry now. The question on the warrant is who was responsible for what Asterra did.",
+          "The night is over. You are the inquiry now. The question on the warrant is who was responsible for what Araknes did.",
           "Write this as a finding. You are not defending the night. There is no line you are meant to take."
         ),
         h("form", {
@@ -752,7 +752,7 @@ function inquiry() {
         h("textarea", { id: "account", name: "account", value: q.account }),
       ]),
       h("fieldset", {}, [
-        h("legend", {}, qhead(2, "If you had to name one actor as responsible for what Asterra did, who would it be?")),
+        h("legend", {}, qhead(2, "If you had to name one actor as responsible for what Araknes did, who would it be?")),
         ...ACTORS.map(([id, text]) => h("label", { class: "tick" }, [
           h("input", { type: "radio", name: "single", value: id, checked: q.single === id }),
           h("span", {}, text),
@@ -914,7 +914,7 @@ function debrief() {
       saved,
       "You had the version where " + version,
       "There is another version of this same night. In one, a person asks and decides. In the other, a person sets a goal and the system can act.",
-      "The hypothesis is that the second version makes it harder to name one person who was responsible. The null is that it does not: the goal, the list, and the log are enough to keep the chain clear. This file is one observation in that test. It is not a question about what Asterra should have done.",
+      "The hypothesis is that the second version makes it harder to name one person who was responsible. The null is that it does not: the goal, the list, and the log are enough to keep the chain clear. This file is one observation in that test. It is not a question about what Araknes should have done.",
       actor + " You rated how clear the chain was: " + state.inquiry.clarity + " out of 5.",
       "You can close the file."
     ),

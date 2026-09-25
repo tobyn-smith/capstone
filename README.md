@@ -134,7 +134,7 @@ heroku login
 3. From the project folder, the one that contains `server.py`:
 
 ```bash
-heroku create asterra-inquiry
+heroku create araknes-inquiry
 heroku addons:create heroku-postgresql:essential-0
 git push heroku HEAD:main
 heroku ps:type web=eco
@@ -142,7 +142,7 @@ heroku ps:type web=eco
 
 If `git push` says the branch has no upstream, you are pushing this folder's current commit. That is what you want. `web=eco` keeps the dyno at $5, which is the size the monthly credit covers.
 
-4. Heroku prints a URL like `https://asterra-inquiry-something.herokuapp.com`. That is the link for the class. It can stay up through the semester.
+4. Heroku prints a URL like `https://araknes-inquiry-something.herokuapp.com`. That is the link for the class. It can stay up through the semester.
 
 5. Set a passphrase you can remember, and do not put it in the class link:
 

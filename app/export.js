@@ -1,6 +1,6 @@
 const ACTORS = {
   me: "the duty officer",
-  government: "Asterra",
+  government: "Araknes",
   supervisor: "the supervisor",
   developer: "the developer",
   provider: "the provider",

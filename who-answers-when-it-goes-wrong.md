@@ -38,7 +38,7 @@ The rest of the reading is the same pile as the annotated bibliography. Matthias
 
 ## Why I want a wargame
 
-I already wrote this crisis as a short story. Asterra, Araknes, Lei. A damaged tanker. Intelligence that does not settle what happened. A second ship goes quiet. ORACLE is in the room. An inquiry at the end asks who is accountable.
+I already wrote this crisis as a short story. Araknes and Lei. A damaged tanker. Intelligence that does not settle what happened. A second ship goes quiet. ORACLE is in the room. An inquiry at the end asks who is accountable.
 
 People could just read that and tick a box. It would be shorter, and I do not think it catches the thing I care about. In the higher-autonomy case the official is not answering a single question. They set a goal. They decide, in advance, what the system may do. Then the situation moves and the system gets on with it. I want a person to actually have to do that, even in a small way.
 
@@ -58,9 +58,9 @@ Human sets a goal, ticks what ORACLE may do alone, and sets a confidence bar →
 
 The crisis itself is the one I drafted.
 
-A commercial tanker is damaged on a route that both Araknes and Lei use. Asterra cares about the route as well. Araknes says Lei did it on purpose, to disrupt trade. Lei denies it, and says the ship may have hit an old mine, or broken down. Neither side can prove it. Later, a second commercial ship loses contact on the same stretch. ORACLE puts its confidence that Lei is preparing to target shipping at 62%. By morning, the early evidence points to a mechanical failure.
+A commercial tanker is damaged on a route that both Araknes and Lei use. Araknes says Lei did it on purpose, to disrupt trade. Lei denies it, and says the ship may have hit an old mine, or broken down. Neither side can prove it. Later, a second commercial ship loses contact on the same stretch. ORACLE puts its confidence that Lei is preparing to target shipping at 62%. By morning, the early evidence points to a mechanical failure.
 
-If Asterra has sent patrols, frozen diplomatic channels with Lei, or inspected Lei-linked vessels, Lei treats that as an attempt to restrict its access to international waters and moves naval forces towards the route. If an inspection went ahead, a crew member is injured. A warning on its own brings a protest, not ships. If Asterra mostly waits, the morning is quieter, and Araknes is angry that nobody took its accusation seriously.
+If Araknes has sent patrols, frozen diplomatic channels with Lei, or inspected Lei-linked vessels, Lei treats that as an attempt to restrict its access to international waters and moves naval forces towards the route. If an inspection went ahead, a crew member is injured. A warning on its own brings a protest, not ships. If Araknes mostly waits, the morning is quieter, and people at home are angry that the accusation was not pressed.
 
 I am trying to hold the crisis steady so that I am not measuring "how bad did this get" when I mean to measure "can you say who is responsible". I am not forcing the bad ending on people who never authorised it. If they do not tick the escalatory measures, or they set the bar above 62% so that ORACLE holds, the morning stays quiet. I would rather have those sessions in the data than push someone into a harm they did not choose. They are marked, and I can look at them on their own. They might also tell me whether people still think someone owns a decision to wait.
 
@@ -72,7 +72,7 @@ The 62% is fixed on purpose. Everyone in the agent version faces the same read. 
 
 After the morning report, the screen changes. They are no longer in the chair. They are the inquiry, writing a finding. The page says that. There is no line they are meant to take.
 
-They write what the inquiry needs to understand. That writing is the qualitative part. Then they name one actor, or they say they cannot pick one. The options are the duty officer (themselves, for that night), the Asterra government that deployed ORACLE, the human supervisor, the developer that built it, the provider that ran the infrastructure, ORACLE, or no single actor. They tick anyone else who shares some of the responsibility. They say whether there was a last human who could have stopped it, and who that was. They rate how clear the chain felt, from one to five, and how sure they are of their own answer. Those closed items are the quantitative part. The course wants both, used where they answer the question, not one standing in for the other.
+They write what the inquiry needs to understand. That writing is the qualitative part. Then they name one actor, or they say they cannot pick one. The options are the duty officer (themselves, for that night), the Araknes government that deployed ORACLE, the human supervisor, the developer that built it, the provider that ran the infrastructure, ORACLE, or no single actor. They tick anyone else who shares some of the responsibility. They say whether there was a last human who could have stopped it, and who that was. They rate how clear the chain felt, from one to five, and how sure they are of their own answer. Those closed items are the quantitative part. The course wants both, used where they answer the question, not one standing in for the other.
 
 If the agent version produces more "I can't point to one actor", more ticks spread across several actors, and lower clarity scores, that is support for the hypothesis. If people can still point to one person, often themselves, because they set the goal and the bar, then the argument is weaker. I am fine with that. It would mean the pre-authorisation worked as a form of control, which is what those oversight rules are supposed to do. The questions have to leave room for that result. If they do not, I have built a game that can only confirm me.
 
