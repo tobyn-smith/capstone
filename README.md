@@ -26,3 +26,4 @@ If you add `?condition=advice` or `?condition=agent` to the link, that forces a 
 - `outcome` is `escalated`, `political`, or `contained`.
 - `harm` is true when Lei moves naval forces towards the route.
 - `clarity` and `sureness` are the 1 to 5 scales in the inquiry.
+- `single_actor` is `me`, `government`, `supervisor`, `developer`, `provider`, `oracle`, or `none` if they could not pick one. The table writes those out in words. The download keeps the short codes.

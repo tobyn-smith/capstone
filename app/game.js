@@ -286,7 +286,7 @@ function briefing() {
 function setup() {
   return h("section", {}, [
     where(),
-    h("form", { onSubmit: onSetup }, [
+    h("form", { onSubmit: onSetup, onInput: onSetupInput }, [
       h("fieldset", {}, [
         h("legend", {}, "What goal is ORACLE working towards?"),
         ...GOALS.map(([id, text]) => h("label", { class: "tick" }, [
@@ -324,6 +324,14 @@ function setup() {
       h("button", { class: "primary", type: "submit" }, "Confirm, and leave ORACLE running"),
     ]),
   ]);
+}
+
+function onSetupInput(event) {
+  const data = new FormData(event.currentTarget);
+  state.goal = data.get("goal") || null;
+  state.confidenceBar = data.get("bar") ? Number(data.get("bar")) : null;
+  state.preauthorised = data.getAll("measure");
+  save();
 }
 
 function onSetup(event) {
@@ -599,7 +607,13 @@ function inquiry() {
       h("p", { class: "label" }, "The file"),
       h("ul", {}, fileLines().map((line) => h("li", {}, line))),
     ]),
-    h("form", { onSubmit: onInquiry }, [
+    h("form", {
+      onSubmit: onInquiry,
+      onInput: (event) => {
+        syncInquiry(event.currentTarget);
+        save();
+      },
+    }, [
       h("div", { class: "ask" }, [
         h("label", { htmlFor: "account" }, prompt),
         h("textarea", { id: "account", name: "account", value: q.account }),
@@ -761,7 +775,7 @@ function debrief() {
       saved,
       "You were in the version where " + version,
       "There is another version of this same crisis. In one, a person asks and decides. In the other, a person sets a goal and the system can act. I want to see whether that changes how easy it is to say who is responsible.",
-      actor + " You put the clarity of the chain at " + state.inquiry.clarity + " out of 5.",
+      actor + " You rated how clear the chain was: " + state.inquiry.clarity + " out of 5.",
       "You can close this page."
     ),
     h("button", { class: "secondary", type: "button", onClick: downloadCopy }, "Download a copy of my answers"),

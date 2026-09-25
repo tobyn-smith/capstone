@@ -1,3 +1,13 @@
+const ACTORS = {
+  me: "the official",
+  government: "Asterra",
+  supervisor: "the supervisor",
+  developer: "the developer",
+  provider: "the provider",
+  oracle: "ORACLE",
+  none: "can't pick one",
+};
+
 const gate = document.querySelector("#gate");
 const out = document.querySelector("#out");
 const message = document.querySelector("#message");
@@ -33,7 +43,7 @@ function render(rows) {
       h("td", {}, row.condition || ""),
       h("td", {}, row.outcome || ""),
       h("td", {}, row.harm ? "yes" : "no"),
-      h("td", {}, row.single_actor || ""),
+      h("td", {}, ACTORS[row.single_actor] || row.single_actor || ""),
       h("td", {}, row.clarity ?? ""),
       h("td", {}, row.sureness ?? ""),
     ]));
