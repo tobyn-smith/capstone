@@ -243,8 +243,8 @@ function situation() {
 // Keep the agreement sentence. It is the consent. "About fifteen minutes." stays on its own line.
 function consent() {
   return h("section", { class: "welcome" }, [
+    h("img", { class: "uga-logo", src: "uga-logo.png", alt: "University of Georgia", width: "1024", height: "158" }),
     h("p", { class: "draft-mark" }, "Draft"),
-    h("p", { class: "dateline" }, "University of Georgia"),
     h("h1", { class: "question" }, "INTL 6010, Research Methods"),
     prose(
       "I'm Tobyn Smith. This is for my research methods class.",

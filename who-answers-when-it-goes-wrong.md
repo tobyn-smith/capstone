@@ -120,6 +120,8 @@ The pages are marked Draft, on the class page and in the footer of the file. I w
 
 The class page, before the commission, is `consent()` in `app/game.js`. That is the setup. About fifteen minutes is its own line. The agreement sentence is the consent, so the meaning of that one stays: by starting, I can save the choices and the inquiry answers.
 
+That page follows the University of Georgia visual style: Arch Black, Bulldog Red, and Chapel Bell White, with Creamery behind the sheet. Oswald for the heading, Merriweather for the sentences, Merriweather Sans for the small lines. The mark at the top is the official logo, `app/uga-logo.png`, not a wordmark I set myself. Those rules live on `.welcome` and `.before` in `app/styles.css`. The commission keeps its own header.
+
 The question on the cover, the night, ORACLE's lines, the finding, and the last page are in the same file. Search for the sentence and change it there.
 
 The arms are `app/arms-araknes.svg`. Sand over brick, a pale lane, a ship. That is Araknes. Lei is still the green and slate flag, `app/flag-lei.svg`. The two flags stay on the party line. The arms sit in the banner, for the commission, not as a third country.
