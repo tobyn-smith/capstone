@@ -108,7 +108,7 @@ Open Chrome, Safari, or Firefox and paste this into the address bar:
 
 http://127.0.0.1:8000
 
-Click Begin. That is the wargame. It takes about fifteen minutes.
+Click Open the file. That is the wargame. It takes about fifteen minutes.
 
 `127.0.0.1` means this computer. The link will not open on someone else's laptop.
 
@@ -116,39 +116,57 @@ To stop it, click the terminal window and press Ctrl-C.
 
 ## Letting the class play
 
-Campus Wi-Fi will usually not let a classmate open your laptop by its own address. For INTL 6010, keep the game running on your laptop and hand the seminar a temporary public link. The findings still save in the `data` folder on your machine. Your laptop has to stay awake, and both windows below have to stay open, until everyone has finished.
+The address `127.0.0.1` only works on your computer. For INTL 6010 there are two ways to let other people open the file.
 
-1. Start the game, and leave that window open.
+### A link that stays up
 
-```bash
-python3 server.py
-```
+This uses the Heroku offer in the GitHub Student Developer Pack. DigitalOcean's student credit left the pack at the end of July 2026, so that is not the route. Heroku gives $13 of platform credit a month for 24 months. This app needs two Heroku products: the Eco dyno at $5 a month, and the smallest Postgres database, Essential-0, at $5 a month. Together that is $10, inside the credit. The database is what keeps the findings. A normal free website forgets the `data` folder when it restarts.
 
-2. Install Cloudflare's tunnel program once, if you do not already have it. On a Mac with Homebrew:
+Heroku still asks for a credit card before the credit applies. If the card is a problem, use the one-sitting method below instead.
 
-```bash
-brew install cloudflared
-```
-
-Otherwise download it from https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
-
-3. Open a second terminal and run:
+1. Claim the offer at https://www.heroku.com/github-students/ with the GitHub account that has the student pack. Use your UGA email if it asks.
+2. On your laptop, install the Heroku CLI from https://devcenter.heroku.com/articles/heroku-cli and log in:
 
 ```bash
-cloudflared tunnel --url http://127.0.0.1:8000
+heroku login
 ```
 
-4. That window prints an `https://` address ending in `trycloudflare.com`. Send that address to the class. That is the play link.
+3. From the project folder, the one that contains `server.py`:
 
-Do not add `/export` to the link. Do not send the passphrase. Do not send the GitHub page. The note in the repository says what the design is testing, and people should not read that before they write a finding.
+```bash
+heroku create asterra-inquiry
+heroku addons:create heroku-postgresql:essential-0
+git push heroku HEAD:main
+heroku ps:type web=eco
+```
 
-5. Tell them it takes about fifteen minutes, and to go through it once. A second time through is a different observation, because they already know the question.
+If `git push` says the branch has no upstream, you are pushing this folder's current commit. That is what you want. `web=eco` keeps the dyno at $5, which is the size the monthly credit covers.
 
-6. When the room is done, press Ctrl-C in both windows. On your laptop, open http://127.0.0.1:8000/export and use the passphrase the first window printed.
+4. Heroku prints a URL like `https://asterra-inquiry-something.herokuapp.com`. That is the link for the class. It can stay up through the semester.
 
-If Cloudflare is blocked, the same idea works with ngrok: `ngrok http 8000`, then send the https address it prints. Same rule. Laptop stays open. Answers stay on the laptop.
+5. Set a passphrase you can remember, and do not put it in the class link:
 
-A free website host is a poor fit for the game as it is written. Those hosts forget the `data` folder when they restart, so the findings disappear. If the link has to stay up for several days, the findings need to go to a Google Sheet instead of a file on one computer.
+```bash
+heroku config:set PASSPHRASE=pick-a-phrase
+```
+
+6. The app sleeps after half an hour with nobody on it. The first person back waits while it wakes. Open the link yourself once before class so you are not the person waiting.
+
+The register is that same URL with `/export` on the end, plus the passphrase. Do not send `/export`. Do not send this GitHub page. The note here says what the design is testing, and people should write the finding before they read it.
+
+Tell them it takes about fifteen minutes, and to go through the file once.
+
+### One sitting, no card
+
+If you only need the file open while you are in the room, keep it on your laptop and use a temporary link. The laptop has to stay awake.
+
+1. Start the game and leave that window open: `python3 server.py`
+2. Install Cloudflare's tunnel program once: `brew install cloudflared`, or download it from https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
+3. In a second terminal: `cloudflared tunnel --url http://127.0.0.1:8000`
+4. Send the class the `https://` address it prints. Same rules. No `/export`, no GitHub page.
+5. When the room is done, Ctrl-C in both windows. Read the findings at http://127.0.0.1:8000/export
+
+If Cloudflare is blocked, `ngrok http 8000` does the same job.
 
 ## Reading the answers
 

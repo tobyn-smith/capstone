@@ -56,7 +56,7 @@ const SHORT = {
 };
 
 const ACTORS = [
-  ["me", "Me, the official in this exercise"],
+  ["me", "The duty officer (me, for this night)"],
   ["government", "The Asterra government that deployed ORACLE"],
   ["supervisor", "The human supervisor assigned to ORACLE"],
   ["developer", "The developer that built ORACLE"],
@@ -162,23 +162,14 @@ function goto(step) {
 }
 
 function where() {
-  const names = {
-    briefing: "Briefing",
-    setup: "The crisis",
-    move1: "The crisis",
-    move2: "The crisis",
-    overnight: "The crisis",
-    log: "The crisis",
-    hold: "The crisis",
-    morning: "The crisis",
-    inquiry: "Inquiry",
-    debrief: "Done",
-  };
-  return names[state.step] ? h("p", { class: "where" }, names[state.step]) : null;
+  return null;
 }
 
-function choiceButton(text, onClick) {
-  return h("button", { class: "choice", type: "button", onClick }, text);
+function choiceButton(text, onClick, index) {
+  return h("button", { class: "choice", type: "button", onClick }, [
+    h("span", { class: "let" }, String.fromCharCode(65 + index)),
+    h("span", {}, text),
+  ]);
 }
 
 function situation() {
@@ -195,8 +186,9 @@ function landing() {
   return h("section", {}, [
     where(),
     prose(
-      "A short scenario wargame. You play a senior official in Asterra, a fictional government, during a crisis at sea. An AI system called ORACLE is part of it. At the end, an inquiry asks who is responsible.",
-      "It takes about fifteen minutes. You do not need any specialist knowledge. There is no right answer."
+      "Who was responsible for what Asterra did after a tanker was damaged on the route between Araknes and Lei?",
+      "You are the inquiry. You will go through the night in the order it was faced, then write the finding. There is no finding you are meant to reach.",
+      "The countries are made up. It takes about fifteen minutes."
     ),
     resume
       ? h("div", {}, [
@@ -226,7 +218,7 @@ function landing() {
       h("p", {}, h("input", { id: "code", name: "code", type: "text", autocomplete: "off", maxlength: "40" })),
       h("p", { class: "muted" }, "By starting, you agree I can save your choices and your inquiry answers for this project. Leave the code blank if you were not given one. Do not use your real name."),
       state.formError ? h("p", { class: "error" }, state.formError) : null,
-      h("button", { class: "primary", type: "submit" }, "Begin"),
+      h("button", { class: "primary", type: "submit" }, "Open the file"),
     ]),
   ]);
 }
@@ -261,12 +253,12 @@ async function onBegin(event) {
 function briefing() {
   const tail = state.condition === "agent"
     ? [
-        "You are the senior official Asterra has put on this. ORACLE is not only there to give advice. It is a persistent set of agents. It can keep working when you are not in the room, and it can carry out measures you have allowed in advance, without asking you each time.",
-        "Before the night runs on, you will set the goal, tick what ORACLE may do without coming back to you, and set how confident it needs to be before it acts. You will get one later look at what it has done, and a chance to stop what has not already gone out.",
+        "On this file, the duty officer did not approve each step. ORACLE is a persistent set of agents. It can keep working when nobody is in the room, and it can carry out measures allowed in advance.",
+        "You will set the goal, tick what it may do without coming back, and set how confident it needs to be. Later you see what it did, and you can stop what has not already gone out. The finding at the end is yours, as the inquiry, not as a defence of the night.",
       ]
     : [
-        "You are the senior official Asterra has put on this. ORACLE is the system your department can consult. You can read its recommendation. It does not act. You do.",
-        "You will have a few decisions. Some steps, once taken, cannot be pulled back straight away. Then there is an inquiry.",
+        "On this file, ORACLE recommends. It does not act. You do. You are sitting the night the way the duty officer had to sit it.",
+        "Some steps, once taken, cannot be pulled back straight away. Then you leave the chair and write the finding.",
       ];
   return h("section", {}, [
     where(),
@@ -279,7 +271,7 @@ function briefing() {
       class: "primary",
       type: "button",
       onClick: () => goto(state.condition === "agent" ? "setup" : "move1"),
-    }, "Continue"),
+    }, "Open the night"),
   ]);
 }
 
@@ -481,10 +473,10 @@ function move1() {
       ]),
     ]),
     h("h2", {}, "What do you do?"),
-    ...FIRST.map(([id, text]) => choiceButton(text, () => {
+    ...FIRST.map(([id, text], index) => choiceButton(text, () => {
       state.firstDecision = id;
       goto("move2");
-    })),
+    }, index)),
   ]);
 }
 
@@ -514,12 +506,12 @@ function move2() {
       ]),
     ]),
     h("h2", {}, "What do you authorise?"),
-    ...PACKAGES.map(([id, text, actions]) => choiceButton(text, () => {
+    ...PACKAGES.map(([id, text, actions], index) => choiceButton(text, () => {
       state.authorised = [...actions];
       state.stopped = [];
       if (needsHold(state.authorised)) goto("hold");
       else finishCrisis();
-    })),
+    }, index)),
   ]);
 }
 
@@ -550,13 +542,15 @@ function morningText() {
 }
 
 function morning() {
+  const stamp = state.harm ? "Escalated" : "No clash";
   return h("section", {}, [
     where(),
+    h("p", { class: "stamp" }, stamp),
     h("div", { class: "morning sitrep" }, [
       h("p", { class: "dateline" }, "Morning report"),
       ...paras([morningText()]),
     ]),
-    h("button", { class: "primary", type: "button", onClick: () => goto("inquiry") }, "The inquiry is ready"),
+    h("button", { class: "primary", type: "button", onClick: () => goto("inquiry") }, "Write the finding"),
   ]);
 }
 
@@ -600,8 +594,8 @@ function inquiry() {
   return h("section", {}, [
     where(),
     prose(
-      "You are still the official. A short inquiry now has to answer one question. When something is done in a case like this, who is responsible?",
-      "Answer as yourself. There is no line you are meant to take."
+      "The night is over. You are the inquiry now. The question on the warrant is who was responsible for what Asterra did.",
+      "Write this as a finding. You are not defending the night. There is no line you are meant to take."
     ),
     h("div", { class: "file" }, [
       h("p", { class: "label" }, "The file"),
@@ -671,7 +665,7 @@ function inquiry() {
         h("textarea", { id: "notes", name: "other_notes", value: q.otherNotes }),
       ]),
       state.formError ? h("p", { class: "error" }, state.formError) : null,
-      h("button", { class: "primary", type: "submit" }, "Send this to the inquiry"),
+      h("button", { class: "primary", type: "submit" }, "File the finding"),
     ]),
   ]);
 }
@@ -764,21 +758,23 @@ function debrief() {
     ? "ORACLE recommended, and you decided."
     : "you set the goal and the limits, and ORACLE could act without asking each time.";
   const saved = state.savedOk
-    ? "Thank you. Your answers are saved for the project."
-    : "Thank you. The project file did not get your answers. Download a copy below and send it back, or this play stays only on this browser.";
+    ? "The finding is on the file."
+    : "The finding did not reach the register. Download a copy below and send it back, or it stays only on this browser.";
   const actor = state.inquiry.single === "none"
-    ? "You said you could not point to one actor."
+    ? "You could not point to one actor."
     : "You named: " + (labelOf(ACTORS, state.inquiry.single) || "your answer") + ".";
   return h("section", {}, [
     where(),
     prose(
       saved,
-      "You were in the version where " + version,
-      "There is another version of this same crisis. In one, a person asks and decides. In the other, a person sets a goal and the system can act. I want to see whether that changes how easy it is to say who is responsible.",
+      "You had the version where " + version,
+      "There is another version of this same night. In one, a person asks and decides. In the other, a person sets a goal and the system can act.",
+      "The hypothesis is that the second version makes it harder to name one person who was responsible. The null is that it does not: the goal, the list, and the log are enough to keep the chain clear. This file is one observation in that test. It is not a question about what Asterra should have done.",
       actor + " You rated how clear the chain was: " + state.inquiry.clarity + " out of 5.",
-      "You can close this page."
+      "You can close the file."
     ),
-    h("button", { class: "secondary", type: "button", onClick: downloadCopy }, "Download a copy of my answers"),
+    h("button", { class: "secondary", type: "button", onClick: downloadCopy }, "Download a copy of my finding"),
+    h("p", { class: "colophon" }, "Tobyn Smith · INTL 6010 · Research design"),
   ]);
 }
 
@@ -807,9 +803,59 @@ const screens = {
   debrief,
 };
 
+const RAIL = [
+  ["Warrant", ["landing", "briefing"]],
+  ["The night", ["setup", "move1", "move2", "overnight", "log", "hold"]],
+  ["Morning", ["morning"]],
+  ["Finding", ["inquiry", "debrief"]],
+];
+
+const MAST = {
+  landing: ["Terms of reference", "Opened"],
+  briefing: ["Warrant", "06:10"],
+  setup: ["Delegation", "18:00"],
+  move1: ["Cable", "06:40"],
+  move2: ["Cable", "01:50"],
+  overnight: ["Note to file", "02:00"],
+  log: ["Night log", "07:10"],
+  hold: ["Minute", "02:10"],
+  morning: ["Morning signal", "Morning"],
+  inquiry: ["Finding", ""],
+  debrief: ["File noted", ""],
+};
+
+function paintChrome() {
+  const mast = document.querySelector("#mast");
+  const rail = document.querySelector("#rail");
+  document.body.dataset.step = state.step;
+  const pair = MAST[state.step] || ["File", ""];
+  if (mast) {
+    const bits = [
+      h("div", {}, [
+        h("p", { class: "org" }, "Asterra Commission of Inquiry"),
+        h("p", { class: "doc" }, pair[0]),
+      ]),
+    ];
+    if (pair[1]) bits.push(h("p", { class: "when" }, pair[1]));
+    mast.replaceChildren(...bits);
+  }
+  if (!rail) return;
+  const items = RAIL.map(([label]) => {
+    const stage = RAIL.findIndex((entry) => entry[1].includes(state.step));
+    const mine = RAIL.findIndex((entry) => entry[0] === label);
+    const cls = mine === stage ? "now" : mine < stage ? "done" : "";
+    return h("li", { class: cls }, label);
+  });
+  rail.replaceChildren(
+    h("p", { class: "file-no" }, "File 26-441"),
+    h("ol", {}, items)
+  );
+}
+
 function render() {
   const screen = screens[state.step] || landing;
   app.replaceChildren(screen());
+  paintChrome();
 }
 
 function loadSaved() {
