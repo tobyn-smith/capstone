@@ -12,7 +12,7 @@ import threading
 from datetime import datetime, timezone
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 ROOT = Path(__file__).resolve().parent
 APP = ROOT / "app"
@@ -273,9 +273,45 @@ def clean_response(payload: dict, received_at: str) -> dict:
     }
 
 
+def resolve_app_file(url_path: str) -> Path | None:
+    """Map a request path onto a file inside app/.
+
+    The standard library's directory handler can answer the site root
+    with 'File not found' when the folder path ends in a slash. Open the
+    file ourselves instead.
+    """
+    path = unquote(urlparse(url_path).path)
+    if path == "/export":
+        path = "/export.html"
+    if path in ("", "/"):
+        path = "/index.html"
+    elif path.endswith("/"):
+        path += "index.html"
+    parts = []
+    for part in path.split("/"):
+        if part in ("", "."):
+            continue
+        if part == "..":
+            return None
+        parts.append(part)
+    if not parts:
+        parts = ["index.html"]
+    candidate = APP.joinpath(*parts)
+    try:
+        candidate.resolve().relative_to(APP.resolve())
+    except ValueError:
+        return None
+    if candidate.is_dir():
+        candidate = candidate / "index.html"
+    return candidate
+
+
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
-        super().__init__(*args, directory=str(APP), **kwargs)
+        # Set this before the base class handles the request. Some Python
+        # versions store the directory argument only after the response.
+        self.directory = str(APP)
+        super().__init__(*args, directory=self.directory, **kwargs)
 
     def end_headers(self):
         self.send_header("Cache-Control", "no-store")
@@ -286,9 +322,32 @@ class Handler(SimpleHTTPRequestHandler):
         if parsed.path == "/api/responses":
             self.handle_export()
             return
-        if parsed.path == "/export":
-            self.path = "/export.html"
-        super().do_GET()
+        target = resolve_app_file(self.path)
+        if target is None or not target.is_file():
+            self.send_missing()
+            return
+        body = target.read_bytes()
+        self.send_response(200)
+        self.send_header("Content-Type", self.guess_type(str(target)))
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def send_missing(self):
+        body = (
+            "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"utf-8\">"
+            "<title>File not found</title></head><body>"
+            "<h1>That page is not in the file.</h1>"
+            "<p>The game is at <a href=\"/\">the start page</a>.</p>"
+            "<p>If that page is the one you opened, stop this window with Ctrl-C. "
+            "Go to the folder that contains server.py and the app folder, then run python3 server.py again.</p>"
+            "</body></html>"
+        ).encode("utf-8")
+        self.send_response(404)
+        self.send_header("Content-Type", "text/html; charset=utf-8")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
 
     def do_POST(self):
         parsed = urlparse(self.path)
