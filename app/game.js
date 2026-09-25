@@ -239,22 +239,22 @@ function situation() {
   ];
 }
 
-// Draft voice. Rewrite these sentences in consent() when you want them to sound like you.
-// Keep the agreement sentence. It is the consent. "About fifteen minutes." stays on its own line.
+// Draft voice. The class-page sentences live in consent().
 function consent() {
   return h("section", { class: "welcome" }, [
     h("img", { class: "uga-logo", src: "uga-logo.png", alt: "University of Georgia", width: "1024", height: "158" }),
     h("p", { class: "draft-mark" }, "Draft"),
     h("h1", { class: "question" }, "INTL 6010, Research Methods"),
+    h("p", { class: "byline" }, "A project by Tobyn Smith"),
     prose(
-      "I'm Tobyn Smith. This is for my research methods class.",
-      "You'll sit one night, then write what you make of it."
+      "This will take about fifteen minutes to complete, and by clicking 'Start', you agree that I can save your choices and inquiry answers for this project.",
+      "Please don't use your real name and answer truthfully!"
     ),
-    h("p", { class: "minutes" }, "About fifteen minutes."),
-    prose(
-      "By starting, you agree that I can save your choices and your inquiry answers for this project.",
-      "Don't use your real name."
-    ),
+    h("p", { class: "reach" }, [
+      "Any questions or issues, reach out to ",
+      h("a", { href: "mailto:tobynsmith@uga.edu" }, "tobynsmith@uga.edu"),
+      ".",
+    ]),
     h("button", { class: "primary", type: "button", onClick: () => goto("landing") }, "Start"),
   ]);
 }

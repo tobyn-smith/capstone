@@ -108,7 +108,7 @@ Open Chrome, Safari, or Firefox and paste this into the address bar:
 
 http://127.0.0.1:8000
 
-The first page says this is for INTL 6010 at UGA. Starting means the answers can be saved. Then click Open the file. That is the wargame. It takes about fifteen minutes.
+The first page is INTL 6010, a project by Tobyn Smith. It says the file takes about fifteen minutes, and that clicking Start means the answers can be saved. Then click Open the file. That is the wargame.
 
 The address is exactly `http://127.0.0.1:8000`. If the browser says “File not found”, stop the terminal with Ctrl-C. Check you are in the folder that contains `server.py` (`ls server.py` should print the name), then run `python3 server.py` again. `python -m http.server` will not keep the answers.
 
