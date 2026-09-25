@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Responses</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <p class="kicker">Asterra · Maritime desk</p>
+      <p class="title">Responses</p>
+    </header>
+    <main id="app">
+      <div class="prose">
+        <p>Finished games on this machine. If you were playing, you do not need this page.</p>
+      </div>
+      <form id="gate">
+        <label for="key">Passphrase</label>
+        <p><input id="key" name="key" type="password" autocomplete="current-password"></p>
+        <button class="primary" type="submit">Show the table</button>
+      </form>
+      <p id="message" class="error" hidden></p>
+      <div id="out"></div>
+    </main>
+  </div>
+  <footer>
+    <p>Tobyn Smith · MIP capstone</p>
+  </footer>
+  <script type="module" src="export.js"></script>
+</body>
+</html>

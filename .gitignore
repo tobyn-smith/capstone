@@ -1,0 +1,5 @@
+data/responses.jsonl
+data/assignments.jsonl
+data/passphrase.txt
+__pycache__/
+*.pyc
