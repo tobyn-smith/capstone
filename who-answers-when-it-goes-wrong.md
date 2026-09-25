@@ -114,6 +114,18 @@ Causal inference. The thing I am trying to isolate is the form of delegation, no
 
 Program evaluation is a later question. This design does not evaluate a real ministry's oversight programme. It asks whether the form of delegation changes what an inquiry can say. If that holds, a programme evaluation would be the next study: did a named supervisor, an audit rule, or a confidence bar, in an actual office, keep the chain clear. I should not pretend a fifteen-minute file is that.
 
+## Lines I still want in my own voice
+
+The pages are marked Draft, on the class page and in the footer of the file. I will come back and change the wording. The facts stay.
+
+The class page, before the commission, is `consent()` in `app/game.js`. That is the setup. About fifteen minutes is its own line. The agreement sentence is the consent, so the meaning of that one stays: by starting, I can save the choices and the inquiry answers.
+
+The question on the cover, the night, ORACLE's lines, the finding, and the last page are in the same file. Search for the sentence and change it there.
+
+The arms are `app/arms-araknes.svg`. Sand over brick, a pale lane, a ship. That is Araknes. Lei is still the green and slate flag, `app/flag-lei.svg`. The two flags stay on the party line. The arms sit in the banner, for the commission, not as a third country.
+
+Do not put what I expect, or the result that would weaken it, on the class page or in the night. That still waits until the finding is filed.
+
 ## The playable version
 
 The wargame is the site in this project. The README next to this note says how to start it, and where the answers land. I would rather have it running, and change it after a few people have been through it, than keep polishing the story on its own.

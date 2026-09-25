@@ -239,15 +239,19 @@ function situation() {
   ];
 }
 
+// Draft voice. Rewrite these sentences in consent() when you want them to sound like you.
+// Keep the agreement sentence. It is the consent. "About fifteen minutes." stays on its own line.
 function consent() {
   return h("section", { class: "column" }, [
+    h("p", { class: "draft-mark" }, "Draft"),
     h("p", { class: "dateline" }, "University of Georgia"),
     h("h1", { class: "question" }, "INTL 6010, Research Methods"),
     prose(
-      "I am Tobyn Smith. This is for my research methods class.",
-      "You go through one night, and then you write what you think. About fifteen minutes.",
+      "I'm Tobyn Smith. This is for my research methods class.",
+      "You'll sit one night, then write what you make of it.",
+      "About fifteen minutes.",
       "By starting, you agree that I can save your choices and your inquiry answers for this project.",
-      "Do not use your real name."
+      "Don't use your real name."
     ),
     h("button", { class: "primary", type: "button", onClick: () => goto("landing") }, "Start"),
   ]);
@@ -262,8 +266,8 @@ function landing() {
       [
         h("h1", { class: "question" }, "Who was responsible for what Araknes did after a tanker was damaged on the route with Lei?"),
         prose(
-          "You go through the night as it happened, and then you write what you think. About fifteen minutes.",
-          "Araknes and Lei are made up."
+          "You sit the night as it happened. Afterwards you write what you think.",
+          "Araknes and Lei aren't real."
         ),
         resume
           ? h("div", {}, [
@@ -343,7 +347,7 @@ function opening() {
       h("li", { class: "opening-rule", "aria-hidden": "true" }),
       h("li", {}, [flag("lei"), h("span", {}, "Lei")]),
     ]),
-    h("p", { class: "opening-line" }, "Araknes and Lei. A tanker was damaged on the route between them, and this file is that night."),
+    h("p", { class: "opening-line" }, "Araknes and Lei share the lane. A tanker was damaged on it. This file is that night."),
     h("button", {
       class: "primary",
       type: "button",

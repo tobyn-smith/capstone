@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 88 108">
+  <title>Arms of the Araknes Commission of Inquiry</title>
+  <defs>
+    <clipPath id="araknes-shield">
+      <path d="M10 8 H78 V50 C78 76 44 100 44 100 C44 100 10 76 10 50 Z"/>
+    </clipPath>
+  </defs>
+  <path d="M10 8 H78 V50 C78 76 44 100 44 100 C44 100 10 76 10 50 Z" fill="#f4efe4"/>
+  <g clip-path="url(#araknes-shield)">
+    <rect width="88" height="52" fill="#d9c4a0"/>
+    <rect y="52" width="88" height="56" fill="#7c302c"/>
+    <rect y="48" width="88" height="6" fill="#f7f4ee"/>
+    <path d="M28 38 H60 L55 47 H33 Z" fill="#16324f"/>
+    <path d="M44 16 V38" stroke="#16324f" stroke-width="1.8"/>
+    <path d="M45 18 L58 34 H45 Z" fill="#16324f"/>
+  </g>
+  <path d="M10 8 H78 V50 C78 76 44 100 44 100 C44 100 10 76 10 50 Z" fill="none" stroke="#f4efe4" stroke-width="2.2"/>
+  <path d="M16 12 H72 V48 C72 70 44 92 44 92 C44 92 16 70 16 48 Z" fill="none" stroke="#16324f" stroke-width="0.8" opacity="0.45"/>
+</svg>
