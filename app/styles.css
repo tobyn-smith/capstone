@@ -1102,75 +1102,94 @@ th { color: var(--navy); }
   color: var(--muted);
 }
 
-.register-note {
-  max-width: 42rem;
-  margin: 0 0 1.35rem;
-}
+body.register { background: #d6d2c4; }
+
+.register-desk.is-open { align-items: flex-start; }
+
+.welcome.register-sheet.is-open { width: min(76rem, 100%); }
+
+.register-sheet .question { max-width: none; }
+
+.register-sheet .reach { max-width: 38rem; }
 
 .register-gate label {
-  margin-bottom: 0.15rem;
-  color: var(--navy);
+  display: block;
+  margin: 1.15rem 0 0.35rem;
+  color: #000;
+  font-family: "Merriweather Sans", sans-serif;
   font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
+  font-weight: 500;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.register-line {
-  display: flex;
-  align-items: flex-end;
-  gap: 1rem;
-}
-
-.register-line input {
-  width: 22rem;
-  flex: none;
-  margin: 0;
-  padding-bottom: 0.45rem;
-}
-
-.register-line button.primary {
-  width: auto;
-  flex: none;
-  margin: 0;
+.register-sheet input {
+  width: min(22rem, 100%);
+  border-bottom: 2px solid #000;
+  color: #000;
+  font-family: Merriweather, Georgia, serif;
 }
 
 .register-gate.is-open { display: none; }
+
+.register-sheet .error {
+  color: #ba0c2f;
+  font-family: Merriweather, Georgia, serif;
+  font-weight: 400;
+}
 
 .register-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin: 0 0 0.15rem;
+  margin: 1.6rem 0 0.2rem;
 }
 
 .register-count {
   margin: 0;
-  font-family: "Source Serif 4", Georgia, serif;
-  font-size: 1.45rem;
-  font-weight: 600;
-  line-height: 1.2;
+  color: #000;
+  font-family: Oswald, sans-serif;
+  font-size: 1.75rem;
+  font-weight: 500;
+  line-height: 1.15;
 }
 
-.register-bar button.secondary {
+.register-sheet button.secondary {
   margin: 0;
   min-width: 0;
   padding: 0.55rem 0.9rem;
+  background: #fff;
+  border: 2px solid #000;
+  color: #000;
+  font-family: Oswald, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
 }
 
-.register-table th {
+.register-sheet button.secondary:focus-visible { outline-color: #000; }
+
+.register-table {
+  font-family: Merriweather, Georgia, serif;
+  font-size: 0.98rem;
+}
+
+.register-sheet .register-table th {
   padding: 0.85rem 0.85rem 0.5rem 0;
-  border-bottom: 1px solid var(--navy);
+  border-bottom: 2px solid #000;
+  color: #000;
+  font-family: "Merriweather Sans", sans-serif;
   font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-weight: 500;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.register-table td {
+.register-sheet .register-table td {
   padding: 0.72rem 0.85rem 0.72rem 0;
-  border-bottom: 1px solid var(--hair);
+  border-bottom: 1px solid #000;
+  color: #000;
 }
 
 .register-table td.code,
@@ -1178,50 +1197,53 @@ th { color: var(--navy); }
   font-variant-numeric: tabular-nums;
 }
 
-.register-table td.code {
-  color: var(--navy);
-  font-weight: 700;
-}
+.register-table td.code { font-weight: 700; }
 
 .register-table td.blank {
-  padding: 1.55rem 0 1.7rem;
-  color: var(--muted);
-  font-family: "Source Serif 4", Georgia, serif;
-  font-size: 1.25rem;
-  font-weight: 500;
+  padding: 1.45rem 0 1.6rem;
+  border-bottom: 1px solid #000;
+  color: #554f47;
+  font-family: Merriweather, Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 400;
 }
 
 .register-table .harm-yes {
-  color: var(--oxblood);
+  color: #ba0c2f;
   font-weight: 700;
 }
 
-.register .accounts {
-  margin-top: 1.8rem;
+.register-sheet .accounts { margin-top: 1.8rem; }
+
+.register-sheet .accounts h2 {
+  margin: 0 0 0.15rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 2px solid #000;
+  color: #000;
+  font-family: Oswald, sans-serif;
+  font-size: 1.45rem;
+  font-weight: 500;
 }
 
-.register .accounts h2 {
-  margin: 0;
-  padding-bottom: 0.45rem;
-  border-bottom: 1px solid var(--navy);
-  font-size: 1.2rem;
-}
-
-.register .account {
+.register-sheet .account {
   margin: 0;
   padding: 0.85rem 0 0.9rem 0.9rem;
-  border-bottom: 1px solid var(--hair);
-  border-left: 3px solid #c4b48a;
-  color: var(--ink);
+  border-bottom: 1px solid #000;
+  border-left: 2px solid #ba0c2f;
+  color: #000;
+  font-family: Merriweather, Georgia, serif;
+  font-size: 1.02rem;
+  line-height: 1.6;
 }
 
-.register .account .who {
+.register-sheet .account .who {
   display: block;
   margin-bottom: 0.25rem;
-  color: var(--navy);
+  color: #554f47;
+  font-family: "Merriweather Sans", sans-serif;
   font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
+  font-weight: 500;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
