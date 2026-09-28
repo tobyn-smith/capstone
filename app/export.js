@@ -32,6 +32,7 @@ const HEADS = ["Code", "Version", "Morning", "Harm", "Who they named", "Clarity"
 
 function word(value) {
   const text = String(value || "");
+  if (text === "sequence") return "The night";
   if (!text) return "";
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
