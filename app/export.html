@@ -3,65 +3,34 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Register · File 26-441</title>
+  <title>INTL 6010 · Register</title>
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather+Sans:wght@400;500&family=Merriweather:wght@400;700&family=Oswald:wght@300;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body class="register" data-step="inquiry">
-  <div class="computer-only">
-    <p class="brand">Araknes Commission of Inquiry</p>
-    <h1>Open the admin page on a computer.</h1>
-    <p>It is laid out across a full screen.</p>
+<body class="register">
+  <div class="computer-only class-gate">
+    <img class="uga-logo" src="uga-logo.png" alt="University of Georgia" width="1024" height="158">
+    <p class="brand">INTL 6010</p>
+    <h1>Sorry, for aesthetic reasons, this page was not created for phones!</h1>
   </div>
-  <div class="site">
-    <header class="banner">
-      <div class="banner-row">
-        <img class="arms" src="arms-araknes.svg" alt="" width="52" height="64">
-        <div>
-          <p class="gov">The Government of Araknes</p>
-          <p class="commission">Commission of Inquiry</p>
-        </div>
-        <p class="ref"><span>File</span>26-441</p>
-      </div>
-      <ul class="party-line" aria-label="The parties">
-        <li class="party-kicker">Parties</li>
-        <li><img class="flag" src="flag-araknes.svg" alt="">Araknes</li>
-        <li><img class="flag" src="flag-lei.svg" alt="">Lei</li>
-      </ul>
-    </header>
-    <div class="frame">
-      <nav class="rail" aria-label="Index to the file">
-        <ol>
-          <li class="now">Register</li>
-        </ol>
-        <p class="rail-note">Not for participants.</p>
-      </nav>
-      <article class="sheet">
-        <header class="mast">
-          <p class="doc">Register of findings</p>
-          <p class="when">Registrar</p>
-        </header>
-        <main id="app">
-          <p id="host-note" class="register-note">This is the admin page. Finished files on this host are behind the passphrase. If you were writing a finding, you do not need this page.</p>
-          <form id="gate" class="register-gate">
-            <label for="key">Passphrase</label>
-            <div class="register-line">
-              <input id="key" name="key" type="password" autocomplete="current-password">
-              <button class="primary" type="submit">Open the register</button>
-            </div>
-          </form>
-          <p id="message" class="error" hidden></p>
-          <div id="out"></div>
-        </main>
-        <footer class="imprint">
-          <p>Araknes Commission of Inquiry · File 26-441</p>
-          <p>Registrar’s copy. Not for the people writing a finding.</p>
-        </footer>
-      </article>
-    </div>
+  <div class="before register-desk">
+    <section class="welcome register-sheet">
+      <img class="uga-logo" src="uga-logo.png" alt="University of Georgia" width="1024" height="158">
+      <p class="draft-mark">Not for the class</p>
+      <h1 class="question">Register of findings</h1>
+      <p class="byline">A project by Tobyn Smith</p>
+      <p id="host-note" class="reach">This is the admin page. Finished files on this host are behind the passphrase. If you were writing a finding, you do not need this page.</p>
+      <form id="gate" class="register-gate">
+        <label for="key">Passphrase</label>
+        <input id="key" name="key" type="password" autocomplete="current-password">
+        <button class="primary" type="submit">Open the register</button>
+      </form>
+      <p id="message" class="error" hidden></p>
+      <div id="out"></div>
+    </section>
   </div>
   <script type="module" src="export.js"></script>
 </body>

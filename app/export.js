@@ -48,6 +48,8 @@ function head() {
 function render(rows) {
   out.replaceChildren();
   gate.classList.add("is-open");
+  document.querySelector(".register-sheet")?.classList.add("is-open");
+  document.querySelector(".register-desk")?.classList.add("is-open");
   if (!rows.length) {
     out.append(
       h("table", { class: "register-table" }, [
@@ -128,6 +130,8 @@ gate.addEventListener("submit", async (event) => {
   if (response.status === 401) {
     show("That passphrase is not right.");
     gate.classList.remove("is-open");
+    document.querySelector(".register-sheet")?.classList.remove("is-open");
+    document.querySelector(".register-desk")?.classList.remove("is-open");
     out.replaceChildren();
     return;
   }
