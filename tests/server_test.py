@@ -55,11 +55,10 @@ class ResolveTests(unittest.TestCase):
             "DYNO": "web.1",
             "PASSPHRASE": "do-not-print-this",
             "DATABASE_URL": "postgres://u:p@host:5432/db",
-            "HEROKU_APP_NAME": "ts-6010",
         }
         with patch.dict(os.environ, env):
             text = "\n".join(server.startup_lines(8000))
-        self.assertIn("https://ts-6010.herokuapp.com/admin", text)
+        self.assertIn("https://ts-6010-db607dbe410e.herokuapp.com/admin", text)
         self.assertIn("Findings are stored in Postgres.", text)
         self.assertNotIn("do-not-print-this", text)
         self.assertNotIn("127.0.0.1", text)

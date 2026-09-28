@@ -22,7 +22,7 @@ DATA.mkdir(exist_ok=True)
 RESPONSES = DATA / "responses.jsonl"
 ASSIGNMENTS = DATA / "assignments.jsonl"
 PASSPHRASE_FILE = DATA / "passphrase.txt"
-CLASS_HOST = "ts-6010"
+CLASS_URL = "https://ts-6010-db607dbe410e.herokuapp.com"
 
 LOCK = threading.Lock()
 MAX_BODY = 200_000
@@ -82,8 +82,7 @@ def on_heroku() -> bool:
 
 
 def public_origin() -> str:
-    name = os.environ.get("HEROKU_APP_NAME", "").strip() or CLASS_HOST
-    return "https://%s.herokuapp.com" % name
+    return CLASS_URL
 
 
 def startup_lines(port: int) -> list[str]:
