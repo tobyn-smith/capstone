@@ -516,6 +516,7 @@ body {
   width: 100%;
   height: auto;
   border: 1px solid #1a2428;
+  background: #16324a;
 }
 
 .plot-line {
@@ -551,31 +552,31 @@ body {
   font-weight: 400;
 }
 
-.film-bar {
-  height: 3px;
-  margin: 0 0 1.1rem;
-  background: #d7d2c8;
-  overflow: hidden;
-}
-
-.film-fill {
-  display: block;
-  height: 100%;
-  width: 100%;
-  background: #16324f;
-  transform-origin: left center;
-  animation: film-run 8s linear forwards;
-}
-
-@keyframes film-run {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
-}
-
 .film-controls {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.75rem;
   margin-top: 0.4rem;
+}
+
+@media (max-width: 1280px) {
+  .frame { padding-left: 0.85rem; padding-right: 0.85rem; }
+  .banner-row,
+  .party-line { padding-left: 1.1rem; padding-right: 1.1rem; }
+  .mast,
+  #app,
+  .rail ol { padding-left: 1.15rem; padding-right: 1.15rem; }
+  .rail li { letter-spacing: 0.08em; }
+  .spread { grid-template-columns: 1fr; }
+  .spread-side {
+    position: static;
+    max-width: 36rem;
+  }
+  .chain { font-size: 1.05rem; }
+}
+
+@media (min-width: 1700px) {
+  .frame { max-width: 108rem; }
 }
 
 .dateline {
