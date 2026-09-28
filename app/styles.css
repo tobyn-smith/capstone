@@ -503,6 +503,26 @@ body {
 
 .sitrep { margin: 0 0 1rem; }
 
+.plot {
+  margin: 0 0 1rem;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.sat {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid #1a2428;
+}
+
+.plot-line {
+  margin: 0 0 0.2rem;
+  max-width: 36rem;
+  font-size: 1.15rem;
+}
+
 .dateline {
   margin: 0 0 0.7rem;
   color: var(--navy);
@@ -1157,6 +1177,23 @@ body.register { background: #d6d2c4; }
 }
 
 .register-sheet button.secondary:focus-visible { outline-color: #000; }
+
+.register-sheet button.remove {
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #ba0c2f;
+  font-family: "Merriweather Sans", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.register-sheet button.remove:focus-visible { outline-color: #000; }
 
 .register-table {
   font-family: Merriweather, Georgia, serif;

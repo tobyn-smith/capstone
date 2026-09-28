@@ -64,6 +64,31 @@ class ResolveTests(unittest.TestCase):
         self.assertNotIn("do-not-print-this", text)
         self.assertNotIn("127.0.0.1", text)
 
+    def test_drop_session_removes_the_local_row(self):
+        import tempfile
+        from pathlib import Path
+
+        folder = Path(tempfile.mkdtemp())
+        responses = folder / "responses.jsonl"
+        assignments = folder / "assignments.jsonl"
+        responses.write_text(
+            '{"session_id":"keep","condition":"advice"}\n{"session_id":"drop","condition":"agent"}\n',
+            encoding="utf-8",
+        )
+        assignments.write_text(
+            '{"session_id":"keep","condition":"advice"}\n{"session_id":"drop","condition":"agent","forced_condition":false}\n',
+            encoding="utf-8",
+        )
+        with patch.dict(os.environ, {"DATABASE_URL": ""}):
+            with patch.object(server, "RESPONSES", responses), patch.object(server, "ASSIGNMENTS", assignments):
+                server.drop_session("drop")
+        left = responses.read_text(encoding="utf-8")
+        started = assignments.read_text(encoding="utf-8")
+        self.assertIn("keep", left)
+        self.assertNotIn("drop", left)
+        self.assertIn("keep", started)
+        self.assertNotIn("drop", started)
+
     def test_local_startup_still_prints_the_passphrase(self):
         env = {"DYNO": "", "PASSPHRASE": "local-phrase", "DATABASE_URL": ""}
         with patch.dict(os.environ, env):
