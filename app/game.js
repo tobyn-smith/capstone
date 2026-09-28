@@ -230,13 +230,12 @@ function choiceButton(text, onClick, index) {
   ]);
 }
 
-function plotBoard() {
+function plotBoard(night) {
+  const alt = night
+    ? "Satellite still later that night. The tanker is still marked damaged. A second ship, closer to Lei, has no contact. ORACLE reads 62 percent that Lei may target shipping. The cause is not confirmed: an old mine, a breakdown, or on purpose."
+    : "Satellite still of the lane. Araknes is on the left, Lei on the right. A tanker is marked damaged. The cause is not confirmed: an old mine, a breakdown, or on purpose.";
   return h("figure", { class: "plot" }, [
-    h("img", {
-      class: "sat",
-      src: "route-sat.svg",
-      alt: "A satellite still of the lane. Araknes is on the left, Lei on the right. A tanker is marked damaged. A second ship has no contact. The cause is not confirmed: an old mine, a breakdown, or on purpose. ORACLE reads 62 percent that Lei may target shipping.",
-    }),
+    h("img", { class: "sat", src: night ? "route-sat-night.svg" : "route-sat.svg", alt }),
   ]);
 }
 
@@ -372,7 +371,7 @@ function briefing() {
     : "ORACLE gives advice. You decide.";
   return h("section", {}, [
     where(),
-    plotBoard(),
+    plotBoard(false),
     h("p", { class: "plot-line" }, line),
     h("button", {
       class: "primary",
@@ -385,7 +384,7 @@ function briefing() {
 function setup() {
   return h("section", {}, [
     where(),
-    plotBoard(),
+    plotBoard(false),
     spread(
       h("form", { onSubmit: onSetup, onInput: onSetupInput }, [
       h("fieldset", {}, [
@@ -410,7 +409,7 @@ function setup() {
       ]),
       h("fieldset", {}, [
         h("legend", {}, "How sure does it need to be?"),
-        h("p", { class: "muted" }, "You see its confidence in the morning. At or above your bar, it does what you ticked. Under the bar, it only watches."),
+        h("p", { class: "muted" }, "You see its confidence on the log. At or above your bar, it does what you ticked. Under the bar, it only watches."),
         ...BARS.map(([id, text]) => h("label", { class: "tick" }, [
           h("input", {
             type: "radio",
@@ -425,7 +424,7 @@ function setup() {
       h("button", { class: "primary", type: "submit" }, "Leave it running"),
     ]),
       oracle([
-        "I will stay on the watch. I will only act inside what you just set.",
+        "I will stay on the watch. I will only act inside what you set.",
       ], { role: "On the watch" })
     ),
   ]);
@@ -507,6 +506,13 @@ function holdFields() {
   ];
 }
 
+function logIntro() {
+  const sent = state.authorised.some((id) => id === "warning" || id === "freeze");
+  if (canStop()) return ["A second ship loses contact. The log is in.", "A patrol or an inspection can still be stopped."];
+  if (sent) return ["A second ship loses contact. The log is in.", "What has gone out cannot be pulled back."];
+  return ["A second ship loses contact. The log is in.", "ORACLE did not take a further step."];
+}
+
 function log() {
   const further = ["warning", "patrols", "freeze", "inspections"];
   const wanted = state.preauthorised.filter((id) => further.includes(id));
@@ -525,14 +531,10 @@ function log() {
   const watched = state.preauthorised.length ? state.preauthorised : [];
   return h("section", {}, [
     where(),
+    plotBoard(true),
     spread(
       [
-        h("div", { class: "sitrep" }, paras([
-          "A second ship loses contact. The log is in.",
-          canStop()
-            ? "A patrol or an inspection can still be stopped."
-            : "What has gone out cannot be pulled back.",
-        ])),
+        h("div", { class: "sitrep" }, paras(logIntro())),
         h("form", { onSubmit: onHold }, [
           ...holdFields(),
           state.formError ? h("p", { class: "error" }, state.formError) : null,
@@ -629,7 +631,7 @@ function afterFirst() {
 function move2() {
   return h("section", {}, [
     where(),
-    plotBoard(),
+    plotBoard(true),
     spread(
       [
         h("h2", {}, "What do you authorise?"),
@@ -649,7 +651,7 @@ function move2() {
 }
 
 function morningText() {
-  const found = "By morning, the second ship has been found adrift. The early evidence points to a mechanical failure, not a deliberate attack.";
+  const found = "By morning, the second ship has been found adrift. The early evidence points to a mechanical failure, not a deliberate attack. The 62% read does not match that.";
   const set = new Set(state.finalActions);
   if (state.outcome === "escalated") {
     const bits = [];
@@ -657,7 +659,8 @@ function morningText() {
     if (set.has("patrols")) bits.push(SHORT.patrols);
     if (set.has("freeze")) bits.push(SHORT.freeze);
     let text = "Lei treats " + phraseList(bits) + " as a block on its waters, and moves naval forces towards the route.";
-    text += state.injury ? " A crew member is injured in an inspection." : " There is no boarding.";
+    if (set.has("warning")) text += " Lei protests the maritime warning.";
+    if (state.injury) text += " A crew member is injured in an inspection.";
     return text + " " + found;
   }
   if (state.outcome === "political") {
@@ -696,7 +699,7 @@ function fileLines() {
   const lines = [];
   if (state.condition === "advice") {
     lines.push("You took the decisions yourself, after reading ORACLE.");
-    lines.push("First decision: " + labelOf(FIRST, state.firstDecision));
+    if (state.firstDecision) lines.push("First decision: " + labelOf(FIRST, state.firstDecision));
   } else {
     lines.push("Goal on the file: " + labelOf(GOALS, state.goal));
     lines.push("Bar you set: " + state.confidenceBar + "%. ORACLE's read was 62%.");

@@ -78,6 +78,12 @@
   </g>
   <circle cx="548" cy="300" r="26" fill="none" stroke="#f7f4ee" stroke-width="1.15"/>
   <line x1="530" y1="282" x2="496" y2="210" stroke="#f7f4ee" stroke-width="1.25"/>
+  <g transform="translate(700,198) rotate(-8)">
+    <rect x="-16" y="-3" width="30" height="6" rx="1" fill="#e7e2d6"/>
+    <rect x="-16" y="-3.3" width="7" height="6.6" fill="#b3ad9f"/>
+  </g>
+  <circle cx="700" cy="198" r="14" fill="none" stroke="#f7f4ee" stroke-width="1" stroke-dasharray="2.2 2"/>
+  <line x1="688" y1="190" x2="640" y2="136" stroke="#f7f4ee" stroke-width="1.25"/>
   <g font-family="Liberation Sans, DejaVu Sans, sans-serif" font-weight="700">
     <rect x="58" y="50" width="132" height="38" fill="#f6f1e6"/>
     <text x="72" y="76" fill="#241c14" font-size="22">Araknes</text>
@@ -85,8 +91,12 @@
     <text x="1006" y="80" fill="#241c14" font-size="22">Lei</text>
     <rect x="318" y="192" width="178" height="36" fill="#102028"/>
     <text x="332" y="216" fill="#f7f4ee" font-size="18">Tanker damaged</text>
-    <rect x="348" y="430" width="400" height="76" fill="#102028"/>
-    <text x="366" y="460" fill="#f7f4ee" font-size="18">Cause not confirmed</text>
-    <text x="366" y="486" fill="#f7f4ee" font-size="18">Old mine, breakdown, or on purpose</text>
+    <rect x="508" y="118" width="132" height="36" fill="#102028"/>
+    <text x="522" y="142" fill="#f7f4ee" font-size="18">No contact</text>
+    <rect x="348" y="392" width="400" height="128" fill="#102028"/>
+    <text x="366" y="422" fill="#f7f4ee" font-size="18">Cause not confirmed</text>
+    <text x="366" y="448" fill="#f7f4ee" font-size="18">Old mine, breakdown, or on purpose</text>
+    <text x="366" y="484" fill="#f7f4ee" font-size="18">ORACLE 62%</text>
+    <text x="366" y="510" fill="#f7f4ee" font-size="18">Lei may target shipping</text>
   </g>
 </svg>
