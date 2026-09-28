@@ -115,7 +115,8 @@ class ServeTests(unittest.TestCase):
     def test_admin_and_export_are_the_same_page(self):
         status, admin = self.fetch("/admin")
         self.assertEqual(status, 200)
-        self.assertIn(b"This is the admin page.", admin)
+        self.assertIn(b"Register of findings", admin)
+        self.assertNotIn(b"Commission of Inquiry", admin)
         status, export = self.fetch("/export")
         self.assertEqual(status, 200)
         self.assertEqual(admin, export)
