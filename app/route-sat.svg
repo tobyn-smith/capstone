@@ -85,8 +85,8 @@
     <text x="1006" y="80" fill="#241c14" font-size="22">Lei</text>
     <rect x="318" y="192" width="178" height="36" fill="#102028"/>
     <text x="332" y="216" fill="#f7f4ee" font-size="18">Tanker damaged</text>
-    <rect x="348" y="430" width="400" height="76" fill="#102028"/>
-    <text x="366" y="460" fill="#f7f4ee" font-size="18">Cause not confirmed</text>
-    <text x="366" y="486" fill="#f7f4ee" font-size="18">Old mine, breakdown, or on purpose</text>
+    <rect x="300" y="418" width="500" height="84" fill="#102028"/>
+    <text x="318" y="450" fill="#f7f4ee" font-size="17">Araknes says Lei meant to disrupt trade</text>
+    <text x="318" y="478" fill="#f7f4ee" font-size="17">Lei says an old mine, or a breakdown</text>
   </g>
 </svg>

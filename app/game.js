@@ -9,7 +9,7 @@ const STORAGE = "oracle-wargame";
 const app = document.querySelector("#app");
 
 const GOALS = [
-  ["find", "Find out what happened before Araknes speaks"],
+  ["find", "Find out what happened to the tanker"],
   ["route", "Keep the route open"],
   ["deter", "Deter Lei"],
   ["stay", "Stay out of it"],
@@ -232,8 +232,8 @@ function choiceButton(text, onClick, index) {
 
 function plotBoard(night) {
   const alt = night
-    ? "Satellite still later that night. The tanker is still marked damaged. A second ship, closer to Lei, has no contact. ORACLE reads 62 percent that Lei may target shipping. The cause is not confirmed: an old mine, a breakdown, or on purpose."
-    : "Satellite still of the lane. Araknes is on the left, Lei on the right. A tanker is marked damaged. The cause is not confirmed: an old mine, a breakdown, or on purpose.";
+    ? "Satellite still later that night. Araknes says Lei meant to disrupt trade. Lei says an old mine, or a breakdown. The tanker is marked damaged. A second ship, closer to Lei, has no contact. ORACLE reads 62 percent that Lei may target shipping."
+    : "Satellite still of the lane. Araknes is on the left, Lei on the right. A tanker is marked damaged. Araknes says Lei meant to disrupt trade. Lei says an old mine, or a breakdown.";
   return h("figure", { class: "plot" }, [
     h("img", { class: "sat", src: night ? "route-sat-night.svg" : "route-sat.svg", alt }),
   ]);
@@ -307,9 +307,10 @@ function landing() {
     }, "Open a new file"),
   ]);
   return h("section", { class: "cover" }, [
-    h("h1", { class: "question" }, "Who was responsible for what Araknes did?"),
+    h("h1", { class: "question" }, "A tanker was damaged on the route with Lei."),
     prose(
-      "A tanker was damaged on the route with Lei. You sit the night, then you write what you think.",
+      "Araknes says Lei meant to disrupt trade. Lei says an old mine, or a breakdown. The reports do not settle it.",
+      "You sit the night. The inquiry comes after.",
       "Araknes and Lei are not real."
     ),
     resume ? back : fresh,
@@ -365,14 +366,18 @@ function opening() {
   ]);
 }
 
+function chain() {
+  const steps = state.condition === "agent"
+    ? ["You set a goal", "ORACLE deliberates", "ORACLE acts"]
+    : ["You ask", "ORACLE advises", "You decide"];
+  return h("ol", { class: "chain" }, steps.map((step) => h("li", {}, step)));
+}
+
 function briefing() {
-  const line = state.condition === "agent"
-    ? "You set what ORACLE may do. It can act without asking you."
-    : "ORACLE gives advice. You decide.";
   return h("section", {}, [
     where(),
     plotBoard(false),
-    h("p", { class: "plot-line" }, line),
+    chain(),
     h("button", {
       class: "primary",
       type: "button",
@@ -385,6 +390,7 @@ function setup() {
   return h("section", {}, [
     where(),
     plotBoard(false),
+    chain(),
     spread(
       h("form", { onSubmit: onSetup, onInput: onSetupInput }, [
       h("fieldset", {}, [
@@ -632,6 +638,7 @@ function move2() {
   return h("section", {}, [
     where(),
     plotBoard(true),
+    chain(),
     spread(
       [
         h("h2", {}, "What do you authorise?"),
@@ -651,25 +658,25 @@ function move2() {
 }
 
 function morningText() {
-  const found = "By morning, the second ship has been found adrift. The early evidence points to a mechanical failure, not a deliberate attack. The 62% read does not match that.";
+  const open = "The cause of the tanker is still not proved. Neither side has shown what happened.";
   const set = new Set(state.finalActions);
   if (state.outcome === "escalated") {
     const bits = [];
     if (set.has("inspections")) bits.push(SHORT.inspections);
     if (set.has("patrols")) bits.push(SHORT.patrols);
     if (set.has("freeze")) bits.push(SHORT.freeze);
-    let text = "Lei treats " + phraseList(bits) + " as a block on its waters, and moves naval forces towards the route.";
-    if (set.has("warning")) text += " Lei protests the maritime warning.";
+    let text = "Lei sees " + phraseList(bits) + " as an attempt to restrict its access to international waters, and moves naval forces towards the route.";
+    if (set.has("warning")) text += " The allied maritime warning has also gone out.";
     if (state.injury) text += " A crew member is injured in an inspection.";
-    return text + " " + found;
+    return text + " " + open;
   }
   if (state.outcome === "political") {
     const parts = [];
     if (set.has("warning")) parts.push("Lei protests the maritime warning.");
     if (state.firstDecision === "blame") parts.push("Lei protests the public statement that blamed Lei.");
-    return (parts.join(" ") || "Lei protests.") + " It does not move forces. " + found;
+    return (parts.join(" ") || "Lei protests.") + " It does not move forces. " + open;
   }
-  return found + " No patrol went out, and no inspection took place.";
+  return "No warning, patrol, freeze, or inspection went out. Lei does not move forces. " + open;
 }
 
 function morning() {
@@ -682,7 +689,7 @@ function morning() {
           h("p", { class: "dateline" }, "Morning report"),
           ...paras([morningText()]),
         ]),
-        h("button", { class: "primary", type: "button", onClick: () => goto("inquiry") }, "Write the finding"),
+        h("button", { class: "primary", type: "button", onClick: () => goto("inquiry") }, "Open the inquiry"),
       ],
       h("aside", { class: "signal" }, [
         h("p", { class: "parties-label" }, "Morning signal"),
@@ -737,7 +744,7 @@ function inquiry() {
     where(),
     spread(
       [
-        prose("The night is over. Write what you think."),
+        prose("The night is over. This is the inquiry. Who was accountable?"),
         h("form", {
       onSubmit: onInquiry,
       onInput: (event) => {
@@ -963,7 +970,7 @@ const RAIL = [
 const MAST = {
   landing: ["Terms of reference", "Opened"],
   opening: ["The record", "Opening"],
-  briefing: ["Warrant", "06:10"],
+  briefing: ["The route", "06:10"],
   setup: ["Delegation", "18:00"],
   move1: ["Cable", "06:40"],
   move2: ["Cable", "01:50"],
@@ -971,14 +978,17 @@ const MAST = {
   log: ["Night log", "07:10"],
   hold: ["Minute", "02:10"],
   morning: ["Morning signal", "Morning"],
-  inquiry: ["Finding", ""],
+  inquiry: ["The inquiry", ""],
   debrief: ["File noted", ""],
 };
 
 function paintChrome() {
   const mast = document.querySelector("#mast");
   const rail = document.querySelector("#rail");
+  const banner = document.querySelector(".commission");
+  const inquiry = state.step === "inquiry" || state.step === "debrief";
   document.body.dataset.step = state.step;
+  if (banner) banner.textContent = inquiry ? "Commission of Inquiry" : "The night";
   const pair = MAST[state.step] || ["File", ""];
   if (mast) {
     const bits = [h("p", { class: "doc" }, pair[0])];
@@ -999,9 +1009,12 @@ function render() {
   const before = document.querySelector("#before");
   const site = document.querySelector(".site");
   document.body.dataset.step = state.step;
+  const inquiry = state.step === "inquiry" || state.step === "debrief";
   document.title = state.step === "consent"
     ? "INTL 6010 · Research Methods"
-    : "File 26-441 · Araknes Commission of Inquiry";
+    : inquiry
+      ? "File 26-441 · Araknes Commission of Inquiry"
+      : "File 26-441 · The night";
   if (state.step === "consent") {
     if (before) {
       before.hidden = false;
