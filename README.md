@@ -100,7 +100,7 @@ Leave that window open. It is the game running. It prints:
 The wargame is running. Leave this window open.
 
   Play:    http://127.0.0.1:8000
-  Answers: http://127.0.0.1:8000/export
+  Admin:   http://127.0.0.1:8000/admin
   Passphrase for the answers page: (a short code)
 ```
 
@@ -122,41 +122,17 @@ The address `127.0.0.1` only works on your computer. For INTL 6010 there are two
 
 ### A link that stays up
 
-This uses the Heroku offer in the GitHub Student Developer Pack. DigitalOcean's student credit left the pack at the end of July 2026, so that is not the route. Heroku gives $13 of platform credit a month for 24 months. This app needs two Heroku products: the Eco dyno at $5 a month, and the smallest Postgres database, Essential-0, at $5 a month. Together that is $10, inside the credit. The database is what keeps the findings. A normal free website forgets the `data` folder when it restarts.
+The class link is already on Heroku: https://ts-6010.herokuapp.com
+
+The app is named ts-6010. GitHub is connected to tobyn-smith/capstone, branch main. Postgres Essential-0 is attached, so the findings stay in the database when the dyno restarts. The dyno disk does not keep them. The admin passphrase is the config var named `PASSPHRASE`. The dyno is Basic, so the app stays awake. Basic is $7 a month and Essential-0 is $5, which is $12, inside the $13 monthly student credit. Leave the dyno on Basic.
 
 Heroku still asks for a credit card before the credit applies. If the card is a problem, use the one-sitting method below instead.
 
-1. Claim the offer at https://www.heroku.com/github-students/ with the GitHub account that has the student pack. Use your UGA email if it asks.
-2. On your laptop, install the Heroku CLI from https://devcenter.heroku.com/articles/heroku-cli and log in:
+When this repository changes and you want the class host to match it, merge the change into main on GitHub. Then in the Heroku dashboard open ts-6010, go to Deploy, and choose Deploy Branch on main. Do not create a second app.
 
-```bash
-heroku login
-```
+The admin page is https://ts-6010.herokuapp.com/admin. `/export` opens the same page. Do not send `/admin` or `/export` to the class. Do not send this GitHub page. The note here says what the design is testing, and people should write the finding before they read it.
 
-3. From the project folder, the one that contains `server.py`:
-
-```bash
-heroku create araknes-inquiry
-heroku addons:create heroku-postgresql:essential-0
-git push heroku HEAD:main
-heroku ps:type web=eco
-```
-
-If `git push` says the branch has no upstream, you are pushing this folder's current commit. That is what you want. `web=eco` keeps the dyno at $5, which is the size the monthly credit covers.
-
-4. Heroku prints a URL like `https://araknes-inquiry-something.herokuapp.com`. That is the link for the class. It can stay up through the semester.
-
-5. Set a passphrase you can remember, and do not put it in the class link:
-
-```bash
-heroku config:set PASSPHRASE=pick-a-phrase
-```
-
-6. The app sleeps after half an hour with nobody on it. The first person back waits while it wakes. Open the link yourself once before class so you are not the person waiting.
-
-The register is that same URL with `/export` on the end, plus the passphrase. Do not send `/export`. Do not send this GitHub page. The note here says what the design is testing, and people should write the finding before they read it.
-
-Tell them it takes about fifteen minutes, and to go through the file once. It has to be a computer. A phone is turned away.
+Tell them it takes about fifteen minutes, and to go through the file once. It has to be a computer. A phone is turned away. The link to send is https://ts-6010.herokuapp.com
 
 ### One sitting, no card
 
@@ -165,8 +141,8 @@ If you only need the file open while you are in the room, keep it on your laptop
 1. Start the game and leave that window open: `python3 server.py`
 2. Install Cloudflare's tunnel program once: `brew install cloudflared`, or download it from https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
 3. In a second terminal: `cloudflared tunnel --url http://127.0.0.1:8000`
-4. Send the class the `https://` address it prints. Same rules. No `/export`, no GitHub page.
-5. When the room is done, Ctrl-C in both windows. Read the findings at http://127.0.0.1:8000/export
+4. Send the class the `https://` address it prints. Same rules. No `/admin`, no GitHub page.
+5. When the room is done, Ctrl-C in both windows. Read the findings at http://127.0.0.1:8000/admin
 
 If Cloudflare is blocked, `ngrok http 8000` does the same job.
 
@@ -174,11 +150,13 @@ If Cloudflare is blocked, `ngrok http 8000` does the same job.
 
 While the terminal is still running, open:
 
-http://127.0.0.1:8000/export
+http://127.0.0.1:8000/admin
 
-Type the passphrase from the terminal. The same code is in `data/passphrase.txt` in this folder. Then you can see the table, or download it.
+Type the passphrase the terminal printed. The same code is in `data/passphrase.txt` in this folder.
 
-Do not send anyone the export page.
+On the class host, open https://ts-6010.herokuapp.com/admin and type the `PASSPHRASE` config var from the Heroku Settings page. The findings are in the Postgres database.
+
+`/export` opens this same page. Do not send anyone the admin page.
 
 ## Trying both versions yourself
 

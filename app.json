@@ -5,7 +5,7 @@
   "keywords": ["python", "research"],
   "env": {
     "PASSPHRASE": {
-      "description": "Passphrase for /export. Do not send this to the class.",
+      "description": "Passphrase for /admin on the class host. Do not send this to the class.",
       "generator": "secret"
     }
   },
@@ -13,7 +13,7 @@
   "formation": {
     "web": {
       "quantity": 1,
-      "size": "eco"
+      "size": "basic"
     }
   }
 }

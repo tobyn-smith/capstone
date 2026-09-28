@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Serve the wargame and keep the inquiry answers on this machine."""
+"""Serve the wargame and store the inquiry answers."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ import threading
 from datetime import datetime, timezone
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import unquote, urlparse
+from urllib.parse import parse_qsl, unquote, urlencode, urlparse, urlsplit, urlunsplit
 
 ROOT = Path(__file__).resolve().parent
 APP = ROOT / "app"
@@ -22,6 +22,7 @@ DATA.mkdir(exist_ok=True)
 RESPONSES = DATA / "responses.jsonl"
 ASSIGNMENTS = DATA / "assignments.jsonl"
 PASSPHRASE_FILE = DATA / "passphrase.txt"
+CLASS_HOST = "ts-6010"
 
 LOCK = threading.Lock()
 MAX_BODY = 200_000
@@ -57,10 +58,68 @@ COLUMNS = [
 
 
 def database_url() -> str:
+    """Return DATABASE_URL in a form Postgres on Heroku will accept.
+
+    Heroku still hands out postgres://, and Essential-0 refuses a
+    connection that does not ask for SSL. A password in the URL is left
+    alone. This string is for the driver. Do not print it.
+    """
     url = os.environ.get("DATABASE_URL", "").strip()
     if url.startswith("postgres://"):
-        return "postgresql://" + url[len("postgres://") :]
+        url = "postgresql://" + url[len("postgres://") :]
+    if not url:
+        return ""
+    parts = urlsplit(url)
+    query = parse_qsl(parts.query, keep_blank_values=True)
+    if not any(key == "sslmode" for key, _ in query):
+        query.append(("sslmode", "require"))
+        url = urlunsplit(parts._replace(query=urlencode(query)))
     return url
+
+
+def on_heroku() -> bool:
+    return bool(os.environ.get("DYNO", "").strip())
+
+
+def public_origin() -> str:
+    name = os.environ.get("HEROKU_APP_NAME", "").strip() or CLASS_HOST
+    return "https://%s.herokuapp.com" % name
+
+
+def startup_lines(port: int) -> list[str]:
+    if on_heroku():
+        base = public_origin()
+        lines = [
+            "",
+            "The wargame is running on Heroku.",
+            "",
+            "  Play:    %s" % base,
+            "  Admin:   %s/admin" % base,
+            "",
+        ]
+        if os.environ.get("PASSPHRASE", "").strip():
+            lines.append("The admin passphrase is the PASSPHRASE config var. It is not printed here.")
+        else:
+            lines.append("Set the PASSPHRASE config var before you open the admin page.")
+        if database_url():
+            lines.append("Findings are stored in Postgres.")
+        else:
+            lines.append("DATABASE_URL is not set, so a restart will drop findings saved only on the dyno.")
+        lines.append("")
+        return lines
+    code = passphrase()
+    return [
+        "",
+        "The wargame is running. Leave this window open.",
+        "",
+        "  Play:    http://127.0.0.1:%s" % port,
+        "  Admin:   http://127.0.0.1:%s/admin" % port,
+        "  Passphrase for the answers page: %s" % code,
+        "",
+        "That address only works on this computer.",
+        "Press Ctrl-C here when you want to stop.",
+        "",
+    ]
 
 
 def passphrase() -> str:
@@ -281,7 +340,7 @@ def resolve_app_file(url_path: str) -> Path | None:
     file ourselves instead.
     """
     path = unquote(urlparse(url_path).path)
-    if path == "/export":
+    if path in ("/export", "/admin"):
         path = "/export.html"
     if path in ("", "/"):
         path = "/index.html"
@@ -447,23 +506,9 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 def main():
-    import os
-
     port = int(os.environ.get("PORT", "8000"))
-    code = passphrase()
-    def say(line=""):
+    for line in startup_lines(port):
         print(line, flush=True)
-
-    say("")
-    say("The wargame is running. Leave this window open.")
-    say("")
-    say("  Play:    http://127.0.0.1:%s" % port)
-    say("  Answers: http://127.0.0.1:%s/export" % port)
-    say("  Passphrase for the answers page: %s" % code)
-    say("")
-    say("That address only works on this computer.")
-    say("Press Ctrl-C here when you want to stop.")
-    say("")
     init_db()
     server = ThreadingHTTPServer(("0.0.0.0", port), Handler)
     server.serve_forever()

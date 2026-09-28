@@ -1,9 +1,11 @@
+import os
 import socket
 import threading
 import unittest
 import urllib.error
 import urllib.request
 from pathlib import Path
+from unittest.mock import patch
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -22,6 +24,11 @@ class ResolveTests(unittest.TestCase):
         self.assertEqual(found.name, "export.html")
         self.assertTrue(found.is_file())
 
+    def test_admin_page(self):
+        found = server.resolve_app_file("/admin")
+        self.assertEqual(found.resolve(), server.resolve_app_file("/export").resolve())
+        self.assertTrue(found.is_file())
+
     def test_absolute_form_request_is_the_class_page(self):
         found = server.resolve_app_file("http://127.0.0.1:8000/")
         self.assertEqual(found.resolve(), (server.APP / "index.html").resolve())
@@ -29,6 +36,40 @@ class ResolveTests(unittest.TestCase):
     def test_parent_path_is_rejected(self):
         self.assertIsNone(server.resolve_app_file("/../server.py"))
         self.assertIsNone(server.resolve_app_file("/../../etc/passwd"))
+
+    def test_heroku_database_url_asks_for_ssl(self):
+        with patch.dict(os.environ, {"DATABASE_URL": "postgres://u:p@host:5432/db"}):
+            self.assertEqual(
+                server.database_url(),
+                "postgresql://u:p@host:5432/db?sslmode=require",
+            )
+        with patch.dict(os.environ, {"DATABASE_URL": "postgresql://u:p@host/db?sslmode=verify-full"}):
+            self.assertEqual(server.database_url(), "postgresql://u:p@host/db?sslmode=verify-full")
+        with patch.dict(os.environ, {"DATABASE_URL": "postgresql://u:p@host/db?pool=1"}):
+            self.assertEqual(server.database_url(), "postgresql://u:p@host/db?pool=1&sslmode=require")
+        with patch.dict(os.environ, {"DATABASE_URL": ""}):
+            self.assertEqual(server.database_url(), "")
+
+    def test_heroku_startup_names_the_class_host_and_hides_the_passphrase(self):
+        env = {
+            "DYNO": "web.1",
+            "PASSPHRASE": "do-not-print-this",
+            "DATABASE_URL": "postgres://u:p@host:5432/db",
+            "HEROKU_APP_NAME": "ts-6010",
+        }
+        with patch.dict(os.environ, env):
+            text = "\n".join(server.startup_lines(8000))
+        self.assertIn("https://ts-6010.herokuapp.com/admin", text)
+        self.assertIn("Findings are stored in Postgres.", text)
+        self.assertNotIn("do-not-print-this", text)
+        self.assertNotIn("127.0.0.1", text)
+
+    def test_local_startup_still_prints_the_passphrase(self):
+        env = {"DYNO": "", "PASSPHRASE": "local-phrase", "DATABASE_URL": ""}
+        with patch.dict(os.environ, env):
+            text = "\n".join(server.startup_lines(8000))
+        self.assertIn("http://127.0.0.1:8000/admin", text)
+        self.assertIn("local-phrase", text)
 
 
 class ServeTests(unittest.TestCase):
@@ -70,6 +111,14 @@ class ServeTests(unittest.TestCase):
         self.assertTrue(data.startswith(b"HTTP/1.0 200"))
         self.assertIn(b"INTL 6010", data)
         self.assertNotIn(b"Nothing matches the given URI", data)
+
+    def test_admin_and_export_are_the_same_page(self):
+        status, admin = self.fetch("/admin")
+        self.assertEqual(status, 200)
+        self.assertIn(b"This is the admin page.", admin)
+        status, export = self.fetch("/export")
+        self.assertEqual(status, 200)
+        self.assertEqual(admin, export)
 
     def test_static_files_load(self):
         status, css = self.fetch("/styles.css")
