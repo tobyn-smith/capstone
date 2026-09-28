@@ -3,16 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Register of findings · File 26-441</title>
+  <title>Register · File 26-441</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
-<body data-step="inquiry">
+<body class="register" data-step="inquiry">
   <div class="computer-only">
     <p class="brand">Araknes Commission of Inquiry</p>
-    <h1>Open the register on a computer.</h1>
+    <h1>Open the admin page on a computer.</h1>
     <p>It is laid out across a full screen.</p>
   </div>
   <div class="site">
@@ -44,13 +45,13 @@
           <p class="when">Registrar</p>
         </header>
         <main id="app">
-          <div class="prose">
-            <p>Finished files on this host. If you were writing a finding, you do not need this page.</p>
-          </div>
-          <form id="gate">
+          <p id="host-note" class="register-note">This is the admin page. Finished files on this host are behind the passphrase. If you were writing a finding, you do not need this page.</p>
+          <form id="gate" class="register-gate">
             <label for="key">Passphrase</label>
-            <p><input id="key" name="key" type="password" autocomplete="current-password"></p>
-            <button class="primary" type="submit">Open the register</button>
+            <div class="register-line">
+              <input id="key" name="key" type="password" autocomplete="current-password">
+              <button class="primary" type="submit">Open the register</button>
+            </div>
           </form>
           <p id="message" class="error" hidden></p>
           <div id="out"></div>

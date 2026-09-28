@@ -11,7 +11,13 @@ const ACTORS = {
 const gate = document.querySelector("#gate");
 const out = document.querySelector("#out");
 const message = document.querySelector("#message");
+const hostNote = document.querySelector("#host-note");
 let key = "";
+
+if (hostNote && location.hostname.endsWith(".herokuapp.com")) {
+  hostNote.textContent =
+    "This is the admin page on the class host. The passphrase is the Heroku config var named PASSPHRASE. Finished findings are kept in the database. If you were writing a finding, you do not need this page.";
+}
 
 function h(tag, attrs = {}, children = []) {
   const node = document.createElement(tag);
@@ -27,45 +33,68 @@ function h(tag, attrs = {}, children = []) {
   return node;
 }
 
+const HEADS = ["Code", "Version", "Morning", "Harm", "Who they named", "Clarity", "Sureness"];
+
+function word(value) {
+  const text = String(value || "");
+  if (!text) return "";
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function head() {
+  return h("thead", {}, h("tr", {}, HEADS.map((label) => h("th", {}, label))));
+}
+
 function render(rows) {
   out.replaceChildren();
+  gate.classList.add("is-open");
   if (!rows.length) {
-    out.append(h("p", {}, "No finding has been filed yet."));
+    out.append(
+      h("table", { class: "register-table" }, [
+        head(),
+        h("tbody", {}, h("tr", {}, h("td", { class: "blank", colspan: "7" }, "No finding has been filed yet."))),
+      ])
+    );
     return;
   }
-  const table = h("table", {}, [
-    h("thead", {}, h("tr", {}, ["Code", "Version", "Morning", "Harm", "Who they named", "Clarity", "Sureness"].map((label) => h("th", {}, label)))),
-  ]);
+  const table = h("table", { class: "register-table" }, [head()]);
   const body = h("tbody");
   for (const row of rows) {
     body.append(h("tr", {}, [
-      h("td", {}, row.participant_code || ""),
-      h("td", {}, row.condition || ""),
-      h("td", {}, row.outcome || ""),
-      h("td", {}, row.harm ? "yes" : "no"),
+      h("td", { class: "code" }, row.participant_code || ""),
+      h("td", {}, word(row.condition)),
+      h("td", {}, word(row.outcome)),
+      h("td", { class: row.harm ? "harm-yes" : "" }, row.harm ? "Yes" : "No"),
       h("td", {}, ACTORS[row.single_actor] || row.single_actor || ""),
-      h("td", {}, row.clarity ?? ""),
-      h("td", {}, row.sureness ?? ""),
+      h("td", { class: "score" }, row.clarity ?? ""),
+      h("td", { class: "score" }, row.sureness ?? ""),
     ]));
   }
   table.append(body);
+  const count = rows.length === 1 ? "1 finding filed." : rows.length + " findings filed.";
   out.append(
-    h("p", {}, rows.length + (rows.length === 1 ? " finished game." : " finished games.")),
-    h("button", { class: "secondary", type: "button", id: "csv" }, "Download the full table"),
+    h("div", { class: "register-bar" }, [
+      h("p", { class: "register-count" }, count),
+      h("button", { class: "secondary", type: "button", id: "csv" }, "Download the full table"),
+    ]),
     table
   );
-  const notes = h("div");
-  rows.forEach((row, index) => {
-    if (!row.inquiry_account && !row.other_notes) return;
-    notes.append(
-      h("p", { class: "account" }, [
-        (row.participant_code || "Row " + (index + 1)) + ". ",
-        row.inquiry_account || "",
-        row.other_notes ? " " + row.other_notes : "",
-      ])
-    );
-  });
-  out.append(notes);
+  const notes = rows
+    .map((row, index) => ({ row, index }))
+    .filter(({ row }) => row.inquiry_account || row.other_notes);
+  if (notes.length) {
+    const block = h("section", { class: "accounts" }, [h("h2", {}, "What they wrote")]);
+    for (const { row, index } of notes) {
+      block.append(
+        h("p", { class: "account" }, [
+          h("span", { class: "who" }, row.participant_code || "Row " + (index + 1)),
+          row.inquiry_account || "",
+          row.other_notes ? " " + row.other_notes : "",
+        ])
+      );
+    }
+    out.append(block);
+  }
   document.querySelector("#csv").addEventListener("click", download);
 }
 
@@ -98,6 +127,7 @@ gate.addEventListener("submit", async (event) => {
   });
   if (response.status === 401) {
     show("That passphrase is not right.");
+    gate.classList.remove("is-open");
     out.replaceChildren();
     return;
   }
