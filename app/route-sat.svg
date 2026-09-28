@@ -13,212 +13,152 @@
   svg[data-beat="lei"] .b-acts,
   svg[data-beat="lei"] .b-lei { display: inline; }
 </style>
-
   <defs>
-    <filter id="sea" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
-      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="4" seed="2" result="a"/>
-      <feTurbulence type="fractalNoise" baseFrequency="0.004" numOctaves="3" seed="6" result="b"/>
-      <feBlend in="a" in2="b" mode="multiply" result="n"/>
-      <feColorMatrix in="n" type="matrix" values="
-        0.15 0.10 0.05 0 0.02
-        0.22 0.28 0.08 0 0.10
-        0.25 0.30 0.12 0 0.16
-        0 0 0 1 0"/>
-      <feComponentTransfer>
-        <feFuncR type="linear" slope="1.35" intercept="-0.08"/>
-        <feFuncG type="linear" slope="1.25" intercept="-0.04"/>
-        <feFuncB type="linear" slope="1.15" intercept="0.0"/>
-      </feComponentTransfer>
-    </filter>
-    <filter id="arid" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
-      <feTurbulence type="turbulence" baseFrequency="0.02" numOctaves="5" seed="11" result="a"/>
-      <feTurbulence type="fractalNoise" baseFrequency="0.004" numOctaves="3" seed="15" result="b"/>
-      <feBlend in="a" in2="b" mode="multiply" result="n"/>
-      <feColorMatrix in="n" type="matrix" values="
-        0.55 0.30 0.08 0 0.16
-        0.32 0.36 0.06 0 0.12
-        0.12 0.14 0.05 0 0.06
-        0 0 0 1 0"/>
-      <feComponentTransfer>
-        <feFuncR type="linear" slope="1.2" intercept="-0.02"/>
-        <feFuncG type="linear" slope="1.15" intercept="-0.02"/>
-        <feFuncB type="linear" slope="1.05" intercept="-0.02"/>
-      </feComponentTransfer>
-    </filter>
-    <filter id="green" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">
-      <feTurbulence type="turbulence" baseFrequency="0.022" numOctaves="5" seed="21" result="a"/>
-      <feTurbulence type="fractalNoise" baseFrequency="0.005" numOctaves="3" seed="24" result="b"/>
-      <feBlend in="a" in2="b" mode="multiply" result="n"/>
-      <feColorMatrix in="n" type="matrix" values="
-        0.16 0.18 0.05 0 0.05
-        0.22 0.40 0.08 0 0.08
-        0.10 0.16 0.06 0 0.05
-        0 0 0 1 0"/>
-      <feComponentTransfer>
-        <feFuncR type="linear" slope="1.15" intercept="-0.02"/>
-        <feFuncG type="linear" slope="1.2" intercept="-0.02"/>
-        <feFuncB type="linear" slope="1.05" intercept="-0.02"/>
-      </feComponentTransfer>
-    </filter>
-    <filter id="shore" x="-5%" y="-5%" width="110%" height="110%">
-      <feGaussianBlur stdDeviation="5"/>
-    </filter>
-    <filter id="slick" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="3.5"/>
-    </filter>
-
-    <linearGradient id="deep" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#041018" stop-opacity="0"/>
-      <stop offset="0.36" stop-color="#041018" stop-opacity="0.2"/>
-      <stop offset="0.64" stop-color="#041018" stop-opacity="0.2"/>
-      <stop offset="1" stop-color="#041018" stop-opacity="0"/>
-    </linearGradient>
     <symbol id="hull-tanker" overflow="visible">
-      <path d="M-40,-5.4 C-38,-7.6 -28,-7.8 -8,-7.2 L26,-6.2 C34,-5.2 40,-2.4 42,0 C40,2.4 34,5.2 26,6.2 L-8,7.2 C-28,7.8 -38,7.6 -40,5.4 C-42,3 -42,-3 -40,-5.4 Z" fill="#f4f0e7"/>
-      <path d="M-38,-4.2 L-31,-4.2 L-31,4.2 L-38,4.2 Z" fill="#8f897e"/>
-      <rect x="-4" y="-5" width="16" height="10" rx="0.8" fill="#c8c2b4"/>
-      <rect x="16" y="-3.1" width="9" height="6.2" fill="#ddd6ca"/>
-      <path d="M-22,-0.7 L24,-0.7" stroke="#b5afa3" stroke-width="0.7"/>
+      <path d="M-78,-11 C-74,-16 -48,-17 8,-15 L62,-12 C78,-9 92,-4 96,0 C92,4 78,9 62,12 L8,15 C-48,17 -74,16 -78,11 C-84,6 -84,-6 -78,-11 Z" fill="#f6f1e6"/>
+      <path d="M-74,-8 L-58,-8 L-58,8 L-74,8 Z" fill="#8d8678"/>
+      <rect x="-18" y="-10" width="36" height="20" rx="1.5" fill="#d4cdc0"/>
+      <rect x="28" y="-7" width="22" height="14" fill="#e7e1d6"/>
+      <path d="M-40,-1.2 L48,-1.2" stroke="#b7b0a2" stroke-width="1.4"/>
     </symbol>
     <symbol id="hull-merchant" overflow="visible">
-      <path d="M-22,-3.4 C-20,-4.8 -14,-5 -4,-4.6 L14,-4 C18,-3.4 22,-1.6 24,0 C22,1.6 18,3.4 14,4 L-4,4.6 C-14,5 -20,4.8 -22,3.4 C-23.4,2 -23.4,-2 -22,-3.4 Z" fill="#efeae0"/>
-      <path d="M-20,-2.6 L-16,-2.6 L-16,2.6 L-20,2.6 Z" fill="#9a9488"/>
-      <rect x="2" y="-2.6" width="7" height="5.2" fill="#cfc8ba"/>
+      <path d="M-46,-8 C-42,-12 -24,-12.5 4,-11 L34,-9 C44,-7 52,-3 56,0 C52,3 44,7 34,9 L4,11 C-24,12.5 -42,12 -46,8 C-50,4.5 -50,-4.5 -46,-8 Z" fill="#f4f0e6"/>
+      <path d="M-42,-6 L-32,-6 L-32,6 L-42,6 Z" fill="#9a9488"/>
+      <rect x="6" y="-6.5" width="16" height="13" fill="#d8d1c4"/>
     </symbol>
     <symbol id="hull-navy" overflow="visible">
-      <path d="M-30,-3.2 C-28,-4.6 -18,-4.8 2,-4.4 L24,-3.4 C30,-2.6 34,-1.3 36,0 C34,1.3 30,2.6 24,3.4 L2,4.4 C-18,4.8 -28,4.6 -30,3.2 C-32,1.8 -32,-1.8 -30,-3.2 Z" fill="#e4e8ec"/>
-      <rect x="8" y="-2.8" width="11" height="5.6" rx="0.4" fill="#1c2430"/>
-      <rect x="-8" y="-2" width="8" height="4" fill="#2a3342"/>
-      <circle cx="22" cy="0" r="1.15" fill="#9a3030"/>
+      <path d="M-52,-7 C-48,-11 -28,-11.5 6,-10 L40,-8 C50,-6 58,-3 62,0 C58,3 50,6 40,8 L6,10 C-28,11.5 -48,11 -52,7 C-56,4 -56,-4 -52,-7 Z" fill="#e7ebef"/>
+      <rect x="14" y="-6" width="18" height="12" rx="0.8" fill="#1c2430"/>
+      <rect x="-16" y="-4.5" width="16" height="9" fill="#2c3644"/>
+      <circle cx="36" cy="0" r="2.2" fill="#9a3030"/>
     </symbol>
-    <linearGradient id="wake" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#f4f7f6" stop-opacity="0"/>
-      <stop offset="1" stop-color="#f4f7f6" stop-opacity="0.85"/>
-    </linearGradient>
-    <clipPath id="arak"><path d="M296.1,0.0 C297.2,1.3 300.2,4.9 302.4,7.8 C304.6,10.7 307.1,14.1 309.4,17.3 C311.6,20.6 313.8,23.8 315.9,27.2 C318.0,30.5 320.2,34.0 322.1,37.4 C323.9,40.9 325.7,44.5 327.2,48.1 C328.7,51.7 330.1,55.3 331.1,59.0 C332.0,62.7 332.8,66.4 333.1,70.1 C333.4,73.9 333.4,77.7 333.1,81.4 C332.7,85.2 332.0,89.0 330.9,92.8 C329.8,96.6 328.4,100.4 326.7,104.2 C325.0,108.0 322.9,111.8 320.6,115.6 C318.4,119.3 315.8,123.1 313.1,126.8 C310.4,130.5 307.5,134.2 304.4,137.9 C301.4,141.5 298.2,145.2 294.9,148.8 C291.7,152.4 288.3,155.9 285.0,159.4 C281.7,162.9 278.4,166.4 275.1,169.9 C271.9,173.3 268.7,176.7 265.7,180.1 C262.7,183.5 259.7,186.9 257.2,190.2 C254.6,193.6 252.2,196.9 250.2,200.3 C248.2,203.6 246.4,206.9 245.1,210.2 C243.8,213.5 242.9,216.8 242.3,220.2 C241.8,223.5 241.6,226.8 241.9,230.1 C242.1,233.4 242.7,236.7 243.6,240.1 C244.6,243.4 245.9,246.7 247.5,250.0 C249.1,253.4 251.0,256.7 253.2,260.0 C255.3,263.3 257.8,266.7 260.4,270.0 C263.0,273.3 265.9,276.7 268.9,280.0 C271.9,283.3 275.2,286.7 278.4,290.0 C281.7,293.3 285.2,296.7 288.6,300.0 C292.0,303.3 295.6,306.7 299.0,310.0 C302.4,313.3 305.9,316.7 309.1,320.0 C312.3,323.3 315.5,326.7 318.2,330.0 C321.0,333.3 323.6,336.7 325.8,340.0 C328.0,343.3 329.8,346.7 331.2,350.0 C332.6,353.3 333.6,356.7 334.1,360.0 C334.6,363.3 334.7,366.7 334.3,370.0 C333.9,373.3 333.0,376.7 331.9,380.0 C330.7,383.3 329.1,386.7 327.2,390.0 C325.4,393.3 323.1,396.7 320.8,400.0 C318.5,403.4 315.8,406.7 313.2,410.1 C310.5,413.4 307.7,416.7 304.8,420.1 C301.9,423.4 299.0,426.8 296.0,430.2 C293.1,433.5 290.1,436.9 287.1,440.2 C284.2,443.6 281.2,446.9 278.3,450.3 C275.4,453.6 272.5,457.0 269.8,460.3 C267.1,463.6 264.4,467.0 262.0,470.3 C259.6,473.6 257.3,476.9 255.3,480.2 C253.4,483.5 251.6,486.8 250.3,490.1 C248.9,493.4 247.9,496.6 247.4,499.9 C246.8,503.1 246.6,506.3 246.9,509.5 C247.1,512.6 247.8,515.7 248.8,518.8 C249.9,521.9 251.3,525.0 253.0,527.9 C254.8,530.9 257.1,533.9 259.2,536.7 C261.4,539.6 263.6,542.4 266.0,545.2 C268.5,548.0 271.8,550.9 274.1,553.4 C276.5,555.8 279.3,558.9 280.3,560.0 L0,560 L0,0 Z"/></clipPath>
-    <clipPath id="lei"><path d="M903.6,0.0 C902.6,1.4 900.1,5.3 897.8,8.5 C895.6,11.6 892.4,15.3 889.9,18.8 C887.3,22.3 885.0,25.8 882.6,29.3 C880.3,32.9 877.8,36.6 875.7,40.2 C873.6,43.9 871.7,47.6 870.1,51.3 C868.5,55.1 867.2,58.8 866.2,62.5 C865.2,66.3 864.5,70.0 864.2,73.7 C863.9,77.5 864.1,81.2 864.4,84.9 C864.7,88.6 865.5,92.2 866.3,95.9 C867.1,99.6 868.3,103.2 869.3,106.8 C870.4,110.5 871.7,114.1 872.8,117.7 C873.8,121.3 874.9,125.0 875.7,128.6 C876.4,132.2 877.0,135.9 877.2,139.5 C877.3,143.2 877.2,146.9 876.6,150.5 C876.0,154.2 875.1,157.9 873.7,161.7 C872.3,165.4 870.5,169.1 868.4,172.9 C866.2,176.6 863.7,180.4 861.0,184.2 C858.2,188.0 855.1,191.8 852.0,195.6 C848.8,199.4 845.4,203.2 842.0,207.0 C838.6,210.8 835.0,214.6 831.6,218.5 C828.2,222.3 824.7,226.1 821.3,229.9 C818.0,233.7 814.6,237.6 811.5,241.4 C808.4,245.2 805.3,249.0 802.5,252.8 C799.7,256.6 797.1,260.5 794.8,264.3 C792.4,268.1 790.3,271.9 788.6,275.7 C786.9,279.5 785.4,283.3 784.4,287.1 C783.4,291.0 782.8,294.8 782.7,298.6 C782.6,302.4 783.0,306.2 783.8,310.0 C784.6,313.8 786.0,317.6 787.6,321.4 C789.3,325.2 791.5,329.0 793.8,332.9 C796.1,336.7 798.9,340.5 801.5,344.3 C804.2,348.1 807.1,351.9 809.6,355.7 C812.2,359.5 814.8,363.3 816.9,367.1 C819.0,370.9 820.9,374.7 822.2,378.5 C823.5,382.3 824.5,386.1 824.8,389.9 C825.2,393.6 825.1,397.4 824.6,401.2 C824.1,405.0 823.0,408.8 821.8,412.6 C820.6,416.4 818.9,420.3 817.3,424.1 C815.7,428.0 813.8,431.9 812.2,435.8 C810.6,439.7 809.0,443.7 807.8,447.7 C806.6,451.7 805.5,455.8 805.0,459.9 C804.5,464.1 804.4,468.2 804.8,472.5 C805.2,476.7 806.0,481.0 807.3,485.4 C808.7,489.7 810.5,494.1 812.7,498.4 C814.9,502.8 817.6,507.2 820.5,511.5 C823.4,515.9 826.7,520.3 830.1,524.5 C833.5,528.8 837.1,533.0 840.9,537.2 C844.6,541.4 848.6,545.9 852.7,549.7 C856.7,553.5 863.3,558.3 865.4,560.0 L1200,560 L1200,0 Z"/></clipPath>
   </defs>
-  <rect width="1200" height="560" filter="url(#sea)"/>
-  <rect width="1200" height="560" fill="url(#deep)"/>
-  <path d="M470,28 C520,120 545,210 575,310 C610,420 670,500 730,548" fill="none" stroke="#d7eef2" stroke-width="18" opacity="0.14"/>
-  <path d="M458,34 C508,124 534,214 564,314 C600,424 658,502 718,548" fill="none" stroke="#f7f4ee" stroke-width="0.8" opacity="0.28"/>
-  <path d="M482,24 C532,116 556,206 586,306 C620,416 682,498 742,546" fill="none" stroke="#f7f4ee" stroke-width="0.8" opacity="0.28"/>
-  <path d="M470,28 C520,120 545,210 575,310 C610,420 670,500 730,548" fill="none" stroke="#f4f7f6" stroke-width="1.2" stroke-dasharray="2 11" opacity="0.7" class="sat-motion">
-    <animate attributeName="stroke-dashoffset" values="0;-26" dur="9s" repeatCount="indefinite"/>
+
+  <rect width="1200" height="560" fill="#123a56"/>
+  <path d="M0 0 L248 0 C258 90 220 170 258 250 C224 330 252 430 218 560 L0 560 Z" fill="#5ec4b8" opacity="0.85"/>
+  <path d="M0 0 L220 0 C230 92 194 175 230 250 C198 330 224 430 192 560 L0 560 Z" fill="#c4a15a"/>
+  <path d="M1200 0 L952 0 C942 100 978 180 938 260 C976 350 946 450 980 560 L1200 560 Z" fill="#5ec4b8" opacity="0.85"/>
+  <path d="M1200 0 L978 0 C968 100 1002 180 964 260 C1000 350 972 450 1004 560 L1200 560 Z" fill="#3f6b3a"/>
+
+  <path d="M520,16 C548,130 572,240 560,340 C548,430 590,500 640,548" fill="none" stroke="#d7e6f2" stroke-width="16" opacity="0.16"/>
+  <path d="M506,18 C534,132 558,242 546,342 C534,432 576,502 626,548" fill="none" stroke="#f7f4ee" stroke-width="1.1" opacity="0.35"/>
+  <path d="M534,14 C562,128 586,238 574,338 C562,428 604,498 654,546" fill="none" stroke="#f7f4ee" stroke-width="1.1" opacity="0.35"/>
+  <path d="M520,16 C548,130 572,240 560,340 C548,430 590,500 640,548" fill="none" stroke="#f4f7f6" stroke-width="1.6" stroke-dasharray="3 12" opacity="0.8" class="sat-motion">
+    <animate attributeName="stroke-dashoffset" values="0;-30" dur="9s" repeatCount="indefinite"/>
   </path>
-  <g transform="translate(630,42)" fill="none" stroke="#f7f4ee" font-family="Source Sans 3, Liberation Sans, sans-serif" font-size="12" font-weight="700">
-    <circle cx="0" cy="0" r="11" stroke-width="0.8" opacity="0.85"/>
-    <path d="M0,-7 L2.2,2.2 L0,0.6 L-2.2,2.2 Z" fill="#f7f4ee" stroke="none"/>
-    <text x="14" y="4" fill="#f7f4ee" stroke="none">N</text>
+
+  <g transform="translate(688,56)" fill="none" stroke="#f7f4ee" font-family="Source Sans 3, Liberation Sans, sans-serif" font-size="13" font-weight="700">
+    <circle cx="0" cy="0" r="12" stroke-width="1.1"/>
+    <path d="M0,-8 L2.4,2.4 L0,0.6 L-2.4,2.4 Z" fill="#f7f4ee" stroke="none"/>
+    <text x="16" y="4" fill="#f7f4ee" stroke="none">N</text>
   </g>
-  <path d="M296.1,0.0 C297.2,1.3 300.2,4.9 302.4,7.8 C304.6,10.7 307.1,14.1 309.4,17.3 C311.6,20.6 313.8,23.8 315.9,27.2 C318.0,30.5 320.2,34.0 322.1,37.4 C323.9,40.9 325.7,44.5 327.2,48.1 C328.7,51.7 330.1,55.3 331.1,59.0 C332.0,62.7 332.8,66.4 333.1,70.1 C333.4,73.9 333.4,77.7 333.1,81.4 C332.7,85.2 332.0,89.0 330.9,92.8 C329.8,96.6 328.4,100.4 326.7,104.2 C325.0,108.0 322.9,111.8 320.6,115.6 C318.4,119.3 315.8,123.1 313.1,126.8 C310.4,130.5 307.5,134.2 304.4,137.9 C301.4,141.5 298.2,145.2 294.9,148.8 C291.7,152.4 288.3,155.9 285.0,159.4 C281.7,162.9 278.4,166.4 275.1,169.9 C271.9,173.3 268.7,176.7 265.7,180.1 C262.7,183.5 259.7,186.9 257.2,190.2 C254.6,193.6 252.2,196.9 250.2,200.3 C248.2,203.6 246.4,206.9 245.1,210.2 C243.8,213.5 242.9,216.8 242.3,220.2 C241.8,223.5 241.6,226.8 241.9,230.1 C242.1,233.4 242.7,236.7 243.6,240.1 C244.6,243.4 245.9,246.7 247.5,250.0 C249.1,253.4 251.0,256.7 253.2,260.0 C255.3,263.3 257.8,266.7 260.4,270.0 C263.0,273.3 265.9,276.7 268.9,280.0 C271.9,283.3 275.2,286.7 278.4,290.0 C281.7,293.3 285.2,296.7 288.6,300.0 C292.0,303.3 295.6,306.7 299.0,310.0 C302.4,313.3 305.9,316.7 309.1,320.0 C312.3,323.3 315.5,326.7 318.2,330.0 C321.0,333.3 323.6,336.7 325.8,340.0 C328.0,343.3 329.8,346.7 331.2,350.0 C332.6,353.3 333.6,356.7 334.1,360.0 C334.6,363.3 334.7,366.7 334.3,370.0 C333.9,373.3 333.0,376.7 331.9,380.0 C330.7,383.3 329.1,386.7 327.2,390.0 C325.4,393.3 323.1,396.7 320.8,400.0 C318.5,403.4 315.8,406.7 313.2,410.1 C310.5,413.4 307.7,416.7 304.8,420.1 C301.9,423.4 299.0,426.8 296.0,430.2 C293.1,433.5 290.1,436.9 287.1,440.2 C284.2,443.6 281.2,446.9 278.3,450.3 C275.4,453.6 272.5,457.0 269.8,460.3 C267.1,463.6 264.4,467.0 262.0,470.3 C259.6,473.6 257.3,476.9 255.3,480.2 C253.4,483.5 251.6,486.8 250.3,490.1 C248.9,493.4 247.9,496.6 247.4,499.9 C246.8,503.1 246.6,506.3 246.9,509.5 C247.1,512.6 247.8,515.7 248.8,518.8 C249.9,521.9 251.3,525.0 253.0,527.9 C254.8,530.9 257.1,533.9 259.2,536.7 C261.4,539.6 263.6,542.4 266.0,545.2 C268.5,548.0 271.8,550.9 274.1,553.4 C276.5,555.8 279.3,558.9 280.3,560.0" fill="none" stroke="#7ec4b6" stroke-width="34" stroke-linejoin="round" opacity="0.55" filter="url(#shore)"/>
-  <path d="M903.6,0.0 C902.6,1.4 900.1,5.3 897.8,8.5 C895.6,11.6 892.4,15.3 889.9,18.8 C887.3,22.3 885.0,25.8 882.6,29.3 C880.3,32.9 877.8,36.6 875.7,40.2 C873.6,43.9 871.7,47.6 870.1,51.3 C868.5,55.1 867.2,58.8 866.2,62.5 C865.2,66.3 864.5,70.0 864.2,73.7 C863.9,77.5 864.1,81.2 864.4,84.9 C864.7,88.6 865.5,92.2 866.3,95.9 C867.1,99.6 868.3,103.2 869.3,106.8 C870.4,110.5 871.7,114.1 872.8,117.7 C873.8,121.3 874.9,125.0 875.7,128.6 C876.4,132.2 877.0,135.9 877.2,139.5 C877.3,143.2 877.2,146.9 876.6,150.5 C876.0,154.2 875.1,157.9 873.7,161.7 C872.3,165.4 870.5,169.1 868.4,172.9 C866.2,176.6 863.7,180.4 861.0,184.2 C858.2,188.0 855.1,191.8 852.0,195.6 C848.8,199.4 845.4,203.2 842.0,207.0 C838.6,210.8 835.0,214.6 831.6,218.5 C828.2,222.3 824.7,226.1 821.3,229.9 C818.0,233.7 814.6,237.6 811.5,241.4 C808.4,245.2 805.3,249.0 802.5,252.8 C799.7,256.6 797.1,260.5 794.8,264.3 C792.4,268.1 790.3,271.9 788.6,275.7 C786.9,279.5 785.4,283.3 784.4,287.1 C783.4,291.0 782.8,294.8 782.7,298.6 C782.6,302.4 783.0,306.2 783.8,310.0 C784.6,313.8 786.0,317.6 787.6,321.4 C789.3,325.2 791.5,329.0 793.8,332.9 C796.1,336.7 798.9,340.5 801.5,344.3 C804.2,348.1 807.1,351.9 809.6,355.7 C812.2,359.5 814.8,363.3 816.9,367.1 C819.0,370.9 820.9,374.7 822.2,378.5 C823.5,382.3 824.5,386.1 824.8,389.9 C825.2,393.6 825.1,397.4 824.6,401.2 C824.1,405.0 823.0,408.8 821.8,412.6 C820.6,416.4 818.9,420.3 817.3,424.1 C815.7,428.0 813.8,431.9 812.2,435.8 C810.6,439.7 809.0,443.7 807.8,447.7 C806.6,451.7 805.5,455.8 805.0,459.9 C804.5,464.1 804.4,468.2 804.8,472.5 C805.2,476.7 806.0,481.0 807.3,485.4 C808.7,489.7 810.5,494.1 812.7,498.4 C814.9,502.8 817.6,507.2 820.5,511.5 C823.4,515.9 826.7,520.3 830.1,524.5 C833.5,528.8 837.1,533.0 840.9,537.2 C844.6,541.4 848.6,545.9 852.7,549.7 C856.7,553.5 863.3,558.3 865.4,560.0" fill="none" stroke="#6eb5a4" stroke-width="32" stroke-linejoin="round" opacity="0.5" filter="url(#shore)"/>
-  <g clip-path="url(#arak)"><rect width="1200" height="560" filter="url(#arid)"/></g>
-  <g clip-path="url(#lei)"><rect width="1200" height="560" filter="url(#green)"/></g>
-  <path d="M296.1,0.0 C297.2,1.3 300.2,4.9 302.4,7.8 C304.6,10.7 307.1,14.1 309.4,17.3 C311.6,20.6 313.8,23.8 315.9,27.2 C318.0,30.5 320.2,34.0 322.1,37.4 C323.9,40.9 325.7,44.5 327.2,48.1 C328.7,51.7 330.1,55.3 331.1,59.0 C332.0,62.7 332.8,66.4 333.1,70.1 C333.4,73.9 333.4,77.7 333.1,81.4 C332.7,85.2 332.0,89.0 330.9,92.8 C329.8,96.6 328.4,100.4 326.7,104.2 C325.0,108.0 322.9,111.8 320.6,115.6 C318.4,119.3 315.8,123.1 313.1,126.8 C310.4,130.5 307.5,134.2 304.4,137.9 C301.4,141.5 298.2,145.2 294.9,148.8 C291.7,152.4 288.3,155.9 285.0,159.4 C281.7,162.9 278.4,166.4 275.1,169.9 C271.9,173.3 268.7,176.7 265.7,180.1 C262.7,183.5 259.7,186.9 257.2,190.2 C254.6,193.6 252.2,196.9 250.2,200.3 C248.2,203.6 246.4,206.9 245.1,210.2 C243.8,213.5 242.9,216.8 242.3,220.2 C241.8,223.5 241.6,226.8 241.9,230.1 C242.1,233.4 242.7,236.7 243.6,240.1 C244.6,243.4 245.9,246.7 247.5,250.0 C249.1,253.4 251.0,256.7 253.2,260.0 C255.3,263.3 257.8,266.7 260.4,270.0 C263.0,273.3 265.9,276.7 268.9,280.0 C271.9,283.3 275.2,286.7 278.4,290.0 C281.7,293.3 285.2,296.7 288.6,300.0 C292.0,303.3 295.6,306.7 299.0,310.0 C302.4,313.3 305.9,316.7 309.1,320.0 C312.3,323.3 315.5,326.7 318.2,330.0 C321.0,333.3 323.6,336.7 325.8,340.0 C328.0,343.3 329.8,346.7 331.2,350.0 C332.6,353.3 333.6,356.7 334.1,360.0 C334.6,363.3 334.7,366.7 334.3,370.0 C333.9,373.3 333.0,376.7 331.9,380.0 C330.7,383.3 329.1,386.7 327.2,390.0 C325.4,393.3 323.1,396.7 320.8,400.0 C318.5,403.4 315.8,406.7 313.2,410.1 C310.5,413.4 307.7,416.7 304.8,420.1 C301.9,423.4 299.0,426.8 296.0,430.2 C293.1,433.5 290.1,436.9 287.1,440.2 C284.2,443.6 281.2,446.9 278.3,450.3 C275.4,453.6 272.5,457.0 269.8,460.3 C267.1,463.6 264.4,467.0 262.0,470.3 C259.6,473.6 257.3,476.9 255.3,480.2 C253.4,483.5 251.6,486.8 250.3,490.1 C248.9,493.4 247.9,496.6 247.4,499.9 C246.8,503.1 246.6,506.3 246.9,509.5 C247.1,512.6 247.8,515.7 248.8,518.8 C249.9,521.9 251.3,525.0 253.0,527.9 C254.8,530.9 257.1,533.9 259.2,536.7 C261.4,539.6 263.6,542.4 266.0,545.2 C268.5,548.0 271.8,550.9 274.1,553.4 C276.5,555.8 279.3,558.9 280.3,560.0" fill="none" stroke="#efe6d2" stroke-width="1.4" stroke-linejoin="round" opacity="0.85"/>
-  <path d="M903.6,0.0 C902.6,1.4 900.1,5.3 897.8,8.5 C895.6,11.6 892.4,15.3 889.9,18.8 C887.3,22.3 885.0,25.8 882.6,29.3 C880.3,32.9 877.8,36.6 875.7,40.2 C873.6,43.9 871.7,47.6 870.1,51.3 C868.5,55.1 867.2,58.8 866.2,62.5 C865.2,66.3 864.5,70.0 864.2,73.7 C863.9,77.5 864.1,81.2 864.4,84.9 C864.7,88.6 865.5,92.2 866.3,95.9 C867.1,99.6 868.3,103.2 869.3,106.8 C870.4,110.5 871.7,114.1 872.8,117.7 C873.8,121.3 874.9,125.0 875.7,128.6 C876.4,132.2 877.0,135.9 877.2,139.5 C877.3,143.2 877.2,146.9 876.6,150.5 C876.0,154.2 875.1,157.9 873.7,161.7 C872.3,165.4 870.5,169.1 868.4,172.9 C866.2,176.6 863.7,180.4 861.0,184.2 C858.2,188.0 855.1,191.8 852.0,195.6 C848.8,199.4 845.4,203.2 842.0,207.0 C838.6,210.8 835.0,214.6 831.6,218.5 C828.2,222.3 824.7,226.1 821.3,229.9 C818.0,233.7 814.6,237.6 811.5,241.4 C808.4,245.2 805.3,249.0 802.5,252.8 C799.7,256.6 797.1,260.5 794.8,264.3 C792.4,268.1 790.3,271.9 788.6,275.7 C786.9,279.5 785.4,283.3 784.4,287.1 C783.4,291.0 782.8,294.8 782.7,298.6 C782.6,302.4 783.0,306.2 783.8,310.0 C784.6,313.8 786.0,317.6 787.6,321.4 C789.3,325.2 791.5,329.0 793.8,332.9 C796.1,336.7 798.9,340.5 801.5,344.3 C804.2,348.1 807.1,351.9 809.6,355.7 C812.2,359.5 814.8,363.3 816.9,367.1 C819.0,370.9 820.9,374.7 822.2,378.5 C823.5,382.3 824.5,386.1 824.8,389.9 C825.2,393.6 825.1,397.4 824.6,401.2 C824.1,405.0 823.0,408.8 821.8,412.6 C820.6,416.4 818.9,420.3 817.3,424.1 C815.7,428.0 813.8,431.9 812.2,435.8 C810.6,439.7 809.0,443.7 807.8,447.7 C806.6,451.7 805.5,455.8 805.0,459.9 C804.5,464.1 804.4,468.2 804.8,472.5 C805.2,476.7 806.0,481.0 807.3,485.4 C808.7,489.7 810.5,494.1 812.7,498.4 C814.9,502.8 817.6,507.2 820.5,511.5 C823.4,515.9 826.7,520.3 830.1,524.5 C833.5,528.8 837.1,533.0 840.9,537.2 C844.6,541.4 848.6,545.9 852.7,549.7 C856.7,553.5 863.3,558.3 865.4,560.0" fill="none" stroke="#d5dec4" stroke-width="1.3" stroke-linejoin="round" opacity="0.7"/>
-  <g filter="url(#slick)" opacity="0.7">
-    <path d="M530,304 C500,312 450,328 410,340 C390,348 392,334 420,324 C470,308 510,298 530,304 Z" fill="#071820"/>
-    <path d="M512,308 C490,316 460,324 440,322" fill="none" stroke="#1c6a62" stroke-width="2.2" stroke-linecap="round" opacity="0.55"/>
-  </g>
-  <use href="#hull-tanker" transform="translate(548,300) rotate(-14)"/>
-  <circle cx="548" cy="300" r="26" fill="none" stroke="#f7f4ee" stroke-width="1.15"/>
-  <line x1="530" y1="282" x2="496" y2="210" stroke="#f7f4ee" stroke-width="1.25"/>
+
+  <path d="M470,308 C430,316 390,322 360,318" fill="none" stroke="#163044" stroke-width="7" stroke-linecap="round" opacity="0.55"/>
+  <use href="#hull-tanker" transform="translate(560,292) rotate(-12)"/>
+  <circle cx="560" cy="292" r="34" fill="none" stroke="#f7f4ee" stroke-width="1.2"/>
+  <line x1="530" y1="270" x2="486" y2="214" stroke="#f7f4ee" stroke-width="1.3"/>
+
   <g font-family="Source Sans 3, Liberation Sans, sans-serif" font-weight="700">
-    <rect x="58" y="50" width="132" height="38" fill="#f6f1e6" rx="2"/>
-    <text x="72" y="76" fill="#241c14" font-size="22">Araknes</text>
-    <rect x="992" y="54" width="78" height="38" fill="#f6f1e6" rx="2"/>
-    <text x="1006" y="80" fill="#241c14" font-size="22">Lei</text>
-    <rect x="318" y="192" width="178" height="36" fill="#102028" rx="2"/>
-    <text x="332" y="216" fill="#f7f4ee" font-size="18">Tanker damaged</text>
+    <rect x="36" y="36" width="148" height="40" fill="#f6f1e6" rx="2"/>
+    <text x="110" y="63" text-anchor="middle" fill="#241c14" font-size="22">Araknes</text>
+    <rect x="1028" y="36" width="96" height="40" fill="#f6f1e6" rx="2"/>
+    <text x="1076" y="63" text-anchor="middle" fill="#241c14" font-size="22">Lei</text>
+    <rect x="292" y="196" width="186" height="36" fill="#102028" rx="2"/>
+    <text x="385" y="220" text-anchor="middle" fill="#f7f4ee" font-size="18">Tanker damaged</text>
   </g>
 
   <g class="sat-layer b-route" font-family="Source Sans 3, Liberation Sans, sans-serif" font-weight="700">
-    <rect x="300" y="418" width="520" height="84" fill="#102028" rx="2"/>
-    <text x="318" y="450" fill="#f7f4ee" font-size="18">Araknes says Lei meant to disrupt trade</text>
-    <text x="318" y="478" fill="#f7f4ee" font-size="18">Lei says an old mine, or a breakdown</text>
+    <rect x="292" y="400" width="520" height="78" fill="#102028" rx="2"/>
+    <text x="310" y="432" fill="#f7f4ee" font-size="18">Araknes says Lei meant to disrupt trade</text>
+    <text x="310" y="458" fill="#f7f4ee" font-size="18">Lei says an old mine, or a breakdown</text>
   </g>
+
   <g class="sat-layer b-advice" font-family="Source Sans 3, Liberation Sans, sans-serif" font-weight="700">
-    <circle cx="430" cy="168" r="16" fill="none" stroke="#f7f4ee" stroke-width="1.4"/>
-    <circle cx="430" cy="168" r="16" fill="none" stroke="#f7f4ee" stroke-width="1.15" class="sat-motion">
-      <animate attributeName="r" values="14;48" dur="3.6s" repeatCount="indefinite"/>
+    <circle cx="430" cy="150" r="14" fill="none" stroke="#f7f4ee" stroke-width="1.4"/>
+    <circle cx="430" cy="150" r="14" fill="none" stroke="#f7f4ee" stroke-width="1.15" class="sat-motion">
+      <animate attributeName="r" values="14;46" dur="3.6s" repeatCount="indefinite"/>
       <animate attributeName="opacity" values="0.75;0" dur="3.6s" repeatCount="indefinite"/>
     </circle>
-    <line x1="446" y1="176" x2="520" y2="268" stroke="#f7f4ee" stroke-width="1.15" stroke-dasharray="3 4"/>
-    <rect x="348" y="96" width="186" height="34" fill="#102028" rx="2"/>
-    <text x="362" y="119" fill="#f7f4ee" font-size="17">Asking ORACLE</text>
+    <line x1="444" y1="158" x2="520" y2="250" stroke="#f7f4ee" stroke-width="1.15" stroke-dasharray="3 4"/>
+    <rect x="330" y="78" width="186" height="34" fill="#102028" rx="2"/>
+    <text x="423" y="101" text-anchor="middle" fill="#f7f4ee" font-size="17">Asking ORACLE</text>
   </g>
+
   <g class="sat-layer b-upgrade" font-family="Source Sans 3, Liberation Sans, sans-serif" font-weight="700">
-    <g fill="none" stroke="#e7d7b2" stroke-width="1.35">
-      <circle cx="470" cy="188" r="20"/>
-      <circle cx="655" cy="236" r="20"/>
-      <circle cx="600" cy="392" r="20"/>
+    <g fill="none" stroke="#e7d7b2" stroke-width="1.4">
+      <circle cx="470" cy="168" r="18"/>
+      <circle cx="700" cy="210" r="18"/>
+      <circle cx="620" cy="430" r="18"/>
     </g>
     <g fill="none" stroke="#e7d7b2" stroke-width="1.1" class="sat-motion">
-      <circle cx="470" cy="188" r="20">
-        <animate attributeName="r" values="18;42" dur="4.4s" repeatCount="indefinite"/>
+      <circle cx="470" cy="168" r="18">
+        <animate attributeName="r" values="16;40" dur="4.4s" repeatCount="indefinite"/>
         <animate attributeName="opacity" values="0.7;0" dur="4.4s" repeatCount="indefinite"/>
       </circle>
-      <circle cx="655" cy="236" r="20">
-        <animate attributeName="r" values="18;42" dur="4.4s" begin="1.4s" repeatCount="indefinite"/>
+      <circle cx="700" cy="210" r="18">
+        <animate attributeName="r" values="16;40" dur="4.4s" begin="1.4s" repeatCount="indefinite"/>
         <animate attributeName="opacity" values="0.7;0" dur="4.4s" begin="1.4s" repeatCount="indefinite"/>
       </circle>
-      <circle cx="600" cy="392" r="20">
-        <animate attributeName="r" values="18;42" dur="4.4s" begin="2.8s" repeatCount="indefinite"/>
+      <circle cx="620" cy="430" r="18">
+        <animate attributeName="r" values="16;40" dur="4.4s" begin="2.8s" repeatCount="indefinite"/>
         <animate attributeName="opacity" values="0.7;0" dur="4.4s" begin="2.8s" repeatCount="indefinite"/>
       </circle>
     </g>
-    <rect x="500" y="78" width="168" height="34" fill="#102028" rx="2"/>
-    <text x="514" y="101" fill="#f7f4ee" font-size="17">On the watch</text>
+    <rect x="500" y="72" width="168" height="34" fill="#102028" rx="2"/>
+    <text x="584" y="95" text-anchor="middle" fill="#f7f4ee" font-size="17">On the watch</text>
   </g>
+
   <g class="sat-layer b-second">
-    <use href="#hull-merchant" transform="translate(700,198) rotate(-8) scale(0.95)"/>
-    <circle cx="700" cy="198" r="16" fill="none" stroke="#f7f4ee" stroke-width="1.15" stroke-dasharray="2.4 2.2"/>
-    <circle cx="700" cy="198" r="16" fill="none" stroke="#f7f4ee" stroke-width="1" class="sat-motion">
-      <animate attributeName="r" values="16;34" dur="3.2s" repeatCount="indefinite"/>
+    <use href="#hull-merchant" transform="translate(820,168) rotate(-8)"/>
+    <circle cx="820" cy="168" r="22" fill="none" stroke="#f7f4ee" stroke-width="1.15" stroke-dasharray="2.6 2.4"/>
+    <circle cx="820" cy="168" r="22" fill="none" stroke="#f7f4ee" stroke-width="1" class="sat-motion">
+      <animate attributeName="r" values="22;40" dur="3.2s" repeatCount="indefinite"/>
       <animate attributeName="opacity" values="0.7;0" dur="3.2s" repeatCount="indefinite"/>
     </circle>
-    <line x1="688" y1="186" x2="628" y2="128" stroke="#f7f4ee" stroke-width="1.25"/>
+    <line x1="800" y1="156" x2="730" y2="112" stroke="#f7f4ee" stroke-width="1.25"/>
     <g font-family="Source Sans 3, Liberation Sans, sans-serif" font-weight="700">
-      <rect x="496" y="96" width="132" height="34" fill="#102028" rx="2"/>
-      <text x="510" y="119" fill="#f7f4ee" font-size="17">No contact</text>
+      <rect x="560" y="78" width="150" height="34" fill="#102028" rx="2"/>
+      <text x="635" y="101" text-anchor="middle" fill="#f7f4ee" font-size="17">No contact</text>
     </g>
   </g>
+
   <g class="sat-layer b-read" font-family="Source Sans 3, Liberation Sans, sans-serif" font-weight="700">
-    <rect x="300" y="430" width="300" height="72" fill="#102028" rx="2"/>
-    <text x="316" y="460" fill="#f7f4ee" font-size="17">ORACLE 62%</text>
-    <text x="316" y="486" fill="#f7f4ee" font-size="17">Lei may target shipping</text>
+    <rect x="292" y="400" width="320" height="72" fill="#102028" rx="2"/>
+    <text x="308" y="430" fill="#d9c7a2" font-size="16">ORACLE 62%</text>
+    <text x="308" y="456" fill="#f7f4ee" font-size="18">Lei may target shipping</text>
   </g>
+
   <g class="sat-layer b-acts" font-family="Source Sans 3, Liberation Sans, sans-serif" font-weight="700">
-    <path d="M400,268 A78,78 0 0 1 468,196" fill="none" stroke="#f4f1ea" stroke-width="1.35"/>
-    <path d="M386,280 A104,104 0 0 1 482,180" fill="none" stroke="#f4f1ea" stroke-width="1.05" opacity="0.75" class="sat-motion">
+    <path d="M430,250 A70,70 0 0 1 500,190" fill="none" stroke="#f4f1ea" stroke-width="1.4"/>
+    <path d="M414,262 A96,96 0 0 1 514,174" fill="none" stroke="#f4f1ea" stroke-width="1.05" opacity="0.75" class="sat-motion">
       <animate attributeName="opacity" values="0.2;0.85;0.2" dur="3.4s" repeatCount="indefinite"/>
     </path>
-    <rect x="292" y="150" width="112" height="32" fill="#102028" rx="2"/>
-    <text x="306" y="172" fill="#f7f4ee" font-size="16">Warning</text>
-    <path d="M390,410 C450,382 510,362 575,352" fill="none" stroke="#f7f4ee" stroke-width="1.25" stroke-dasharray="5 6" class="sat-motion">
+    <rect x="250" y="128" width="112" height="32" fill="#102028" rx="2"/>
+    <text x="306" y="150" text-anchor="middle" fill="#f7f4ee" font-size="16">Warning</text>
+    <path d="M430,430 C500,410 560,392 630,378" fill="none" stroke="#f7f4ee" stroke-width="1.25" stroke-dasharray="5 6" class="sat-motion">
       <animate attributeName="stroke-dashoffset" values="22;0" dur="5.5s" repeatCount="indefinite"/>
     </path>
-    <use href="#hull-navy" transform="translate(575,352) rotate(-10) scale(0.92)"/>
-    <rect x="392" y="424" width="102" height="30" fill="#102028" rx="2"/>
-    <text x="406" y="445" fill="#f7f4ee" font-size="16">Patrols</text>
-    <use href="#hull-merchant" transform="translate(690,455) rotate(12) scale(0.82)"/>
-    <circle cx="690" cy="455" r="22" fill="none" stroke="#f7f4ee" stroke-width="1.2"/>
-    <rect x="720" y="424" width="128" height="30" fill="#102028" rx="2"/>
-    <text x="732" y="445" fill="#f7f4ee" font-size="16">Inspection</text>
-    <rect x="968" y="188" width="156" height="32" fill="#f6f1e6" rx="2"/>
-    <text x="980" y="210" fill="#241c14" font-size="16">Talks frozen</text>
+    <use href="#hull-navy" transform="translate(640,372) rotate(-8)"/>
+    <rect x="360" y="468" width="102" height="30" fill="#102028" rx="2"/>
+    <text x="411" y="489" text-anchor="middle" fill="#f7f4ee" font-size="16">Patrols</text>
+    <use href="#hull-merchant" transform="translate(760,470) rotate(8) scale(0.9)"/>
+    <circle cx="760" cy="470" r="24" fill="none" stroke="#f7f4ee" stroke-width="1.2"/>
+    <rect x="800" y="430" width="128" height="30" fill="#102028" rx="2"/>
+    <text x="864" y="451" text-anchor="middle" fill="#f7f4ee" font-size="16">Inspection</text>
+    <rect x="990" y="168" width="156" height="32" fill="#f6f1e6" rx="2"/>
+    <text x="1068" y="190" text-anchor="middle" fill="#241c14" font-size="16">Talks frozen</text>
   </g>
+
   <g class="sat-layer b-lei" font-family="Source Sans 3, Liberation Sans, sans-serif" font-weight="700">
-    <path d="M860,118 C830,128 800,138 770,150" fill="none" stroke="#f7f4ee" stroke-width="1.2" stroke-dasharray="5 6" class="sat-motion">
+    <path d="M900,118 C860,126 830,136 800,148" fill="none" stroke="#f7f4ee" stroke-width="1.2" stroke-dasharray="5 6" class="sat-motion">
       <animate attributeName="stroke-dashoffset" values="22;0" dur="6s" repeatCount="indefinite"/>
     </path>
-    <path d="M780,530 C730,520 680,508 640,498" fill="none" stroke="#f7f4ee" stroke-width="1.2" stroke-dasharray="5 6" class="sat-motion">
+    <path d="M760,520 C710,508 660,494 620,482" fill="none" stroke="#f7f4ee" stroke-width="1.2" stroke-dasharray="5 6" class="sat-motion">
       <animate attributeName="stroke-dashoffset" values="22;0" dur="6.5s" repeatCount="indefinite"/>
     </path>
-    <use href="#hull-navy" transform="translate(770,150) rotate(168) scale(0.95)"/>
-    <use href="#hull-navy" transform="translate(640,498) rotate(200) scale(0.95)"/>
-    <rect x="990" y="248" width="176" height="32" fill="#f6f1e6" rx="2"/>
-    <text x="1002" y="270" fill="#241c14" font-size="16">Lei naval forces</text>
+    <use href="#hull-navy" transform="translate(790,150) rotate(168)"/>
+    <use href="#hull-navy" transform="translate(610,478) rotate(200)"/>
+    <rect x="968" y="248" width="186" height="32" fill="#f6f1e6" rx="2"/>
+    <text x="1061" y="270" text-anchor="middle" fill="#241c14" font-size="16">Lei naval forces</text>
   </g>
 </svg>

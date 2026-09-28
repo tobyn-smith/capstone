@@ -34,6 +34,7 @@ const SCENES = [
     ],
     oracle: {
       role: "Advice",
+      prompt: "What happened to the tanker?",
       lines: ["I cannot tell a mine from a breakdown, or from something done on purpose."],
     },
   },
@@ -49,6 +50,7 @@ const SCENES = [
     ],
     oracle: {
       role: "On the watch",
+      prompt: "Stay on the watch. Act inside what was set, without asking again.",
       lines: ["I will stay on the watch. I will act inside what was set, without asking again."],
     },
   },
@@ -63,6 +65,7 @@ const SCENES = [
     ],
     oracle: {
       role: "Second ship",
+      prompt: "Is Lei preparing to target commercial shipping?",
       confidence: 62,
       lines: ["My confidence that Lei is preparing to target commercial shipping is 62%."],
     },
@@ -190,26 +193,25 @@ function parties() {
 }
 
 function oracle(lines, options = {}) {
-  const role = options.role || "For the duty officer";
-  const readout = options.confidence == null ? null : h("div", { class: "readout" }, [
-    h("p", { class: "readout-label" }, "Confidence"),
-    h("p", { class: "figure" }, [
+  const readout = options.confidence == null ? null : h("p", { class: "readout" }, [
+    h("span", { class: "readout-label" }, "Confidence"),
+    h("span", { class: "figure" }, [
       String(options.confidence),
       h("span", { class: "unit" }, "%"),
-    ]),
-    h("div", { class: "meter" }, [
-      h("span", { style: "--fill:" + options.confidence + "%" }),
     ]),
   ]);
   return h("figure", { class: "shot" }, [
     h("figcaption", {}, "From the screen that night"),
     h("aside", { class: "oracle", "aria-label": "ORACLE" }, [
       h("div", { class: "oracle-chrome" }, [
-        h("span", { class: "dots", "aria-hidden": "true" }, [h("i"), h("i"), h("i")]),
+        h("span", { class: "mark", "aria-hidden": "true" }),
         h("p", { class: "oracle-name" }, "ORACLE"),
-        h("p", { class: "oracle-role" }, role),
       ]),
       h("div", { class: "oracle-body" }, [
+        options.prompt ? h("div", { class: "human" }, [
+          h("p", { class: "who" }, "Officials"),
+          h("p", {}, options.prompt),
+        ]) : null,
         h("div", { class: "turn" }, [
           h("span", { class: "mark", "aria-hidden": "true" }),
           h("div", { class: "turn-copy" }, [
@@ -384,7 +386,11 @@ function night() {
     ]),
   ];
   const side = scene.oracle
-    ? oracle(scene.oracle.lines, { role: scene.oracle.role, confidence: scene.oracle.confidence })
+    ? oracle(scene.oracle.lines, {
+      role: scene.oracle.role,
+      prompt: scene.oracle.prompt,
+      confidence: scene.oracle.confidence,
+    })
     : null;
   return h("section", { class: "film" }, [
     plotBoard(scene.beat),
