@@ -281,6 +281,24 @@ def load_responses() -> list[dict]:
     return loaded
 
 
+def write_jsonl(path: Path, rows: list[dict]) -> None:
+    text = "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows)
+    path.write_text(text, encoding="utf-8")
+
+
+def drop_session(session_id: str) -> None:
+    if database_url():
+        with db_connect() as conn:
+            conn.execute("DELETE FROM responses WHERE session_id = %s", (session_id,))
+            conn.execute("DELETE FROM assignments WHERE session_id = %s", (session_id,))
+            conn.commit()
+        return
+    if RESPONSES.exists():
+        write_jsonl(RESPONSES, [row for row in read_jsonl(RESPONSES) if row.get("session_id") != session_id])
+    if ASSIGNMENTS.exists():
+        write_jsonl(ASSIGNMENTS, [row for row in read_jsonl(ASSIGNMENTS) if row.get("session_id") != session_id])
+
+
 def assignment_counts() -> tuple[int, int]:
     advice = agent = 0
     for row in load_assignments():
@@ -416,6 +434,9 @@ class Handler(SimpleHTTPRequestHandler):
         if parsed.path == "/api/responses":
             self.handle_save()
             return
+        if parsed.path == "/api/responses/remove":
+            self.handle_remove()
+            return
         self.send_error(404)
 
     def read_json(self) -> dict:
@@ -476,6 +497,23 @@ class Handler(SimpleHTTPRequestHandler):
             else:
                 with RESPONSES.open("a", encoding="utf-8") as handle:
                     handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+        self.send_json({"ok": True})
+
+    def handle_remove(self):
+        if not self.authorised_export():
+            self.send_error(401, "Wrong passphrase")
+            return
+        try:
+            payload = self.read_json()
+        except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
+            self.send_error(400, "Bad remove")
+            return
+        session_id = clip(payload.get("session_id"), 80)
+        if not session_id:
+            self.send_error(400, "Bad remove")
+            return
+        with LOCK:
+            drop_session(session_id)
         self.send_json({"ok": True})
 
     def handle_export(self):

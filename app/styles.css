@@ -1158,6 +1158,23 @@ body.register { background: #d6d2c4; }
 
 .register-sheet button.secondary:focus-visible { outline-color: #000; }
 
+.register-sheet button.remove {
+  margin: 0;
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: #ba0c2f;
+  font-family: "Merriweather Sans", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.register-sheet button.remove:focus-visible { outline-color: #000; }
+
 .register-table {
   font-family: Merriweather, Georgia, serif;
   font-size: 0.98rem;

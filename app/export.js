@@ -18,6 +18,7 @@ function h(tag, attrs = {}, children = []) {
   for (const [name, value] of Object.entries(attrs)) {
     if (value == null || value === false) continue;
     if (name === "class") node.className = value;
+    else if (typeof value === "function") node.addEventListener(name.replace(/^on/, "").toLowerCase(), value);
     else node.setAttribute(name, value === true ? "" : String(value));
   }
   for (const child of [].concat(children)) {
@@ -27,7 +28,7 @@ function h(tag, attrs = {}, children = []) {
   return node;
 }
 
-const HEADS = ["Code", "Version", "Morning", "Harm", "Who they named", "Clarity", "Sureness"];
+const HEADS = ["Code", "Version", "Morning", "Harm", "Who they named", "Clarity", "Sureness", ""];
 
 function word(value) {
   const text = String(value || "");
@@ -48,7 +49,7 @@ function render(rows) {
     out.append(
       h("table", { class: "register-table" }, [
         head(),
-        h("tbody", {}, h("tr", {}, h("td", { class: "blank", colspan: "7" }, "No finding has been filed yet."))),
+        h("tbody", {}, h("tr", {}, h("td", { class: "blank", colspan: "8" }, "No finding has been filed yet."))),
       ])
     );
     return;
@@ -64,6 +65,11 @@ function render(rows) {
       h("td", {}, ACTORS[row.single_actor] || row.single_actor || ""),
       h("td", { class: "score" }, row.clarity ?? ""),
       h("td", { class: "score" }, row.sureness ?? ""),
+      h("td", {}, h("button", {
+        class: "remove",
+        type: "button",
+        onClick: () => removeRow(row.session_id),
+      }, "Remove")),
     ]));
   }
   table.append(body);
@@ -86,6 +92,28 @@ function render(rows) {
     out.append(block);
   }
   document.querySelector("#csv").addEventListener("click", download);
+}
+
+async function removeRow(sessionId) {
+  if (!sessionId) return;
+  const response = await fetch("/api/responses/remove", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Passphrase": key },
+    body: JSON.stringify({ session_id: sessionId }),
+  });
+  if (!response.ok) {
+    show("I could not remove that row.");
+    return;
+  }
+  const again = await fetch("/api/responses", {
+    headers: { "X-Passphrase": key, Accept: "application/json" },
+  });
+  if (!again.ok) {
+    show("I could not load the responses.");
+    return;
+  }
+  show("");
+  render(await again.json());
 }
 
 async function download() {

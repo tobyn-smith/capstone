@@ -255,51 +255,64 @@ function consent() {
       h("a", { href: "mailto:tobynsmith@uga.edu" }, "tobynsmith@uga.edu"),
       ".",
     ]),
-    h("button", { class: "primary", type: "button", onClick: () => goto("landing") }, "Start"),
+    h("button", { class: "primary", type: "button", onClick: begin }, "Start"),
   ]);
+}
+
+function begin() {
+  const saved = loadSaved();
+  const resume = saved && saved.sessionId && saved.step && saved.step !== "landing" && saved.step !== "debrief" && saved.step !== "consent";
+  if (resume) {
+    state = blank();
+    state.step = "landing";
+    render();
+    window.scrollTo(0, 0);
+    return;
+  }
+  goto("landing");
 }
 
 function landing() {
   const saved = loadSaved();
   const resume = saved && saved.sessionId && saved.step && saved.step !== "landing" && saved.step !== "debrief";
+  const fresh = h("form", { class: "open", onSubmit: onBegin }, [
+    h("div", { class: "field" }, [
+      h("label", { htmlFor: "code" }, "Participant code, if you were given one"),
+      h("input", { id: "code", name: "code", type: "text", autocomplete: "off", maxlength: "40" }),
+    ]),
+    h("p", { class: "muted" }, "Leave the code blank if you were not given one. Do not use your real name."),
+    state.formError ? h("p", { class: "error" }, state.formError) : null,
+    h("button", { class: "primary", type: "submit" }, "Open the file"),
+  ]);
+  const back = h("div", {}, [
+    h("p", {}, "This browser already has a file open."),
+    h("button", {
+      class: "primary",
+      type: "button",
+      onClick: () => {
+        state = saved;
+        render();
+        window.scrollTo(0, 0);
+      },
+    }, "Return to that file"),
+    h("button", {
+      class: "secondary",
+      type: "button",
+      onClick: () => {
+        sessionStorage.removeItem(STORAGE);
+        state = blank();
+        state.step = "landing";
+        render();
+      },
+    }, "Open a new file"),
+  ]);
   return h("section", { class: "cover" }, [
     h("h1", { class: "question" }, "Who was responsible for what Araknes did after a tanker was damaged on the route with Lei?"),
     prose(
       "You sit the night as it happened. Afterwards you write what you think.",
       "Araknes and Lei aren't real."
     ),
-        resume
-          ? h("div", {}, [
-              h("p", {}, "This browser already has a file open."),
-              h("button", {
-                class: "primary",
-                type: "button",
-                onClick: () => {
-                  state = saved;
-                  render();
-                  window.scrollTo(0, 0);
-                },
-              }, "Return to that file"),
-              h("button", {
-                class: "secondary",
-                type: "button",
-                onClick: () => {
-                  sessionStorage.removeItem(STORAGE);
-                  state = blank();
-                  render();
-                },
-              }, "Open a new file"),
-            ])
-          : null,
-        h("form", { class: "open", onSubmit: onBegin }, [
-          h("div", { class: "field" }, [
-            h("label", { htmlFor: "code" }, "Participant code, if you were given one"),
-            h("input", { id: "code", name: "code", type: "text", autocomplete: "off", maxlength: "40" }),
-          ]),
-          h("p", { class: "muted" }, "Leave the code blank if you were not given one. Do not use your real name."),
-          state.formError ? h("p", { class: "error" }, state.formError) : null,
-          h("button", { class: "primary", type: "submit" }, "Open the file"),
-        ]),
+    resume ? back : fresh,
   ]);
 }
 
@@ -323,7 +336,7 @@ async function onBegin(event) {
     state.forced = Boolean(data.forced_condition);
     state.startedAt = data.started_at;
     state.participantCode = code || data.session_id;
-    goto("opening");
+    goto("briefing");
   } catch {
     state.formError = "The file did not open. Stay on this page and try again.";
     render();
