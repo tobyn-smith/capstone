@@ -64,6 +64,14 @@ class ResolveTests(unittest.TestCase):
         self.assertNotIn("do-not-print-this", text)
         self.assertNotIn("127.0.0.1", text)
 
+    def test_the_night_is_a_valid_finding(self):
+        record = server.clean_response(
+            {"condition": "sequence", "inquiry": {"account": "Officials set the goal and ORACLE acted."}},
+            "t",
+        )
+        self.assertEqual(record["condition"], "sequence")
+        self.assertEqual(record["inquiry_account"], "Officials set the goal and ORACLE acted.")
+
     def test_drop_session_removes_the_local_row(self):
         import tempfile
         from pathlib import Path
