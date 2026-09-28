@@ -231,29 +231,12 @@ function choiceButton(text, onClick, index) {
 }
 
 function plotBoard() {
-  const last = state.condition === "agent" ? "You set the limits" : "You decide";
   return h("figure", { class: "plot" }, [
-    h("div", { class: "plot-route" }, [
-      h("div", { class: "plot-side" }, [flag("araknes"), h("span", {}, "Araknes")]),
-      h("div", { class: "plot-lane" }, [
-        h("img", { class: "plot-ship", src: "tanker.svg", alt: "" }),
-        h("span", { class: "plot-hit" }, "Tanker damaged"),
-      ]),
-      h("div", { class: "plot-side" }, [flag("lei"), h("span", {}, "Lei")]),
-    ]),
-    h("figcaption", {}, "Cause not confirmed"),
-    h("ul", { class: "plot-causes" }, ["Old mine", "Breakdown", "On purpose"].map((label) => h("li", {}, label))),
-    h("ol", { class: "plot-next" }, [
-      h("li", {}, [
-        h("img", { class: "plot-mini", src: "tanker.svg", alt: "" }),
-        h("span", {}, "Second ship loses contact"),
-      ]),
-      h("li", {}, [
-        h("span", { class: "plot-pct" }, "62%"),
-        h("span", {}, "ORACLE: Lei may target shipping"),
-      ]),
-      h("li", {}, h("span", {}, last)),
-    ]),
+    h("img", {
+      class: "sat",
+      src: "route-sat.svg",
+      alt: "A satellite still of the lane. Araknes is on the left, Lei on the right. A tanker is marked damaged. A second ship has no contact. The cause is not confirmed: an old mine, a breakdown, or on purpose. ORACLE reads 62 percent that Lei may target shipping.",
+    }),
   ]);
 }
 
