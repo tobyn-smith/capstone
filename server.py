@@ -299,26 +299,9 @@ def drop_session(session_id: str) -> None:
         write_jsonl(ASSIGNMENTS, [row for row in read_jsonl(ASSIGNMENTS) if row.get("session_id") != session_id])
 
 
-def assignment_counts() -> tuple[int, int]:
-    advice = agent = 0
-    for row in load_assignments():
-        if row.get("forced_condition"):
-            continue
-        if row.get("condition") == "advice":
-            advice += 1
-        elif row.get("condition") == "agent":
-            agent += 1
-    return advice, agent
-
-
-def next_condition() -> str:
-    advice, agent = assignment_counts()
-    return "advice" if advice <= agent else "agent"
-
-
 def clean_response(payload: dict, received_at: str) -> dict:
     condition = payload.get("condition")
-    if condition not in ("advice", "agent"):
+    if condition not in ("advice", "agent", "sequence"):
         raise ValueError("condition")
     inquiry = payload.get("inquiry") if isinstance(payload.get("inquiry"), dict) else {}
     return {
@@ -467,13 +450,10 @@ class Handler(SimpleHTTPRequestHandler):
         except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
             self.send_error(400, "Bad start")
             return
-        forced = payload.get("condition")
-        is_forced = forced in ("advice", "agent")
-        condition = forced if is_forced else next_condition()
         record = {
             "session_id": secrets.token_hex(8),
-            "condition": condition,
-            "forced_condition": is_forced,
+            "condition": "sequence",
+            "forced_condition": False,
             "started_at": now(),
         }
         with LOCK:

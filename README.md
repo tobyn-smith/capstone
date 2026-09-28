@@ -158,23 +158,18 @@ On the class host, open https://ts-6010.herokuapp.com/admin and type the `PASSPH
 
 `/export` opens this same page. Do not send anyone the admin page.
 
-## Trying both versions yourself
+## What they do
 
-The game gives each player one version. To force one while you are checking it:
+Everyone watches the same night. It plays through. They do not choose the measures.
 
-- http://127.0.0.1:8000/?condition=advice
-- http://127.0.0.1:8000/?condition=agent
+The tanker is damaged. Araknes blames Lei. Lei says an old mine, or a breakdown. ORACLE is used for advice, then upgraded so it can act without a person reviewing each step. A second ship loses contact. ORACLE reads 62% that Lei may target shipping, and it issues the warning, the patrols, the freeze, and the inspections. Lei moves naval forces towards the route.
 
-Advice: ORACLE recommends, and you decide. Agent: you set the goal and the limits, and ORACLE can act.
-
-Do not send those two links to participants. A normal link, with nothing after the `8000`, assigns a version for you.
+Then they sit the inquiry. That is the only page where they write.
 
 ## What a row means
 
-- `condition` is `advice` or `agent`.
-- `confidence_bar` is the bar they set in the agent version. ORACLE's read is always 62%.
-- `final_actions` is what was still standing after they had a chance to stop a patrol or an inspection. A warning and a diplomatic freeze cannot be unsent.
-- `outcome` is `escalated`, `political`, or `contained`.
-- `harm` is yes when Lei moves naval forces towards the route.
+- `condition` is `sequence`. Everyone saw the same night. Older rows may say `advice` or `agent`.
+- `final_actions` is what ORACLE did in the night: the warning, the patrols, the freeze, and the inspections.
+- `outcome` is `escalated`. `harm` is yes, because Lei moves naval forces towards the route.
 - `clarity` and `sureness` are the 1 to 5 scales in the inquiry.
-- `single_actor` is `me`, `government`, `supervisor`, `developer`, `provider`, `oracle`, or `none` if they could not pick one. The table writes those out in words. The download keeps the short codes.
+- `single_actor` is `me` (the duty officer), `government`, `supervisor`, `developer`, `provider`, `oracle`, or `none` if they could not pick one. The table writes those out in words. The download keeps the short codes.
