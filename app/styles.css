@@ -1110,8 +1110,6 @@ body.register { background: #d6d2c4; }
 
 .register-sheet .question { max-width: none; }
 
-.register-sheet .reach { max-width: 38rem; }
-
 .register-gate label {
   display: block;
   margin: 1.15rem 0 0.35rem;
@@ -1141,18 +1139,8 @@ body.register { background: #d6d2c4; }
 .register-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin: 1.6rem 0 0.2rem;
-}
-
-.register-count {
-  margin: 0;
-  color: #000;
-  font-family: Oswald, sans-serif;
-  font-size: 1.75rem;
-  font-weight: 500;
-  line-height: 1.15;
+  justify-content: flex-end;
+  margin: 1.35rem 0 0.2rem;
 }
 
 .register-sheet button.secondary {
@@ -1213,17 +1201,7 @@ body.register { background: #d6d2c4; }
   font-weight: 700;
 }
 
-.register-sheet .accounts { margin-top: 1.8rem; }
-
-.register-sheet .accounts h2 {
-  margin: 0 0 0.15rem;
-  padding-bottom: 0.4rem;
-  border-bottom: 2px solid #000;
-  color: #000;
-  font-family: Oswald, sans-serif;
-  font-size: 1.45rem;
-  font-weight: 500;
-}
+.register-sheet .accounts { margin-top: 1.4rem; }
 
 .register-sheet .account {
   margin: 0;
