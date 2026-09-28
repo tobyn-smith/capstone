@@ -658,25 +658,25 @@ function move2() {
 }
 
 function morningText() {
-  const found = "By morning, the second ship has been found adrift. The early evidence points to a mechanical failure, not a deliberate attack. The 62% read does not match that.";
+  const open = "The cause of the tanker is still not proved. Neither side has shown what happened.";
   const set = new Set(state.finalActions);
   if (state.outcome === "escalated") {
     const bits = [];
     if (set.has("inspections")) bits.push(SHORT.inspections);
     if (set.has("patrols")) bits.push(SHORT.patrols);
     if (set.has("freeze")) bits.push(SHORT.freeze);
-    let text = "Lei treats " + phraseList(bits) + " as a block on its waters, and moves naval forces towards the route.";
-    if (set.has("warning")) text += " Lei protests the maritime warning.";
+    let text = "Lei sees " + phraseList(bits) + " as an attempt to restrict its access to international waters, and moves naval forces towards the route.";
+    if (set.has("warning")) text += " The allied maritime warning has also gone out.";
     if (state.injury) text += " A crew member is injured in an inspection.";
-    return text + " " + found;
+    return text + " " + open;
   }
   if (state.outcome === "political") {
     const parts = [];
     if (set.has("warning")) parts.push("Lei protests the maritime warning.");
     if (state.firstDecision === "blame") parts.push("Lei protests the public statement that blamed Lei.");
-    return (parts.join(" ") || "Lei protests.") + " It does not move forces. " + found;
+    return (parts.join(" ") || "Lei protests.") + " It does not move forces. " + open;
   }
-  return found + " No patrol went out, and no inspection took place.";
+  return "No warning, patrol, freeze, or inspection went out. Lei does not move forces. " + open;
 }
 
 function morning() {
@@ -744,7 +744,7 @@ function inquiry() {
     where(),
     spread(
       [
-        prose("The night is over. This is the inquiry."),
+        prose("The night is over. This is the inquiry. Who was accountable?"),
         h("form", {
       onSubmit: onInquiry,
       onInput: (event) => {
