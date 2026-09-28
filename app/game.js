@@ -1,5 +1,4 @@
 const STORAGE = "oracle-wargame";
-const FILM_MS = 8000;
 const app = document.querySelector("#app");
 
 const ACTORS = [
@@ -16,7 +15,7 @@ const SCENES = [
     title: "The route",
     when: "06:10",
     rail: "Tanker",
-    night: false,
+    beat: "route",
     lines: [
       "A commercial tanker is damaged on an important shipping route near Araknes and Lei.",
       "Araknes says Lei meant to disrupt trade. Lei says an old mine, or a breakdown.",
@@ -27,7 +26,7 @@ const SCENES = [
     title: "Advice",
     when: "That morning",
     rail: "Advice",
-    night: false,
+    beat: "advice",
     chain: ["Officials ask", "ORACLE advises", "Officials decide"],
     lines: [
       "Araknes used ORACLE for advice.",
@@ -42,7 +41,7 @@ const SCENES = [
     title: "The upgrade",
     when: "18:00",
     rail: "Upgrade",
-    night: false,
+    beat: "upgrade",
     chain: ["Officials set a goal", "ORACLE deliberates", "ORACLE acts"],
     lines: [
       "As the crisis went on, officials upgraded ORACLE into a network of agents.",
@@ -57,7 +56,7 @@ const SCENES = [
     title: "The second ship",
     when: "01:50",
     rail: "Second ship",
-    night: true,
+    beat: "second",
     lines: [
       "Another vessel loses contact near the route.",
       "ORACLE concludes that Lei is preparing to target commercial shipping.",
@@ -72,7 +71,7 @@ const SCENES = [
     title: "What ORACLE did",
     when: "01:57",
     rail: "ORACLE acts",
-    night: true,
+    beat: "acts",
     lines: [
       "ORACLE issues an allied maritime warning.",
       "It sends naval patrols into the area.",
@@ -84,7 +83,7 @@ const SCENES = [
     title: "Lei moves",
     when: "Morning",
     rail: "Lei",
-    night: true,
+    beat: "lei",
     lines: [
       "Lei sees this as an attempt to restrict its access to international waters, and moves naval forces towards the route.",
       "The cause of the tanker is still not proved. Neither side has shown what happened.",
@@ -164,10 +163,7 @@ function save() {
   sessionStorage.setItem(STORAGE, JSON.stringify(state));
 }
 
-let openTimer = 0;
-
 function goto(step) {
-  window.clearTimeout(openTimer);
   state.step = step;
   state.formError = "";
   save();
@@ -224,7 +220,6 @@ function oracle(lines, options = {}) {
         ]),
       ]),
     ]),
-    h("p", { class: "shot-note" }, "You cannot reply to it."),
   ]);
 }
 
@@ -235,13 +230,36 @@ function spread(main, side) {
   ]);
 }
 
-function plotBoard(night) {
-  const alt = night
-    ? "Satellite still later that night. Araknes says Lei meant to disrupt trade. Lei says an old mine, or a breakdown. The tanker is marked damaged. A second ship, closer to Lei, has no contact. ORACLE reads 62 percent that Lei may target shipping."
-    : "Satellite still of the lane. Araknes is on the left, Lei on the right. A tanker is marked damaged. Araknes says Lei meant to disrupt trade. Lei says an old mine, or a breakdown.";
-  return h("figure", { class: "plot" }, [
-    h("img", { class: "sat", src: night ? "route-sat-night.svg" : "route-sat.svg", alt }),
-  ]);
+const BEAT_ALT = {
+  route: "Satellite still of the lane. Araknes is on the left, Lei on the right. A tanker is marked damaged. Araknes says Lei meant to disrupt trade. Lei says an old mine, or a breakdown.",
+  advice: "The same lane. The tanker is still damaged. A mark shows Araknes asking ORACLE for advice.",
+  upgrade: "The same lane. Watch rings sit along the route. ORACLE is on the watch.",
+  second: "Later that night. A second ship, closer to Lei, has no contact. ORACLE reads 62 percent that Lei may target shipping.",
+  acts: "The measures. A warning goes out, patrols enter the lane, talks with Lei are frozen, and a Lei-linked ship is marked for inspection.",
+  lei: "Morning. Lei naval forces are moving towards the route. The tanker is still marked damaged.",
+};
+
+let satMarkup = "";
+
+function plotBoard(beat) {
+  const alt = BEAT_ALT[beat] || BEAT_ALT.route;
+  const figure = h("figure", { class: "plot" });
+  if (!satMarkup) {
+    figure.append(h("img", { class: "sat", src: "route-sat.svg", alt }));
+    return figure;
+  }
+  const holder = document.createElement("div");
+  holder.innerHTML = satMarkup.trim();
+  const svg = holder.querySelector("svg");
+  svg.setAttribute("class", "sat");
+  svg.dataset.beat = beat;
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", alt);
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches && svg.pauseAnimations) {
+    svg.pauseAnimations();
+  }
+  figure.append(svg);
+  return figure;
 }
 
 // Draft voice. The class-page sentences live in consent().
@@ -350,24 +368,10 @@ function shiftScene(delta) {
   window.scrollTo(0, 0);
 }
 
-function armFilm() {
-  window.clearTimeout(openTimer);
-  if (state.step !== "night") return;
-  if (state.scene >= SCENES.length - 1) return;
-  openTimer = window.setTimeout(() => {
-    if (state.step !== "night" || state.scene >= SCENES.length - 1) return;
-    state.scene += 1;
-    save();
-    render();
-    window.scrollTo(0, 0);
-  }, FILM_MS);
-}
-
 function night() {
   const scene = SCENES[state.scene] || SCENES[0];
   const last = state.scene >= SCENES.length - 1;
   const copy = [
-    h("div", { class: "film-bar", "aria-hidden": "true" }, last ? [] : [h("span", { class: "film-fill" })]),
     scene.chain ? chain(scene.chain) : null,
     prose(...scene.lines),
     h("div", { class: "film-controls" }, [
@@ -383,7 +387,7 @@ function night() {
     ? oracle(scene.oracle.lines, { role: scene.oracle.role, confidence: scene.oracle.confidence })
     : null;
   return h("section", { class: "film" }, [
-    plotBoard(Boolean(scene.night)),
+    plotBoard(scene.beat),
     side ? spread(copy, side) : h("div", {}, copy),
   ]);
 }
@@ -671,7 +675,6 @@ function paintChrome() {
 }
 
 function render() {
-  window.clearTimeout(openTimer);
   const before = document.querySelector("#before");
   const site = document.querySelector(".site");
   document.body.dataset.step = state.step;
@@ -694,7 +697,6 @@ function render() {
   const screen = screens[state.step] || landing;
   app.replaceChildren(screen());
   paintChrome();
-  armFilm();
 }
 
 function loadSaved() {
@@ -718,5 +720,10 @@ if (existing && existing.sessionId && existing.step && existing.step !== "consen
   state = existing;
   if (!state.inquiry) state.inquiry = blank().inquiry;
   if (state.step === "night" && !(state.scene >= 0 && state.scene < SCENES.length)) state.scene = 0;
+}
+try {
+  satMarkup = await (await fetch("route-sat.svg")).text();
+} catch {
+  satMarkup = "";
 }
 render();
