@@ -11,13 +11,7 @@ const ACTORS = {
 const gate = document.querySelector("#gate");
 const out = document.querySelector("#out");
 const message = document.querySelector("#message");
-const hostNote = document.querySelector("#host-note");
 let key = "";
-
-if (hostNote && location.hostname.endsWith(".herokuapp.com")) {
-  hostNote.textContent =
-    "This is the admin page on the class host. The passphrase is the Heroku config var named PASSPHRASE. Finished findings are kept in the database. If you were writing a finding, you do not need this page.";
-}
 
 function h(tag, attrs = {}, children = []) {
   const node = document.createElement(tag);
@@ -73,27 +67,21 @@ function render(rows) {
     ]));
   }
   table.append(body);
-  const count = rows.length === 1 ? "1 finding filed." : rows.length + " findings filed.";
   out.append(
     h("div", { class: "register-bar" }, [
-      h("p", { class: "register-count" }, count),
-      h("button", { class: "secondary", type: "button", id: "csv" }, "Download the full table"),
+      h("button", { class: "secondary", type: "button", id: "csv" }, "Download"),
     ]),
     table
   );
-  const notes = rows
-    .map((row, index) => ({ row, index }))
-    .filter(({ row }) => row.inquiry_account || row.other_notes);
+  const notes = rows.filter((row) => row.inquiry_account || row.other_notes);
   if (notes.length) {
-    const block = h("section", { class: "accounts" }, [h("h2", {}, "What they wrote")]);
-    for (const { row, index } of notes) {
-      block.append(
-        h("p", { class: "account" }, [
-          h("span", { class: "who" }, row.participant_code || "Row " + (index + 1)),
-          row.inquiry_account || "",
-          row.other_notes ? " " + row.other_notes : "",
-        ])
-      );
+    const block = h("section", { class: "accounts" });
+    for (const row of notes) {
+      const text = [row.inquiry_account, row.other_notes].filter(Boolean).join(" ");
+      const bits = [];
+      if (row.participant_code) bits.push(h("span", { class: "who" }, row.participant_code));
+      bits.push(text);
+      block.append(h("p", { class: "account" }, bits));
     }
     out.append(block);
   }
