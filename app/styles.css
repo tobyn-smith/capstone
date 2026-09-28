@@ -503,6 +503,176 @@ body {
 
 .sitrep { margin: 0 0 1rem; }
 
+.plot {
+  margin: 0 0 1.1rem;
+  padding: 1.1rem 1.15rem 0.9rem;
+  border: 1px solid var(--navy);
+  background: var(--paper-2);
+}
+
+.plot-route {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr) 7.5rem;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.plot-side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.plot-side .flag {
+  width: 4.6rem;
+  height: 3.05rem;
+}
+
+.plot-lane {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.15rem;
+  min-height: 6.4rem;
+  padding-top: 0.2rem;
+}
+
+.plot-lane::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 1.55rem;
+  height: 2px;
+  background: var(--navy);
+}
+
+.plot-ship {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 10.5rem;
+  height: 3.7rem;
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+.plot-hit {
+  position: relative;
+  z-index: 1;
+  padding: 0.12rem 0.4rem;
+  background: var(--paper-2);
+  color: var(--navy);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.plot figcaption {
+  margin: 0.85rem 0 0.45rem;
+  color: var(--navy);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.plot-causes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.45rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.plot-causes li {
+  margin: 0;
+  padding: 0.55rem 0.4rem;
+  border: 1px dashed var(--navy);
+  text-align: center;
+  font-size: 1rem;
+}
+
+.plot-causes li::before {
+  content: "?";
+  display: block;
+  margin-bottom: 0.15rem;
+  color: var(--navy);
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.plot-next {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.45rem;
+  list-style: none;
+  margin: 0.7rem 0 0;
+  padding: 0.7rem 0 0;
+  border-top: 1px solid var(--hair);
+  counter-reset: plot;
+}
+
+.plot-next li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  margin: 0;
+  padding-left: 1.7rem;
+  position: relative;
+  font-size: 0.98rem;
+  line-height: 1.3;
+}
+
+.plot-mini {
+  display: block;
+  width: 3.4rem;
+  height: 1.2rem;
+  object-fit: contain;
+  object-position: left bottom;
+  opacity: 0.55;
+}
+
+.plot-pct {
+  color: var(--navy);
+  font-family: "Source Serif 4", Georgia, serif;
+  font-size: 1.7rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.plot-next li::before {
+  counter-increment: plot;
+  content: counter(plot);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1.2rem;
+  height: 1.2rem;
+  border: 1px solid var(--navy);
+  color: var(--navy);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.15rem;
+  text-align: center;
+}
+
+.plot-line {
+  margin: 0 0 0.2rem;
+  max-width: 36rem;
+  font-size: 1.15rem;
+}
+
 .dateline {
   margin: 0 0 0.7rem;
   color: var(--navy);
