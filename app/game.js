@@ -325,7 +325,7 @@ async function onBegin(event) {
     state.participantCode = code || data.session_id;
     goto("opening");
   } catch {
-    state.formError = "The file did not open. Use the address from the server window, then try again.";
+    state.formError = "The file did not open. Stay on this page and try again.";
     render();
   }
 }
@@ -862,19 +862,36 @@ async function onInquiry(event) {
   const button = event.target.querySelector("button");
   button.disabled = true;
   const payload = payloadFromState();
-  try {
-    const response = await fetch("/api/responses", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    state.savedOk = response.ok;
-  } catch {
-    state.savedOk = false;
-  }
+  state.savedOk = await postFinding(payload);
   state.submitted = true;
-  if (!state.savedOk) localStorage.setItem("oracle-unsent-" + state.sessionId, JSON.stringify(payload));
+  if (state.savedOk) localStorage.removeItem("oracle-unsent-" + state.sessionId);
+  else localStorage.setItem("oracle-unsent-" + state.sessionId, JSON.stringify(payload));
   goto("debrief");
+}
+
+async function postFinding(payload) {
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const response = await fetch("/api/responses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (response.ok) return true;
+    } catch {
+      /* The class link can blink while the host answers. One more try. */
+    }
+  }
+  return false;
+}
+
+async function sendAgain() {
+  const payload = payloadFromState();
+  state.savedOk = await postFinding(payload);
+  if (state.savedOk) localStorage.removeItem("oracle-unsent-" + state.sessionId);
+  else localStorage.setItem("oracle-unsent-" + state.sessionId, JSON.stringify(payload));
+  save();
+  render();
 }
 
 function payloadFromState() {
@@ -914,7 +931,7 @@ function debrief() {
     : "you set the goal and the limits, and ORACLE could act without asking each time.";
   const saved = state.savedOk
     ? "The finding is on the file."
-    : "The finding did not reach the register. Download a copy below and send it back, or it stays only on this browser.";
+    : "The finding did not reach the register. Send it again. If it still will not go, download a copy and email it to tobynsmith@uga.edu.";
   const actor = state.inquiry.single === "none"
     ? "You could not point to one actor."
     : "You named: " + (labelOf(ACTORS, state.inquiry.single) || "your answer") + ".";
@@ -928,6 +945,7 @@ function debrief() {
       actor + " You rated how clear the chain was: " + state.inquiry.clarity + " out of 5.",
       "You can close the file."
     ),
+    state.savedOk ? null : h("button", { class: "primary", type: "button", onClick: sendAgain }, "Send the finding again"),
     h("button", { class: "secondary", type: "button", onClick: downloadCopy }, "Download a copy of my finding"),
     h("p", { class: "colophon" }, "Tobyn Smith · INTL 6010 · University of Georgia"),
   ]);
