@@ -80,7 +80,7 @@ The course is about asking a policy question with social science, not about stat
 
 That means the fundamentals on the syllabus have to show up in the design, not just in a paragraph I add later.
 
-The file runs in that order, and it does not announce the hypothesis while the night is playing. The night is the observation: advice first, then a system that can act, then the measures, then Lei moves. The finding is where I see whether one actor can still be named. What I expect, and the result that would weaken it, are not on the page until the finding is in. The last page says this file is one go. The page before the file only says it is for INTL 6010 at UGA, and that starting means I can save the answers. That page is not the commission. The banner, the flags, and the night open after they start.
+The file runs in that order, and it does not announce the hypothesis while the night is playing. The night is the observation: advice first, then a system that can act, then the measures, then Lei moves. The finding is where I see whether one actor can still be named. What I expect, and the result that would weaken it, are not on the page until the finding is in. The last page says this file is one go. The page before the file only says it is for INTL 6010 at UGA, and that starting means I can save the answers. That page is not the commission. The night opens after they start, as the story, with the two flags and no government heading. The Commission of Inquiry banner waits until the inquiry.
 
 Concept formation. Two concepts. Autonomy is how far the system can choose and carry out a step without a person approving it. Accountability clarity is whether, afterwards, you can point to one actor who had the authority to prevent, approve, supervise, or explain the action. If I cannot say what those mean, I cannot measure them.
 
@@ -102,7 +102,7 @@ That page follows the University of Georgia visual style: Arch Black, Bulldog Re
 
 The question on the cover, the night, ORACLE's lines, the finding, and the last page are in the same file. Search for the sentence and change it there.
 
-Araknes is sand over brick, `app/flag-araknes.svg`. The same flag sits in the banner and on the party line. Lei is still the green and slate flag, `app/flag-lei.svg`.
+Araknes is sand over brick, `app/flag-araknes.svg`. On the night that flag sits beside the name. Once the inquiry opens, the same flag is in the commission banner and on the party line. Lei is still the green and slate flag, `app/flag-lei.svg`.
 
 Do not put what I expect, or the result that would weaken it, on the class page or in the night. That still waits until the finding is filed.
 
