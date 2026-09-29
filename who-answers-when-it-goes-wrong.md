@@ -50,13 +50,13 @@ Another vessel loses contact. ORACLE puts its confidence that Lei is preparing t
 
 Lei sees that as an attempt to restrict its access to international waters and moves naval forces towards the route. The cause of the tanker is still not proved.
 
-Then the banner changes to the Commission of Inquiry. They are the inquiry. They are not the duty officer, and they are not there to defend the night.
+Then the banner changes to the Commission of Inquiry. They are the inquiry. They are not an official from the night, and they are not there to defend it.
 
 The hypothesis is not on the screen until the finding is filed. The night does not tell them what I think.
 
 ## What people are asked
 
-They write who was responsible for what Araknes did. That writing is the qualitative part. Then they name one actor, or they say they cannot pick one. The options are the duty officer, the Araknes government that deployed ORACLE, the human supervisor, the developer that built it, the provider that ran the infrastructure, ORACLE, or no single actor. They say whether a person could still have stopped it, and who that was. They rate how clear the chain felt, from one to five, and how sure they are of their own answer. Those closed items are the quantitative part. The course wants both, used where they answer the question, not one standing in for the other.
+They write who was responsible for what Araknes did. That writing is the qualitative part. Then they name one actor, or they say they cannot pick one. The options are an official on duty, the Araknes government, the person set to supervise ORACLE, the people who built it, the company that ran it, ORACLE, or no single actor. They say whether a person could still have stopped it, and who that was. They rate how clear the chain felt, from one to five, and how sure they are of their own answer. Those closed items are the quantitative part. The course wants both, used where they answer the question, not one standing in for the other.
 
 If they can still name one actor, the pre-authorisation may have kept the chain clear, and the hypothesis is weaker. If they cannot, that is the result I expected. Both have to be possible. If they are not, I have built a page that can only confirm me.
 

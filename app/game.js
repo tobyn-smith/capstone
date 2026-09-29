@@ -2,11 +2,11 @@ const STORAGE = "oracle-wargame";
 const app = document.querySelector("#app");
 
 const ACTORS = [
-  ["me", "The duty officer"],
+  ["me", "An official on duty"],
   ["government", "The Araknes government"],
-  ["supervisor", "The supervisor"],
-  ["developer", "The developer"],
-  ["provider", "The company that ran it"],
+  ["supervisor", "The person set to supervise ORACLE"],
+  ["developer", "The people who built ORACLE"],
+  ["provider", "The company that ran ORACLE"],
   ["oracle", "ORACLE"],
 ];
 
@@ -54,7 +54,7 @@ const SCENES = [
   },
   {
     title: "The second ship",
-    when: "01:50",
+    when: "Next day, 01:50",
     rail: "Second ship",
     beat: "second",
     lines: [
@@ -82,7 +82,7 @@ const SCENES = [
   },
   {
     title: "Lei moves",
-    when: "Morning",
+    when: "Later that morning",
     rail: "Lei",
     beat: "lei",
     lines: [
@@ -234,9 +234,9 @@ const BEAT_ALT = {
   route: "Satellite still of the lane. Araknes is on the left, Lei on the right. A tanker is marked damaged. Araknes says Lei meant to disrupt trade. Lei says an old mine, or a breakdown.",
   advice: "The same lane. The tanker is still damaged. A mark shows Araknes asking ORACLE for advice.",
   upgrade: "The same lane. Watch rings sit along the route. ORACLE is on the watch.",
-  second: "Later that night. A second ship, closer to Lei, has no contact. ORACLE reads 62 percent that Lei may target shipping.",
+  second: "Next day, 01:50. A second ship, closer to Lei, has no contact. ORACLE reads 62 percent that Lei may target shipping.",
   acts: "The measures. A warning goes out, patrols enter the lane, talks with Lei are frozen, and a Lei-linked ship is marked for inspection.",
-  lei: "Morning. Lei naval forces are moving towards the route. The tanker is still marked damaged.",
+  lei: "Later that morning. Lei naval forces are moving towards the route. The tanker is still marked damaged.",
 };
 
 let satMarkup = "";
@@ -248,9 +248,12 @@ function plotBoard(beat) {
     figure.append(h("img", { class: "sat", src: "route-sat.svg", alt }));
     return figure;
   }
-  const holder = document.createElement("div");
-  holder.innerHTML = satMarkup.trim();
-  const svg = holder.querySelector("svg");
+  const parsed = new DOMParser().parseFromString(satMarkup, "image/svg+xml");
+  const svg = parsed.querySelector("svg");
+  if (!svg || parsed.querySelector("parsererror")) {
+    figure.append(h("img", { class: "sat", src: "route-sat.svg", alt }));
+    return figure;
+  }
   svg.setAttribute("class", "sat");
   svg.dataset.beat = beat;
   svg.setAttribute("role", "img");
@@ -435,6 +438,7 @@ function inquiry() {
       onInput: (event) => {
         syncInquiry(event.currentTarget);
         save();
+        if (event.target && event.target.name === "last_human") render();
       },
     }, [
       h("div", { class: "field" }, [
@@ -473,15 +477,19 @@ function inquiry() {
           h("input", { type: "radio", name: "last_human", value: id, checked: q.lastHuman === id }),
           h("span", {}, text),
         ])),
-        h("label", { htmlFor: "who" }, "Who?"),
-        h("input", { id: "who", name: "last_human_who", type: "text", value: q.lastHumanWho }),
+        q.lastHuman === "yes" || q.lastHuman === "unsure"
+          ? h("div", { class: "field" }, [
+            h("label", { htmlFor: "who" }, "Who?"),
+            h("input", { id: "who", name: "last_human_who", type: "text", value: q.lastHumanWho }),
+          ])
+          : null,
       ]),
       h("fieldset", {}, [
         h("legend", {}, qhead(4, "How clear was it who was responsible?")),
         scale("clarity", q.clarity),
         h("p", { class: "ends" }, [
-          h("span", {}, "1 · not clear at all"),
-          h("span", {}, "5 · clear enough to name one actor"),
+          h("span", {}, "1 · not clear"),
+          h("span", {}, "5 · clear"),
         ]),
       ]),
       h("fieldset", {}, [
@@ -510,7 +518,7 @@ function syncInquiry(form) {
   q.account = data.get("account") || "";
   q.single = data.get("single") || "";
   q.lastHuman = data.get("last_human") || "";
-  q.lastHumanWho = data.get("last_human_who") || "";
+  q.lastHumanWho = q.lastHuman === "no" ? "" : (data.get("last_human_who") || "");
   q.clarity = data.get("clarity") ? Number(data.get("clarity")) : null;
   q.sureness = data.get("sureness") ? Number(data.get("sureness")) : null;
   q.shared = data.getAll("shared");
@@ -523,8 +531,8 @@ function inquiryProblems() {
   const q = state.inquiry;
   if (q.account.trim().length < 20) return "Write a sentence or two.";
   if (!q.single) return "Name one actor, or say you can't point to one.";
-  if (!q.lastHuman) return "Say whether there was a last human who could have stopped this.";
-  if (q.lastHuman !== "no" && q.lastHumanWho.trim().length < 2) return "If there was a last human, or you are not sure, say who you have in mind.";
+  if (!q.lastHuman) return "Say whether a person could still have stopped this.";
+  if (q.lastHuman !== "no" && q.lastHumanWho.trim().length < 2) return "Say who you have in mind.";
   if (!q.clarity) return "Mark how clear the chain of responsibility was.";
   if (!q.sureness) return "Mark how sure you are.";
   return "";
