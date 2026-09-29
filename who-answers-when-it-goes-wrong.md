@@ -102,7 +102,7 @@ That page follows the University of Georgia visual style: Arch Black, Bulldog Re
 
 The question on the cover, the night, ORACLE's lines, the finding, and the last page are in the same file. Search for the sentence and change it there.
 
-The arms are `app/arms-araknes.svg`. Sand over brick, a pale lane, a ship. That is Araknes. Lei is still the green and slate flag, `app/flag-lei.svg`. The two flags stay on the party line. The arms sit in the banner, for the commission, not as a third country.
+Araknes is sand over brick, `app/flag-araknes.svg`. The same flag sits in the banner and on the party line. Lei is still the green and slate flag, `app/flag-lei.svg`.
 
 Do not put what I expect, or the result that would weaken it, on the class page or in the night. That still waits until the finding is filed.
 
