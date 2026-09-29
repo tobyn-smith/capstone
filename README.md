@@ -122,7 +122,7 @@ The address `127.0.0.1` only works on your computer. For INTL 6010 there are two
 
 ### A link that stays up
 
-The class link is already on Heroku: https://ts-6010.herokuapp.com
+The class link is already on Heroku: https://ts-6010-db607dbe410e.herokuapp.com
 
 The app is named ts-6010. GitHub is connected to tobyn-smith/capstone, branch main. Postgres Essential-0 is attached, so the findings stay in the database when the dyno restarts. The dyno disk does not keep them. The admin passphrase is the config var named `PASSPHRASE`. The dyno is Basic, so the app stays awake. Basic is $7 a month and Essential-0 is $5, which is $12, inside the $13 monthly student credit. Leave the dyno on Basic.
 
@@ -130,9 +130,9 @@ Heroku still asks for a credit card before the credit applies. If the card is a 
 
 When this repository changes and you want the class host to match it, merge the change into main on GitHub. Then in the Heroku dashboard open ts-6010, go to Deploy, and choose Deploy Branch on main. Do not create a second app.
 
-The admin page is https://ts-6010.herokuapp.com/admin. `/export` opens the same page. Do not send `/admin` or `/export` to the class. Do not send this GitHub page. The note here says what the design is testing, and people should write the finding before they read it.
+The admin page is https://ts-6010-db607dbe410e.herokuapp.com/admin. `/export` opens the same page. Do not send `/admin` or `/export` to the class. Do not send this GitHub page. The note here says what the design is testing, and people should write the finding before they read it.
 
-Tell them it takes about fifteen minutes, and to go through the file once. It has to be a computer. A phone is turned away. The link to send is https://ts-6010.herokuapp.com
+Tell them it takes about fifteen minutes, and to go through the file once. It has to be a computer. A phone is turned away. The link to send is https://ts-6010-db607dbe410e.herokuapp.com
 
 ### One sitting, no card
 
@@ -154,7 +154,7 @@ http://127.0.0.1:8000/admin
 
 Type the passphrase the terminal printed. The same code is in `data/passphrase.txt` in this folder.
 
-On the class host, open https://ts-6010.herokuapp.com/admin and type the `PASSPHRASE` config var from the Heroku Settings page. The findings are in the Postgres database.
+On the class host, open https://ts-6010-db607dbe410e.herokuapp.com/admin and type the `PASSPHRASE` config var from the Heroku Settings page. The findings are in the Postgres database.
 
 `/export` opens this same page. Do not send anyone the admin page.
 

@@ -7,6 +7,7 @@ import csv
 import io
 import json
 import os
+import re
 import secrets
 import threading
 from datetime import datetime, timezone
@@ -22,11 +23,15 @@ DATA.mkdir(exist_ok=True)
 RESPONSES = DATA / "responses.jsonl"
 ASSIGNMENTS = DATA / "assignments.jsonl"
 PASSPHRASE_FILE = DATA / "passphrase.txt"
-CLASS_HOST = "ts-6010"
+CLASS_HOST = "ts-6010-db607dbe410e"
+ACTORS = {"me", "government", "supervisor", "developer", "provider", "oracle", "none"}
+HUMANS = {"yes", "no", "unsure"}
+SESSION_ID = re.compile(r"[0-9a-f]{16}")
 
 LOCK = threading.Lock()
 MAX_BODY = 200_000
 MAX_TEXT = 5_000
+MAX_SESSIONS = 2_000
 
 COLUMNS = [
     "participant_code",
@@ -82,8 +87,8 @@ def on_heroku() -> bool:
 
 
 def public_origin() -> str:
-    name = os.environ.get("HEROKU_APP_NAME", "").strip() or CLASS_HOST
-    return "https://%s.herokuapp.com" % name
+    # Apps created after June 2023 do not answer on the short herokuapp name.
+    return "https://%s.herokuapp.com" % CLASS_HOST
 
 
 def startup_lines(port: int) -> list[str]:
@@ -160,6 +165,26 @@ def clip(value, limit: int = MAX_TEXT) -> str:
         return ""
     text = value if isinstance(value, str) else str(value)
     return text.strip()[:limit]
+
+
+def as_score(value):
+    if value is None or value == "":
+        return None
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError("score")
+    if value < 1 or value > 5:
+        raise ValueError("score")
+    return value
+
+
+def as_bar(value):
+    if value is None or value == "":
+        return None
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise ValueError("bar")
+    if value < 0 or value > 100:
+        raise ValueError("bar")
+    return value
 
 
 def as_list(value) -> list[str]:
@@ -286,6 +311,14 @@ def write_jsonl(path: Path, rows: list[dict]) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def too_many_sessions() -> bool:
+    if database_url():
+        with db_connect() as conn:
+            count = conn.execute("SELECT COUNT(*) FROM assignments").fetchone()[0]
+        return count >= MAX_SESSIONS
+    return len(read_jsonl(ASSIGNMENTS)) >= MAX_SESSIONS
+
+
 def drop_session(session_id: str) -> None:
     if database_url():
         with db_connect() as conn:
@@ -304,12 +337,21 @@ def clean_response(payload: dict, received_at: str) -> dict:
     if condition not in ("advice", "agent", "sequence"):
         raise ValueError("condition")
     inquiry = payload.get("inquiry") if isinstance(payload.get("inquiry"), dict) else {}
+    single = clip(inquiry.get("single"), 80)
+    if single and single not in ACTORS:
+        raise ValueError("actor")
+    last_human = clip(inquiry.get("last_human"), 20)
+    if last_human and last_human not in HUMANS:
+        raise ValueError("human")
+    session_id = clip(payload.get("session_id"), 80)
+    if session_id and not SESSION_ID.fullmatch(session_id):
+        raise ValueError("session")
     return {
         "participant_code": clip(payload.get("participant_code"), 40),
         "condition": condition,
         "forced_condition": bool(payload.get("forced_condition")),
         "goal": clip(payload.get("goal"), 200),
-        "confidence_bar": payload.get("confidence_bar"),
+        "confidence_bar": as_bar(payload.get("confidence_bar")),
         "preauthorised": as_list(payload.get("preauthorised")),
         "first_decision": clip(payload.get("first_decision"), 40),
         "authorised": as_list(payload.get("authorised")),
@@ -319,17 +361,17 @@ def clean_response(payload: dict, received_at: str) -> dict:
         "harm": bool(payload.get("harm")),
         "injury": bool(payload.get("injury")),
         "inquiry_account": clip(inquiry.get("account")),
-        "single_actor": clip(inquiry.get("single"), 80),
-        "last_human": clip(inquiry.get("last_human"), 20),
-        "last_human_who": clip(inquiry.get("last_human_who")),
-        "clarity": inquiry.get("clarity"),
-        "sureness": inquiry.get("sureness"),
+        "single_actor": single,
+        "last_human": last_human,
+        "last_human_who": "" if last_human == "no" else clip(inquiry.get("last_human_who")),
+        "clarity": as_score(inquiry.get("clarity")),
+        "sureness": as_score(inquiry.get("sureness")),
         "shared": as_list(inquiry.get("shared")),
         "other_notes": clip(inquiry.get("other_notes")),
         "started_at": clip(payload.get("started_at"), 40),
         "submitted_at": clip(payload.get("submitted_at"), 40),
         "received_at": received_at,
-        "session_id": clip(payload.get("session_id"), 80),
+        "session_id": session_id,
     }
 
 
@@ -351,7 +393,7 @@ def resolve_app_file(url_path: str) -> Path | None:
     for part in path.split("/"):
         if part in ("", "."):
             continue
-        if part == "..":
+        if part == ".." or "\x00" in part:
             return None
         parts.append(part)
     if not parts:
@@ -374,6 +416,17 @@ class Handler(SimpleHTTPRequestHandler):
         super().__init__(*args, directory=self.directory, **kwargs)
 
     def end_headers(self):
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header(
+            "Content-Security-Policy",
+            "default-src 'self'; script-src 'self'; "
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com; "
+            "img-src 'self'; connect-src 'self'; base-uri 'self'; "
+            "form-action 'self'; frame-ancestors 'none'; object-src 'none'",
+        )
         self.send_header("Cache-Control", "no-store")
         super().end_headers()
 
@@ -457,6 +510,9 @@ class Handler(SimpleHTTPRequestHandler):
             "started_at": now(),
         }
         with LOCK:
+            if too_many_sessions():
+                self.send_error(429, "The register is full")
+                return
             if database_url():
                 save_assignment(record)
             else:

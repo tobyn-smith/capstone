@@ -36,6 +36,39 @@ class ResolveTests(unittest.TestCase):
     def test_parent_path_is_rejected(self):
         self.assertIsNone(server.resolve_app_file("/../server.py"))
         self.assertIsNone(server.resolve_app_file("/../../etc/passwd"))
+        self.assertIsNone(server.resolve_app_file("/index.html%00.png"))
+
+    def test_a_finding_rejects_a_bad_score_and_a_bad_actor(self):
+        good = server.clean_response(
+            {
+                "condition": "sequence",
+                "session_id": "ab" * 8,
+                "confidence_bar": None,
+                "inquiry": {
+                    "account": "Officials set the goal.",
+                    "single": "oracle",
+                    "last_human": "no",
+                    "last_human_who": "should be dropped",
+                    "clarity": 3,
+                    "sureness": 5,
+                },
+            },
+            "t",
+        )
+        self.assertEqual(good["single_actor"], "oracle")
+        self.assertEqual(good["last_human_who"], "")
+        self.assertEqual(good["clarity"], 3)
+        for inquiry in (
+            {"clarity": 9},
+            {"clarity": True},
+            {"clarity": "3"},
+            {"single": "anyone"},
+            {"last_human": "maybe"},
+        ):
+            with self.assertRaises(ValueError):
+                server.clean_response({"condition": "sequence", "inquiry": inquiry}, "t")
+        with self.assertRaises(ValueError):
+            server.clean_response({"condition": "sequence", "session_id": "../x", "inquiry": {}}, "t")
 
     def test_heroku_database_url_asks_for_ssl(self):
         with patch.dict(os.environ, {"DATABASE_URL": "postgres://u:p@host:5432/db"}):
@@ -59,7 +92,8 @@ class ResolveTests(unittest.TestCase):
         }
         with patch.dict(os.environ, env):
             text = "\n".join(server.startup_lines(8000))
-        self.assertIn("https://ts-6010.herokuapp.com/admin", text)
+        self.assertIn("https://ts-6010-db607dbe410e.herokuapp.com/admin", text)
+        self.assertNotIn("https://ts-6010.herokuapp.com", text)
         self.assertIn("Findings are stored in Postgres.", text)
         self.assertNotIn("do-not-print-this", text)
         self.assertNotIn("127.0.0.1", text)
@@ -122,10 +156,16 @@ class ServeTests(unittest.TestCase):
             return response.status, response.read()
 
     def test_root_returns_the_class_page(self):
-        status, body = self.fetch("/")
-        self.assertEqual(status, 200)
+        with urllib.request.urlopen("http://127.0.0.1:%s/" % self.port) as response:
+            body = response.read()
+            headers = response.headers
+        self.assertEqual(response.status, 200)
         self.assertIn(b"INTL 6010", body)
         self.assertIn(b"game.js", body)
+        self.assertEqual(headers["X-Content-Type-Options"], "nosniff")
+        self.assertEqual(headers["X-Frame-Options"], "DENY")
+        self.assertIn("script-src 'self'", headers["Content-Security-Policy"])
+        self.assertNotIn("Passphrase", headers.get("Content-Security-Policy", ""))
 
     def test_browser_sends_the_full_address(self):
         sock = socket.create_connection(("127.0.0.1", self.port))
@@ -172,6 +212,21 @@ class ServeTests(unittest.TestCase):
             self.assertNotIn(b"Nothing matches the given URI", body)
         else:
             self.fail("missing page should 404")
+
+    def test_a_full_register_refuses_another_start(self):
+        with patch.object(server, "too_many_sessions", return_value=True):
+            try:
+                urllib.request.urlopen(
+                    urllib.request.Request(
+                        "http://127.0.0.1:%s/api/start" % self.port,
+                        data=b"{}",
+                        headers={"Content-Type": "application/json"},
+                    )
+                )
+            except urllib.error.HTTPError as error:
+                self.assertEqual(error.code, 429)
+            else:
+                self.fail("a full register should refuse a new sitting")
 
 
 if __name__ == "__main__":
