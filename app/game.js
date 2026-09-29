@@ -27,7 +27,6 @@ const SCENES = [
     when: "That morning",
     rail: "Advice",
     beat: "advice",
-    chain: ["Officials ask", "ORACLE advises", "Officials decide"],
     lines: [
       "Araknes used ORACLE for advice.",
       "Officials asked it questions, argued with its answers, and chose whether to act.",
@@ -43,7 +42,6 @@ const SCENES = [
     when: "18:00",
     rail: "Upgrade",
     beat: "upgrade",
-    chain: ["Officials set a goal", "ORACLE deliberates", "ORACLE acts"],
     lines: [
       "As the crisis went on, officials upgraded ORACLE into a network of agents.",
       "It stays on the watch. It can assess the intelligence, monitor shipping, and trigger pre-authorised measures without a person reviewing each one.",

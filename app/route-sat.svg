@@ -40,13 +40,6 @@
   <path d="M1200 0 L952 0 C942 100 978 180 938 260 C976 350 946 450 980 560 L1200 560 Z" fill="#5ec4b8" opacity="0.85"/>
   <path d="M1200 0 L978 0 C968 100 1002 180 964 260 C1000 350 972 450 1004 560 L1200 560 Z" fill="#3f6b3a"/>
 
-  <path d="M520,16 C548,130 572,240 560,340 C548,430 590,500 640,548" fill="none" stroke="#d7e6f2" stroke-width="16" opacity="0.16"/>
-  <path d="M506,18 C534,132 558,242 546,342 C534,432 576,502 626,548" fill="none" stroke="#f7f4ee" stroke-width="1.1" opacity="0.35"/>
-  <path d="M534,14 C562,128 586,238 574,338 C562,428 604,498 654,546" fill="none" stroke="#f7f4ee" stroke-width="1.1" opacity="0.35"/>
-  <path d="M520,16 C548,130 572,240 560,340 C548,430 590,500 640,548" fill="none" stroke="#f4f7f6" stroke-width="1.6" stroke-dasharray="3 12" opacity="0.8" class="sat-motion">
-    <animate attributeName="stroke-dashoffset" values="0;-30" dur="9s" repeatCount="indefinite"/>
-  </path>
-
   <g transform="translate(688,56)" fill="none" stroke="#f7f4ee" font-family="Source Sans 3, Liberation Sans, sans-serif" font-size="13" font-weight="700">
     <circle cx="0" cy="0" r="12" stroke-width="1.1"/>
     <path d="M0,-8 L2.4,2.4 L0,0.6 L-2.4,2.4 Z" fill="#f7f4ee" stroke="none"/>
