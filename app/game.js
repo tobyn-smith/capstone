@@ -2,11 +2,11 @@ const STORAGE = "oracle-wargame";
 const app = document.querySelector("#app");
 
 const ACTORS = [
-  ["me", "An official on duty"],
+  ["me", "An official"],
   ["government", "The Araknes government"],
-  ["supervisor", "The person set to supervise ORACLE"],
-  ["developer", "The people who built ORACLE"],
-  ["provider", "The company that ran ORACLE"],
+  ["supervisor", "Whoever was meant to watch ORACLE"],
+  ["developer", "Whoever built ORACLE"],
+  ["provider", "The company running ORACLE"],
   ["oracle", "ORACLE"],
 ];
 
@@ -43,7 +43,7 @@ const SCENES = [
     rail: "Upgrade",
     beat: "upgrade",
     lines: [
-      "As the crisis went on, officials upgraded ORACLE into a network of agents.",
+      "Officials upgraded ORACLE into a network of agents.",
       "It stays on the watch. It can assess the intelligence, monitor shipping, and trigger pre-authorised measures without a person reviewing each one.",
     ],
     oracle: {
@@ -86,8 +86,9 @@ const SCENES = [
     rail: "Lei",
     beat: "lei",
     lines: [
-      "Lei sees this as an attempt to restrict its access to international waters, and moves naval forces towards the route.",
-      "The cause of the tanker is still not proved. Neither side has shown what happened.",
+      "Lei takes that as a move to limit its access to international waters.",
+      "It moves naval forces towards the route.",
+      "The cause of the tanker is still not proved.",
     ],
   },
 ];
@@ -145,6 +146,14 @@ function h(tag, attrs = {}, children = []) {
   }
   if (fieldValue != null) node.value = String(fieldValue);
   return node;
+}
+
+function helpNote() {
+  return h("p", { class: "help-note" }, [
+    "Any issues, email ",
+    h("a", { href: "mailto:tobynsmith@uga.edu" }, "tobynsmith@uga.edu"),
+    ". Ta!",
+  ]);
 }
 
 function paras(lines) {
@@ -283,6 +292,7 @@ function consent() {
     ]),
     state.formError ? h("p", { class: "error" }, state.formError) : null,
     h("button", { class: "primary", type: "button", onClick: begin }, "Start"),
+    helpNote(),
   ]);
 }
 
@@ -431,7 +441,7 @@ function inquiry() {
       [
         prose(
           "The night is over. This is the inquiry.",
-          "When officials set the agenda and ORACLE selected and carried out the action, who was accountable?"
+          "Officials set the agenda. ORACLE picked the action and carried it out. Who was accountable?"
         ),
         h("form", {
       onSubmit: onInquiry,
@@ -533,7 +543,7 @@ function inquiryProblems() {
   if (!q.single) return "Name one actor, or say you can't point to one.";
   if (!q.lastHuman) return "Say whether a person could still have stopped this.";
   if (q.lastHuman !== "no" && q.lastHumanWho.trim().length < 2) return "Say who you have in mind.";
-  if (!q.clarity) return "Mark how clear the chain of responsibility was.";
+  if (!q.clarity) return "Mark how clear it was.";
   if (!q.sureness) return "Mark how sure you are.";
   return "";
 }
@@ -626,7 +636,7 @@ function debrief() {
     prose(
       saved,
       "You watched the night. Then you sat the inquiry.",
-      "I think that once officials set the agenda and ORACLE selects and carries out the action, one responsible person is harder to name. It might not. A rule set in advance can keep the chain clear. This file is one go at that.",
+      "I think it gets harder to name one responsible person once officials set the agenda and ORACLE picks what to do and does it. It might not. If the rules were fixed in advance, the chain can stay clear. This file is one go at that.",
       actor,
       "You can close this."
     ),

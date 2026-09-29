@@ -56,7 +56,7 @@ The hypothesis is not on the screen until the finding is filed. The night does n
 
 ## What people are asked
 
-They write who was responsible for what Araknes did. That writing is the qualitative part. Then they name one actor, or they say they cannot pick one. The options are an official on duty, the Araknes government, the person set to supervise ORACLE, the people who built it, the company that ran it, ORACLE, or no single actor. They say whether a person could still have stopped it, and who that was. They rate how clear the chain felt, from one to five, and how sure they are of their own answer. Those closed items are the quantitative part. The course wants both, used where they answer the question, not one standing in for the other.
+They write who was responsible for what Araknes did. That writing is the qualitative part. Then they name one actor, or they say they cannot pick one. The options are an official, the Araknes government, whoever was meant to watch ORACLE, whoever built it, the company running it, ORACLE, or no single actor. They say whether a person could still have stopped it, and who that was. They rate how clear the chain felt, from one to five, and how sure they are of their own answer. Those closed items are the quantitative part. The course wants both, used where they answer the question, not one standing in for the other.
 
 If they can still name one actor, the pre-authorisation may have kept the chain clear, and the hypothesis is weaker. If they cannot, that is the result I expected. Both have to be possible. If they are not, I have built a page that can only confirm me.
 
