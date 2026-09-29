@@ -654,7 +654,7 @@ function paintChrome() {
   const banner = document.querySelector(".commission");
   const inquiry = state.step === "inquiry" || state.step === "debrief";
   document.body.dataset.step = state.step;
-  if (banner) banner.textContent = inquiry ? "Commission of Inquiry" : "The night";
+  if (banner) banner.textContent = "Commission of Inquiry";
   const scene = SCENES[state.scene] || SCENES[0];
   const pair = state.step === "night"
     ? [scene.title, scene.when]
@@ -666,6 +666,7 @@ function paintChrome() {
     if (pair[1]) bits.push(h("p", { class: "when" }, pair[1]));
     mast.replaceChildren(...bits);
   }
+  if (rail) rail.setAttribute("aria-label", state.step === "night" ? "The night" : "Index to the file");
   if (!rail) return;
   const items = state.step === "night"
     ? SCENES.map((item, index) => h("li", {
@@ -687,7 +688,7 @@ function render() {
     ? "INTL 6010 · Research Methods"
     : inquiry
       ? "File 26-441 · Araknes Commission of Inquiry"
-      : "File 26-441 · The night";
+      : "The night";
   if (state.step === "consent") {
     if (before) {
       before.hidden = false;
