@@ -148,14 +148,6 @@ function h(tag, attrs = {}, children = []) {
   return node;
 }
 
-function helpNote() {
-  return h("p", { class: "help-note" }, [
-    "Any issues, email ",
-    h("a", { href: "mailto:tobynsmith@uga.edu" }, "tobynsmith@uga.edu"),
-    ". Ta!",
-  ]);
-}
-
 function paras(lines) {
   return lines.filter(Boolean).map((line) => h("p", {}, line));
 }
@@ -292,7 +284,6 @@ function consent() {
     ]),
     state.formError ? h("p", { class: "error" }, state.formError) : null,
     h("button", { class: "primary", type: "button", onClick: begin }, "Start"),
-    helpNote(),
   ]);
 }
 

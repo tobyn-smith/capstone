@@ -17,6 +17,8 @@
 html { background: var(--desk); }
 
 body {
+  display: flex;
+  flex-direction: column;
   margin: 0;
   min-height: 100vh;
   background: var(--desk);
@@ -25,6 +27,8 @@ body {
   font-size: 1.125rem;
   line-height: 1.55;
 }
+
+body:has(#before:not([hidden])) { background: #d6d2c4; }
 
 .story-bar,
 .banner { display: none; }
@@ -155,11 +159,11 @@ body[data-step="night"] .imprint { display: none; }
   border-color: rgba(255, 255, 255, 0.4);
 }
 
-.site { min-height: 100vh; }
+.site { flex: 1 0 auto; }
 .site[hidden] { display: none; }
 
 .before {
-  min-height: 100vh;
+  flex: 1 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -255,7 +259,7 @@ body[data-step="night"] .imprint { display: none; }
 .frame {
   max-width: 92rem;
   margin: 0 auto;
-  padding: 0 1.5rem 3rem;
+  padding: 0 1.5rem 1.25rem;
 }
 
 .rail {
@@ -493,7 +497,7 @@ body[data-step="night"] .imprint { display: none; }
 
 .computer-only {
   display: none;
-  min-height: 100vh;
+  flex: 1 0 auto;
   margin: 0 auto;
   padding: 3rem 1.5rem;
   max-width: 28rem;
@@ -552,33 +556,17 @@ body[data-step="night"] .imprint { display: none; }
 
 .imprint p { margin: 0.1rem 0; }
 
-.help-note {
-  margin: 0.35rem 1.85rem 1.2rem;
-  color: var(--muted);
-  font-size: 0.95rem;
-}
-
-.help-note a { color: var(--navy); }
-
-body[data-step="night"] .help-note { margin-top: 1.6rem; }
-
-.welcome .help-note {
-  margin: 1.4rem 0 0;
+.page-foot {
+  flex: none;
+  margin: 0;
+  padding: 0.85rem 1.5rem 1.15rem;
   color: #554f47;
   font-family: "Merriweather Sans", sans-serif;
   font-size: 0.92rem;
-}
-
-.computer-only .help-note {
-  margin: 1.25rem 0 0;
-  color: #554f47;
-  font-family: "Merriweather Sans", sans-serif;
-  font-size: 0.95rem;
   text-align: center;
 }
 
-.computer-only .help-note a,
-.welcome .help-note a { color: #ba0c2f; }
+.page-foot a { color: #ba0c2f; }
 
 .prose p,
 .sitrep p,
@@ -654,9 +642,6 @@ body[data-step="night"] .help-note { margin-top: 1.6rem; }
   .mast,
   #app,
   .rail ol { padding-left: 1.15rem; padding-right: 1.15rem; }
-  .help-note { margin-left: 1.15rem; margin-right: 1.15rem; }
-  .welcome .help-note,
-  .computer-only .help-note { margin-left: 0; margin-right: 0; }
   .rail li { letter-spacing: 0.08em; }
   .spread { grid-template-columns: 1fr; }
   .spread-side {
