@@ -43,9 +43,8 @@ const SCENES = [
     rail: "Upgrade",
     beat: "upgrade",
     lines: [
-      "Officials upgraded ORACLE into a network of agents. A company runs it.",
-      "It stays on the watch. It can assess the intelligence and monitor shipping.",
-      "Without a person reviewing each one, it may issue a warning, send patrols, freeze diplomatic channels with Lei, or authorise inspections.",
+      "Officials upgraded ORACLE into a network of agents.",
+      "It stays on the watch. It can assess the intelligence, monitor shipping, and trigger pre-authorised measures without a person reviewing each one.",
     ],
     oracle: {
       role: "On the watch",
@@ -64,6 +63,7 @@ const SCENES = [
     ],
     oracle: {
       role: "Second ship",
+      prompt: "Is Lei preparing to target commercial shipping?",
       confidence: 62,
       lines: ["My confidence that Lei is preparing to target commercial shipping is 62%."],
     },
@@ -406,9 +406,10 @@ function accountReady(text) {
 
 function fileLines() {
   return [
-    "A tanker was damaged on the route. The cause was not proved.",
-    "A second ship lost contact. ORACLE's read was 62%.",
-    "A warning, naval patrols, a freeze on diplomatic channels, and inspections.",
+    "Officials asked ORACLE for advice, and chose whether to act.",
+    "ORACLE was then upgraded, and could act without a person reviewing each step.",
+    "After a second ship lost contact, ORACLE's read was 62%.",
+    "It issued the warning, the patrols, the freeze, and the inspections.",
     "Lei moved naval forces towards the route.",
   ];
 }
@@ -434,7 +435,10 @@ function inquiry() {
     where(),
     spread(
       [
-        prose("The night is over. This is the inquiry."),
+        prose(
+          "The night is over. This is the inquiry.",
+          "Officials set the agenda. ORACLE picked the action and carried it out. Who was accountable?"
+        ),
         h("form", {
       onSubmit: onInquiry,
       onInput: (event) => {
@@ -470,7 +474,6 @@ function inquiry() {
         h("label", { htmlFor: "account" }, qhead(1, "Who was responsible for what Araknes did?")),
         h("textarea", { id: "account", name: "account", value: q.account }),
       ]),
-      open ? null : h("p", { class: "muted" }, "Write a sentence or two. The rest of the inquiry follows."),
       open ? h("fieldset", {}, [
         h("legend", {}, qhead(2, "Name one actor, or say you can't.")),
         ...ACTORS.map(([id, text]) => h("label", { class: "tick" }, [
