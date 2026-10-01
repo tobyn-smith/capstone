@@ -43,8 +43,9 @@ const SCENES = [
     rail: "Upgrade",
     beat: "upgrade",
     lines: [
-      "Officials upgraded ORACLE into a network of agents.",
-      "It stays on the watch. It can assess the intelligence, monitor shipping, and trigger pre-authorised measures without a person reviewing each one.",
+      "Officials upgraded ORACLE into a network of agents. A company runs it.",
+      "It stays on the watch. It can assess the intelligence and monitor shipping.",
+      "Without a person reviewing each one, it may issue a warning, send patrols, freeze diplomatic channels with Lei, or authorise inspections.",
     ],
     oracle: {
       role: "On the watch",
@@ -63,7 +64,6 @@ const SCENES = [
     ],
     oracle: {
       role: "Second ship",
-      prompt: "Is Lei preparing to target commercial shipping?",
       confidence: 62,
       lines: ["My confidence that Lei is preparing to target commercial shipping is 62%."],
     },
@@ -400,12 +400,15 @@ function night() {
   ]);
 }
 
+function accountReady(text) {
+  return (text || "").trim().length >= 20;
+}
+
 function fileLines() {
   return [
-    "Officials asked ORACLE for advice, and chose whether to act.",
-    "ORACLE was then upgraded, and could act without a person reviewing each step.",
-    "After a second ship lost contact, ORACLE's read was 62%.",
-    "It issued the warning, the patrols, the freeze, and the inspections.",
+    "A tanker was damaged on the route. The cause was not proved.",
+    "A second ship lost contact. ORACLE's read was 62%.",
+    "A warning, naval patrols, a freeze on diplomatic channels, and inspections.",
     "Lei moved naval forces towards the route.",
   ];
 }
@@ -426,20 +429,30 @@ function scale(name, current) {
 
 function inquiry() {
   const q = state.inquiry;
+  const open = accountReady(q.account);
   return h("section", {}, [
     where(),
     spread(
       [
-        prose(
-          "The night is over. This is the inquiry.",
-          "Officials set the agenda. ORACLE picked the action and carried it out. Who was accountable?"
-        ),
+        prose("The night is over. This is the inquiry."),
         h("form", {
       onSubmit: onInquiry,
       onInput: (event) => {
+        const wasOpen = accountReady(state.inquiry.account);
+        const caret = event.target && event.target.id === "account" ? event.target.selectionStart : null;
         syncInquiry(event.currentTarget);
         save();
-        if (event.target && event.target.name === "last_human") render();
+        const nowOpen = accountReady(state.inquiry.account);
+        const human = event.target && event.target.name === "last_human";
+        if (!human && wasOpen === nowOpen) return;
+        render();
+        if (caret != null) {
+          const box = document.querySelector("#account");
+          if (box) {
+            box.focus();
+            box.setSelectionRange(caret, caret);
+          }
+        }
       },
     }, [
       h("div", { class: "field" }, [
@@ -457,7 +470,8 @@ function inquiry() {
         h("label", { htmlFor: "account" }, qhead(1, "Who was responsible for what Araknes did?")),
         h("textarea", { id: "account", name: "account", value: q.account }),
       ]),
-      h("fieldset", {}, [
+      open ? null : h("p", { class: "muted" }, "Write a sentence or two. The rest of the inquiry follows."),
+      open ? h("fieldset", {}, [
         h("legend", {}, qhead(2, "Name one actor, or say you can't.")),
         ...ACTORS.map(([id, text]) => h("label", { class: "tick" }, [
           h("input", { type: "radio", name: "single", value: id, checked: q.single === id }),
@@ -467,8 +481,8 @@ function inquiry() {
           h("input", { type: "radio", name: "single", value: "none", checked: q.single === "none" }),
           h("span", {}, "I can't point to one actor"),
         ]),
-      ]),
-      h("fieldset", {}, [
+      ]) : null,
+      open ? h("fieldset", {}, [
         h("legend", {}, qhead(3, "Could a person still have stopped this?")),
         ...[
           ["yes", "Yes"],
@@ -484,25 +498,25 @@ function inquiry() {
             h("input", { id: "who", name: "last_human_who", type: "text", value: q.lastHumanWho }),
           ])
           : null,
-      ]),
-      h("fieldset", {}, [
+      ]) : null,
+      open ? h("fieldset", {}, [
         h("legend", {}, qhead(4, "How clear was it who was responsible?")),
         scale("clarity", q.clarity),
         h("p", { class: "ends" }, [
           h("span", {}, "1 · not clear"),
           h("span", {}, "5 · clear"),
         ]),
-      ]),
-      h("fieldset", {}, [
+      ]) : null,
+      open ? h("fieldset", {}, [
         h("legend", {}, qhead(5, "How sure are you?")),
         scale("sureness", q.sureness),
         h("p", { class: "ends" }, [
           h("span", {}, "1 · guessing"),
           h("span", {}, "5 · sure"),
         ]),
-      ]),
-      state.formError ? h("p", { class: "error" }, state.formError) : null,
-      h("button", { class: "primary", type: "submit" }, "File the finding"),
+      ]) : null,
+      open && state.formError ? h("p", { class: "error" }, state.formError) : null,
+      open ? h("button", { class: "primary", type: "submit" }, "File the finding") : null,
     ]),
       ],
       h("div", { class: "file" }, [
@@ -517,11 +531,13 @@ function syncInquiry(form) {
   const data = new FormData(form);
   const q = state.inquiry;
   q.account = data.get("account") || "";
-  q.single = data.get("single") || "";
-  q.lastHuman = data.get("last_human") || "";
-  q.lastHumanWho = q.lastHuman === "no" ? "" : (data.get("last_human_who") || "");
-  q.clarity = data.get("clarity") ? Number(data.get("clarity")) : null;
-  q.sureness = data.get("sureness") ? Number(data.get("sureness")) : null;
+  if (form.querySelector('input[name="single"]')) {
+    q.single = data.get("single") || "";
+    q.lastHuman = data.get("last_human") || "";
+    q.lastHumanWho = q.lastHuman === "no" ? "" : (data.get("last_human_who") || "");
+    q.clarity = data.get("clarity") ? Number(data.get("clarity")) : null;
+    q.sureness = data.get("sureness") ? Number(data.get("sureness")) : null;
+  }
   q.shared = data.getAll("shared");
   q.otherNotes = data.get("other_notes") || "";
   const code = (data.get("code") || "").trim();
