@@ -1,9 +1,9 @@
 const ACTORS = {
-  me: "an official on duty",
+  me: "an official",
   government: "the Araknes government",
-  supervisor: "the person set to supervise ORACLE",
-  developer: "the people who built ORACLE",
-  provider: "the company that ran ORACLE",
+  supervisor: "whoever was meant to watch ORACLE",
+  developer: "whoever built ORACLE",
+  provider: "the company running ORACLE",
   oracle: "ORACLE",
   none: "can't pick one",
 };

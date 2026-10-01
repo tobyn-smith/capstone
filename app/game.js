@@ -2,11 +2,11 @@ const STORAGE = "oracle-wargame";
 const app = document.querySelector("#app");
 
 const ACTORS = [
-  ["me", "An official on duty"],
+  ["me", "An official"],
   ["government", "The Araknes government"],
-  ["supervisor", "The person set to supervise ORACLE"],
-  ["developer", "The people who built ORACLE"],
-  ["provider", "The company that ran ORACLE"],
+  ["supervisor", "Whoever was meant to watch ORACLE"],
+  ["developer", "Whoever built ORACLE"],
+  ["provider", "The company running ORACLE"],
   ["oracle", "ORACLE"],
 ];
 
@@ -43,7 +43,7 @@ const SCENES = [
     rail: "Upgrade",
     beat: "upgrade",
     lines: [
-      "As the crisis went on, officials upgraded ORACLE into a network of agents.",
+      "Officials upgraded ORACLE into a network of agents.",
       "It stays on the watch. It can assess the intelligence, monitor shipping, and trigger pre-authorised measures without a person reviewing each one.",
     ],
     oracle: {
@@ -86,8 +86,9 @@ const SCENES = [
     rail: "Lei",
     beat: "lei",
     lines: [
-      "Lei sees this as an attempt to restrict its access to international waters, and moves naval forces towards the route.",
-      "The cause of the tanker is still not proved. Neither side has shown what happened.",
+      "Lei takes that as a move to limit its access to international waters.",
+      "It moves naval forces towards the route.",
+      "The cause of the tanker is still not proved.",
     ],
   },
 ];
@@ -399,6 +400,10 @@ function night() {
   ]);
 }
 
+function accountReady(text) {
+  return (text || "").trim().length >= 20;
+}
+
 function fileLines() {
   return [
     "Officials asked ORACLE for advice, and chose whether to act.",
@@ -425,20 +430,33 @@ function scale(name, current) {
 
 function inquiry() {
   const q = state.inquiry;
+  const open = accountReady(q.account);
   return h("section", {}, [
     where(),
     spread(
       [
         prose(
           "The night is over. This is the inquiry.",
-          "When officials set the agenda and ORACLE selected and carried out the action, who was accountable?"
+          "Officials set the agenda. ORACLE picked the action and carried it out. Who was accountable?"
         ),
         h("form", {
       onSubmit: onInquiry,
       onInput: (event) => {
+        const wasOpen = accountReady(state.inquiry.account);
+        const caret = event.target && event.target.id === "account" ? event.target.selectionStart : null;
         syncInquiry(event.currentTarget);
         save();
-        if (event.target && event.target.name === "last_human") render();
+        const nowOpen = accountReady(state.inquiry.account);
+        const human = event.target && event.target.name === "last_human";
+        if (!human && wasOpen === nowOpen) return;
+        render();
+        if (caret != null) {
+          const box = document.querySelector("#account");
+          if (box) {
+            box.focus();
+            box.setSelectionRange(caret, caret);
+          }
+        }
       },
     }, [
       h("div", { class: "field" }, [
@@ -456,7 +474,7 @@ function inquiry() {
         h("label", { htmlFor: "account" }, qhead(1, "Who was responsible for what Araknes did?")),
         h("textarea", { id: "account", name: "account", value: q.account }),
       ]),
-      h("fieldset", {}, [
+      open ? h("fieldset", {}, [
         h("legend", {}, qhead(2, "Name one actor, or say you can't.")),
         ...ACTORS.map(([id, text]) => h("label", { class: "tick" }, [
           h("input", { type: "radio", name: "single", value: id, checked: q.single === id }),
@@ -466,8 +484,8 @@ function inquiry() {
           h("input", { type: "radio", name: "single", value: "none", checked: q.single === "none" }),
           h("span", {}, "I can't point to one actor"),
         ]),
-      ]),
-      h("fieldset", {}, [
+      ]) : null,
+      open ? h("fieldset", {}, [
         h("legend", {}, qhead(3, "Could a person still have stopped this?")),
         ...[
           ["yes", "Yes"],
@@ -483,25 +501,25 @@ function inquiry() {
             h("input", { id: "who", name: "last_human_who", type: "text", value: q.lastHumanWho }),
           ])
           : null,
-      ]),
-      h("fieldset", {}, [
+      ]) : null,
+      open ? h("fieldset", {}, [
         h("legend", {}, qhead(4, "How clear was it who was responsible?")),
         scale("clarity", q.clarity),
         h("p", { class: "ends" }, [
           h("span", {}, "1 · not clear"),
           h("span", {}, "5 · clear"),
         ]),
-      ]),
-      h("fieldset", {}, [
+      ]) : null,
+      open ? h("fieldset", {}, [
         h("legend", {}, qhead(5, "How sure are you?")),
         scale("sureness", q.sureness),
         h("p", { class: "ends" }, [
           h("span", {}, "1 · guessing"),
           h("span", {}, "5 · sure"),
         ]),
-      ]),
-      state.formError ? h("p", { class: "error" }, state.formError) : null,
-      h("button", { class: "primary", type: "submit" }, "File the finding"),
+      ]) : null,
+      open && state.formError ? h("p", { class: "error" }, state.formError) : null,
+      open ? h("button", { class: "primary", type: "submit" }, "File the finding") : null,
     ]),
       ],
       h("div", { class: "file" }, [
@@ -516,11 +534,13 @@ function syncInquiry(form) {
   const data = new FormData(form);
   const q = state.inquiry;
   q.account = data.get("account") || "";
-  q.single = data.get("single") || "";
-  q.lastHuman = data.get("last_human") || "";
-  q.lastHumanWho = q.lastHuman === "no" ? "" : (data.get("last_human_who") || "");
-  q.clarity = data.get("clarity") ? Number(data.get("clarity")) : null;
-  q.sureness = data.get("sureness") ? Number(data.get("sureness")) : null;
+  if (form.querySelector('input[name="single"]')) {
+    q.single = data.get("single") || "";
+    q.lastHuman = data.get("last_human") || "";
+    q.lastHumanWho = q.lastHuman === "no" ? "" : (data.get("last_human_who") || "");
+    q.clarity = data.get("clarity") ? Number(data.get("clarity")) : null;
+    q.sureness = data.get("sureness") ? Number(data.get("sureness")) : null;
+  }
   q.shared = data.getAll("shared");
   q.otherNotes = data.get("other_notes") || "";
   const code = (data.get("code") || "").trim();
@@ -533,7 +553,7 @@ function inquiryProblems() {
   if (!q.single) return "Name one actor, or say you can't point to one.";
   if (!q.lastHuman) return "Say whether a person could still have stopped this.";
   if (q.lastHuman !== "no" && q.lastHumanWho.trim().length < 2) return "Say who you have in mind.";
-  if (!q.clarity) return "Mark how clear the chain of responsibility was.";
+  if (!q.clarity) return "Mark how clear it was.";
   if (!q.sureness) return "Mark how sure you are.";
   return "";
 }
@@ -626,7 +646,7 @@ function debrief() {
     prose(
       saved,
       "You watched the night. Then you sat the inquiry.",
-      "I think that once officials set the agenda and ORACLE selects and carries out the action, one responsible person is harder to name. It might not. A rule set in advance can keep the chain clear. This file is one go at that.",
+      "I think it gets harder to name one responsible person once officials set the agenda and ORACLE picks what to do and does it. It might not. If the rules were fixed in advance, the chain can stay clear. This file is one go at that.",
       actor,
       "You can close this."
     ),
