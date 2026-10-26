@@ -9,7 +9,7 @@ Tick these when you decide how you will use each one.
 - [ ] `session_id` — random id stored with the finding. Not a name, but it is an identifier.
 - [ ] `participant_code` — optional code they type. Often the same as the session id if they left it blank.
 - [ ] `condition` — this build always saves `sequence`. Older rows may say `advice` or `agent`.
-- [ ] `inquiry_account` — written answer to question 1. Optional.
+- [ ] `inquiry_account` — written answer to question 1.
 - [ ] `single_actor` — question 2 code. `me` = an official on duty (old code, keep it). Also `approvers`, `government`, `supervisor`, `developer`, `provider`, `allies`, `lei`, `oracle`, `equal`, `other`, `none`.
 - [ ] `other_notes` — write-in only if they picked `other`.
 - [ ] `last_human` — question 3: at 01:57, could any person have stopped ORACLE before it acted? `yes` / `no` / `unsure`.
@@ -32,7 +32,7 @@ Tick these when you have a rule. Do not write the codes here until you are ready
 - [ ] How will you treat `other` plus the write-in?
 - [ ] How will you treat `lei` and `allies`?
 - [ ] How will you treat `approvers` against `me` (official on duty) and `government`?
-- [ ] What will you do with a blank written answer?
+- [ ] What will you do with a short written answer?
 - [ ] What will you do if the written answer and the radio pick do not match?
 - [ ] How will you use `clarity` and `sureness` together?
 - [ ] How will you treat `last_human` = unsure?

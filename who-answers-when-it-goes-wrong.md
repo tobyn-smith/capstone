@@ -56,13 +56,7 @@ The hypothesis is not on the screen until the finding is filed. The night does n
 
 ## What people are asked
 
-The inquiry stem is: who, if anyone, was responsible for what happened. They may write that in their own words. That writing is optional. It is the qualitative part.
-
-Then they pick one actor, or they say they cannot pick one. The options are an official on duty, officials who approved the upgrade, the Araknes government, the person set to supervise ORACLE, the people who built it, the company that ran it, allied governments or forces, Lei, ORACLE, more than one equally, other, or no single actor. The stored code for an official on duty is still `me`, so older rows match.
-
-They are asked, at 01:57, whether any person could have stopped ORACLE before it acted. If they say yes, they say who. If they are not sure, that follow-up is not shown.
-
-They rate how clear it was who was responsible (looking back at that actor pick), from one to five, with each point labelled. Clear means they can point to one actor who had the authority to prevent, approve, supervise, or explain what happened. They then rate how sure they are of that same pick. Those closed items are the quantitative part. The course wants both, used where they answer the question, not one standing in for the other.
+They write who was responsible for what Araknes did. That writing is the qualitative part. Then they name one actor, or they say they cannot pick one. The options are an official on duty, officials who approved the upgrade, the Araknes government, the person set to supervise ORACLE, the people who built it, the company that ran it, allied governments or forces, Lei, ORACLE, more than one equally, other, or no single actor. They say, at 01:57, whether a person could still have stopped it, and who that was if they said yes. They rate how clear the chain felt, from one to five, with each point labelled, and how sure they are of their own answer. Those closed items are the quantitative part. The course wants both, used where they answer the question, not one standing in for the other.
 
 If they can still name one actor, the pre-authorisation may have kept the chain clear, and the hypothesis is weaker. If they cannot, that is the result I expected. Both have to be possible. If they are not, I have built a page that can only confirm me.
 
@@ -86,7 +80,7 @@ The course is about asking a policy question with social science, not about stat
 
 That means the fundamentals on the syllabus have to show up in the design, not just in a paragraph I add later.
 
-The file runs in that order, and it does not announce the hypothesis while the night is playing. The night is the observation: advice first, then a system that can act, then the measures, then Lei moves. The finding is where I see whether one actor can still be named. What I expect, and the result that would weaken it, are not on the page until the finding is in. The last page says this file is one go. The page before the file only says it is for INTL 6010 at UGA, who it is for, and what starting means for saving answers. That page is not the commission. The night opens after they start, as the story, with the two flags and no government heading. The Commission of Inquiry banner waits until the inquiry.
+The file runs in that order, and it does not announce the hypothesis while the night is playing. The night is the observation: advice first, then a system that can act, then the measures, then Lei moves. The finding is where I see whether one actor can still be named. What I expect, and the result that would weaken it, are not on the page until the finding is in. The last page says this file is one go. The page before the file only says it is for INTL 6010 at UGA, and that starting means I can save the answers. That page is not the commission. The night opens after they start, as the story, with the two flags and no government heading. The Commission of Inquiry banner waits until the inquiry.
 
 Concept formation. Two concepts. Autonomy is how far the system can choose and carry out a step without a person approving it. Accountability clarity is whether, afterwards, you can point to one actor who had the authority to prevent, approve, supervise, or explain the action. If I cannot say what those mean, I cannot measure them.
 
@@ -102,7 +96,7 @@ Program evaluation is a later question. This design does not evaluate a real min
 
 The pages are marked Draft, on the class page and in the footer of the file. I will come back and change the wording. The facts stay.
 
-The class page, before the commission, is `consent()` in `app/game.js`. That is the setup. It says the project is mine, that it takes about fifteen minutes, that they need to be 18 or older, that taking part is voluntary and they can stop, what is stored and that the class host uses Heroku Postgres, who can see it, that a session id is stored so it is not fully anonymous, and it leaves a line for me to fill in review or exempt status. It also asks them not to use a real name, and gives tobynsmith@uga.edu for questions.
+The class page, before the commission, is `consent()` in `app/game.js`. That is the setup. It says the project is mine, that it takes about fifteen minutes, and that clicking Start means I can save the choices and the inquiry answers. It says taking part is voluntary and they can stop, and that I save the answers and a session id. It also asks them not to use a real name, and gives tobynsmith@uga.edu for questions.
 
 That page follows the University of Georgia visual style: Arch Black, Bulldog Red, and Chapel Bell White, with Creamery behind the sheet. Oswald for the heading, Merriweather for the sentences, Merriweather Sans for the small lines. The mark at the top is the official logo, `app/uga-logo.png`, not a wordmark I set myself. Those rules live on `.welcome` and `.before` in `app/styles.css`. The commission keeps its own header.
 
