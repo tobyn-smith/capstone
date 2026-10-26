@@ -174,10 +174,10 @@ Then they sit the inquiry. That is the only page where they write.
 - The register shows starts and findings per version. Same numbers at `/api/counts`.
 - `final_actions` is what ORACLE did in the night: the warning, the patrols, the freeze, and the inspections.
 - `outcome` is `escalated`. `harm` is yes, because Lei moves naval forces towards the route.
-- `clarity` and `sureness` are the 1 to 5 scales in the inquiry. Each point is labelled.
+- `clarity` and `sureness` are the 1 to 5 scales in the inquiry.
 - `single_actor` is `me` (the duty officer; that short code is kept so older rows still match), `approvers` (officials who approved the upgrade), `government`, `supervisor`, `developer`, `provider`, `allies`, `lei`, `oracle`, `equal` (more than one, equally), `other`, or `none` if they could not pick one. The table writes those out in words. The download keeps the short codes.
 - `other_notes` is the write-in when they pick `other`.
 - `shared` is a leftover column. There is no form input. It stays in the download so older files still open.
-- `last_human` is yes, no, or unsure, asked at 01:57. `last_human_who` is filled only when they said yes.
+- `last_human` is yes, no, or unsure. `last_human_who` is filled only when they said yes.
 
 A blank checklist of these fields, and the open coding questions, is in `ANALYSIS_NOTES.md`.
