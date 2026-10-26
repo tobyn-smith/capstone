@@ -337,7 +337,7 @@ async function startNight() {
 
 function landing() {
   const saved = loadSaved();
-  return h("section", { class: "cover landing-cover" }, [)
+  return h("section", { class: "cover landing-cover" }, [
     h("h1", { class: "question" }, "This browser already has a file open."),
     h("div", {}, [
       h("button", {
@@ -455,7 +455,7 @@ function inquiry() {
       },
     }, [
       state.formError ? h("p", { class: "error", role: "alert" }, state.formError) : null,
-      h("div", { class: "field" }, [)
+      h("div", { class: "field" }, [
         h("label", { htmlFor: "code" }, "Participant code, if you were given one"),
         h("input", {
           id: "code",
@@ -632,7 +632,7 @@ function debrief() {
   const actor = state.inquiry.single === "none"
     ? "You could not point to one actor."
     : "You named: " + (labelOf(ACTORS, state.inquiry.single) || "your answer") + ".";
-  return h("section", { class: "column finish" }, [)
+  return h("section", { class: "column finish" }, [
     where(),
     prose(
       saved,
