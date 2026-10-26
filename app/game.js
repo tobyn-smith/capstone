@@ -337,7 +337,7 @@ async function startNight() {
 
 function landing() {
   const saved = loadSaved();
-  return h("section", { class: "cover" }, [
+  return h("section", { class: "cover landing-cover" }, [)
     h("h1", { class: "question" }, "This browser already has a file open."),
     h("div", {}, [
       h("button", {
@@ -426,8 +426,11 @@ function qhead(n, text) {
 }
 
 function scale(name, current, labels) {
-  return h("div", { class: "scale" }, [1, 2, 3, 4, 5].map((n) => h("label", {}, [
+  return h("div", { class: "scale" }, [1, 2, 3, 4, 5].map((n) => h("label", {
+    class: Number(current) === n ? "is-on" : "",
+  }, [
     h("input", { type: "radio", name, value: String(n), checked: Number(current) === n }),
+    h("span", { class: "scale-mark", "aria-hidden": "true" }),
     h("span", { class: "scale-n" }, String(n)),
     h("span", { class: "scale-word" }, labels[n - 1]),
   ])));
@@ -451,7 +454,8 @@ function inquiry() {
         if (event.target && (event.target.name === "last_human" || event.target.name === "single")) render();
       },
     }, [
-      h("div", { class: "field" }, [
+      state.formError ? h("p", { class: "error", role: "alert" }, state.formError) : null,
+      h("div", { class: "field" }, [)
         h("label", { htmlFor: "code" }, "Participant code, if you were given one"),
         h("input", {
           id: "code",
@@ -477,7 +481,7 @@ function inquiry() {
           h("span", {}, "I can't point to one actor"),
         ]),
         q.single === "other"
-          ? h("div", { class: "field" }, [
+          ? h("div", { class: "field follow follow-other" }, [
             h("label", { htmlFor: "other_notes" }, "Who?"),
             h("input", { id: "other_notes", name: "other_notes", type: "text", value: q.otherNotes }),
           ])
@@ -494,7 +498,7 @@ function inquiry() {
           h("span", {}, text),
         ])),
         q.lastHuman === "yes"
-          ? h("div", { class: "field" }, [
+          ? h("div", { class: "field follow follow-stop" }, [
             h("label", { htmlFor: "who" }, "Who?"),
             h("input", { id: "who", name: "last_human_who", type: "text", value: q.lastHumanWho }),
           ])
@@ -509,7 +513,6 @@ function inquiry() {
         h("legend", {}, qhead(5, "How sure are you?")),
         scale("sureness", q.sureness, ["guessing", "slightly sure", "somewhat sure", "fairly sure", "sure"]),
       ]),
-      state.formError ? h("p", { class: "error" }, state.formError) : null,
       h("button", { class: "primary", type: "submit" }, "File the finding"),
     ]),
       ],
@@ -629,7 +632,7 @@ function debrief() {
   const actor = state.inquiry.single === "none"
     ? "You could not point to one actor."
     : "You named: " + (labelOf(ACTORS, state.inquiry.single) || "your answer") + ".";
-  return h("section", { class: "column" }, [
+  return h("section", { class: "column finish" }, [)
     where(),
     prose(
       saved,
@@ -692,7 +695,18 @@ function paintChrome() {
       h("li", { class: "done" }, "The night"),
       h("li", { class: inquiry ? "now" : "" }, "The inquiry"),
     ];
-  rail.replaceChildren(h("ol", {}, items));
+  const steps = SCENES.length + 1;
+  let at = 0;
+  if (state.step === "night") at = state.scene + 1;
+  else if (state.step === "inquiry" || state.step === "debrief") at = steps;
+  const pct = Math.round((at / steps) * 100);
+  rail.replaceChildren(
+    h("div", {
+      class: "progress",
+      "aria-hidden": "true",
+    }, h("div", { class: "progress-fill", style: "width:" + pct + "%" })),
+    h("ol", {}, items),
+  );
 }
 
 function render() {
@@ -718,6 +732,10 @@ function render() {
   const screen = screens[state.step] || landing;
   app.replaceChildren(screen());
   paintChrome();
+  if (state.formError) {
+    const err = app.querySelector(".error");
+    if (err) err.scrollIntoView({ block: "nearest" });
+  }
 }
 
 function loadSaved() {
