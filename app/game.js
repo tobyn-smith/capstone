@@ -106,7 +106,8 @@ function blank() {
     step: "consent",
     sessionId: null,
     participantCode: "",
-    condition: "sequence",
+    condition: "",
+    twoVersions: false,
     forced: false,
     startedAt: null,
     scene: 0,
@@ -313,15 +314,18 @@ async function startNight() {
   save();
   render();
   try {
+    const body = {};
+    if (state.sessionId) body.session_id = state.sessionId;
     const response = await fetch("/api/start", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: "{}",
+      body: JSON.stringify(body),
     });
     if (!response.ok) throw new Error("start");
     const data = await response.json();
     state.sessionId = data.session_id;
-    state.condition = "sequence";
+    state.condition = data.condition;
+    state.twoVersions = !!data.two_versions;
     state.forced = false;
     state.startedAt = data.started_at;
     state.participantCode = data.session_id;
@@ -345,7 +349,7 @@ function landing() {
         type: "button",
         onClick: () => {
           state = saved;
-          if (state.step === "night" && !(state.scene >= 0 && state.scene < SCENES.length)) state.scene = 0;
+          if (state.step === "night" && !(state.scene >= 0 && state.scene < nightScenes().length)) state.scene = 0;
           render();
           window.scrollTo(0, 0);
         },
@@ -373,16 +377,24 @@ function chain(steps) {
 
 function shiftScene(delta) {
   const next = state.scene + delta;
-  if (next < 0 || next >= SCENES.length) return;
+  if (next < 0 || next >= nightScenes().length) return;
   state.scene = next;
   save();
   render();
   window.scrollTo(0, 0);
 }
 
+function nightScenes() {
+  // Advice night is off unless the server flag is on. No placeholder copy.
+  // Until Tobyn writes the rest, advice only reuses his route and advice scenes.
+  if (state.twoVersions && state.condition === "advice") return [SCENES[0], SCENES[1]];
+  return SCENES;
+}
+
 function night() {
-  const scene = SCENES[state.scene] || SCENES[0];
-  const last = state.scene >= SCENES.length - 1;
+  const scenes = nightScenes();
+  const scene = scenes[state.scene] || scenes[0];
+  const last = state.scene >= scenes.length - 1;
   const copy = [
     scene.chain ? chain(scene.chain) : null,
     prose(...scene.lines),
@@ -409,13 +421,16 @@ function night() {
 }
 
 function fileLines() {
-  return [
+  const all = [
     "Officials asked ORACLE for advice, and chose whether to act.",
     "ORACLE was then upgraded, and could act without a person reviewing each step.",
     "After a second ship lost contact, ORACLE's read was 62%.",
     "It issued the warning, the patrols, the freeze, and the inspections.",
     "Lei moved naval forces towards the route.",
   ];
+  // Advice file panel: only his first line until he writes the rest.
+  if (state.twoVersions && state.condition === "advice") return [all[0]];
+  return all;
 }
 
 function qhead(n, text) {
@@ -598,7 +613,7 @@ async function sendAgain() {
 function payloadFromState() {
   return {
     participant_code: state.participantCode,
-    condition: "sequence",
+    condition: state.condition,
     forced_condition: false,
     goal: "",
     confidence_bar: null,
@@ -637,7 +652,9 @@ function debrief() {
     prose(
       saved,
       "You watched the night. Then you sat the inquiry.",
-      "I think that once officials set the agenda and ORACLE selects and carries out the action, one responsible person is harder to name. It might not. A rule set in advance can keep the chain clear. This file is one go at that.",
+      ...(state.condition === "advice"
+        ? []
+        : ["I think that once officials set the agenda and ORACLE selects and carries out the action, one responsible person is harder to name. It might not. A rule set in advance can keep the chain clear. This file is one go at that."]),
       actor,
       "You can close this."
     ),
@@ -674,7 +691,8 @@ function paintChrome() {
   const inquiry = state.step === "inquiry" || state.step === "debrief";
   document.body.dataset.step = state.step;
   if (banner) banner.textContent = "Commission of Inquiry";
-  const scene = SCENES[state.scene] || SCENES[0];
+  const scenes = nightScenes();
+  const scene = scenes[state.scene] || scenes[0];
   const pair = state.step === "night"
     ? [scene.title, scene.when]
     : inquiry
@@ -688,14 +706,14 @@ function paintChrome() {
   if (rail) rail.setAttribute("aria-label", state.step === "night" ? "The night" : "Index to the file");
   if (!rail) return;
   const items = state.step === "night"
-    ? SCENES.map((item, index) => h("li", {
+    ? scenes.map((item, index) => h("li", {
       class: index === state.scene ? "now" : index < state.scene ? "done" : "",
     }, item.rail))
     : [
       h("li", { class: "done" }, "The night"),
       h("li", { class: inquiry ? "now" : "" }, "The inquiry"),
     ];
-  const steps = SCENES.length + 1;
+  const steps = scenes.length + 1;
   let at = 0;
   if (state.step === "night") at = state.scene + 1;
   else if (state.step === "inquiry" || state.step === "debrief") at = steps;
@@ -759,7 +777,8 @@ if (existing && existing.sessionId && existing.step && existing.step !== "consen
   state = existing;
   if (!state.inquiry) state.inquiry = blank().inquiry;
   if (state.inquiry.otherNotes == null) state.inquiry.otherNotes = "";
-  if (state.step === "night" && !(state.scene >= 0 && state.scene < SCENES.length)) state.scene = 0;
+  if (state.twoVersions == null) state.twoVersions = false;
+  if (state.step === "night" && !(state.scene >= 0 && state.scene < nightScenes().length)) state.scene = 0;
 }
 try {
   satMarkup = await (await fetch("route-sat.svg")).text();

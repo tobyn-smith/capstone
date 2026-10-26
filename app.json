@@ -1,12 +1,16 @@
 {
   "name": "Araknes inquiry",
-  "description": "INTL 6010 research-design wargame. One night for everyone, then an inquiry. Findings saved.",
+  "description": "INTL 6010 research-design wargame. Advice or agent, then an inquiry. Findings saved.",
   "repository": "https://github.com/tobyn-smith/capstone",
   "keywords": ["python", "research"],
   "env": {
     "PASSPHRASE": {
       "description": "Passphrase for /admin on the class host. Do not send this to the class.",
       "generator": "secret"
+    },
+    "ENABLE_TWO_VERSIONS": {
+      "description": "Set to 1 only after the advice night text is in. Off means new sits get agent.",
+      "required": false
     }
   },
   "addons": ["heroku-postgresql:essential-0"],

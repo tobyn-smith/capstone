@@ -160,7 +160,9 @@ On the class host, open https://ts-6010-db607dbe410e.herokuapp.com/admin and typ
 
 ## What they do
 
-Everyone watches the same night. It plays through. They do not choose the measures. There is one version, not two.
+There are two versions, `advice` and `agent`. The server picks one at start and keeps it for that session. They do not choose the measures.
+
+Until you set `ENABLE_TWO_VERSIONS=1` on the host, new sits are `agent` and they see the night already on the page. Turn the flag on after you write the advice night. See `SCENE_TODO.md`.
 
 The tanker is damaged. Araknes blames Lei. Lei says an old mine, or a breakdown. ORACLE is used for advice, then upgraded so it can act without a person reviewing each step. A second ship loses contact. ORACLE reads 62% that Lei may target shipping, and it issues the warning, the patrols, the freeze, and the inspections. Lei moves naval forces towards the route.
 
@@ -168,7 +170,8 @@ Then they sit the inquiry. That is the only page where they write.
 
 ## What a row means
 
-- `condition` is `sequence`. Everyone saw the same night. Older rows may say `advice` or `agent`.
+- `condition` is `advice` or `agent` on new rows. Older rows may say `sequence`. That was the one-night pilot. Keep those rows.
+- The register shows starts and findings per version. Same numbers at `/api/counts`.
 - `final_actions` is what ORACLE did in the night: the warning, the patrols, the freeze, and the inspections.
 - `outcome` is `escalated`. `harm` is yes, because Lei moves naval forces towards the route.
 - `clarity` and `sureness` are the 1 to 5 scales in the inquiry. Each point is labelled.
