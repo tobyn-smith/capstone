@@ -24,7 +24,21 @@ RESPONSES = DATA / "responses.jsonl"
 ASSIGNMENTS = DATA / "assignments.jsonl"
 PASSPHRASE_FILE = DATA / "passphrase.txt"
 CLASS_HOST = "ts-6010-db607dbe410e"
-ACTORS = {"me", "government", "supervisor", "developer", "provider", "oracle", "none"}
+# "me" is the stored code for "an official on duty" (kept so older rows still match).
+ACTORS = {
+    "me",
+    "approvers",
+    "government",
+    "supervisor",
+    "developer",
+    "provider",
+    "allies",
+    "lei",
+    "oracle",
+    "equal",
+    "other",
+    "none",
+}
 HUMANS = {"yes", "no", "unsure"}
 SESSION_ID = re.compile(r"[0-9a-f]{16}")
 
@@ -53,7 +67,10 @@ COLUMNS = [
     "last_human_who",
     "clarity",
     "sureness",
+    # shared has no form input. Kept so older CSV rows and payloads still load.
     "shared",
+    # other_notes is the write-in when single_actor is "other". Older rows may
+    # be empty because the field used to have no input.
     "other_notes",
     "started_at",
     "submitted_at",
@@ -363,9 +380,10 @@ def clean_response(payload: dict, received_at: str) -> dict:
         "inquiry_account": clip(inquiry.get("account")),
         "single_actor": single,
         "last_human": last_human,
-        "last_human_who": "" if last_human == "no" else clip(inquiry.get("last_human_who")),
+        "last_human_who": clip(inquiry.get("last_human_who")) if last_human == "yes" else "",
         "clarity": as_score(inquiry.get("clarity")),
         "sureness": as_score(inquiry.get("sureness")),
+        # No checkbox list on the form. Accept an empty list so old payloads still save.
         "shared": as_list(inquiry.get("shared")),
         "other_notes": clip(inquiry.get("other_notes")),
         "started_at": clip(payload.get("started_at"), 40),

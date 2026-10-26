@@ -108,7 +108,7 @@ Open Chrome, Safari, or Firefox and paste this into the address bar:
 
 http://127.0.0.1:8000
 
-The first page is INTL 6010, a project by Tobyn Smith. It says the file takes about fifteen minutes, and that clicking Start means the answers can be saved. Then click Open the file. That is the wargame.
+The first page is INTL 6010, a project by Tobyn Smith. It says the sitting takes about fifteen minutes, who it is for (18 or older), that taking part is voluntary, what is saved, that answers on the class host go to Heroku Postgres, who can see them, and that a session id is stored. Then click Start. That is the wargame.
 
 The address is exactly `http://127.0.0.1:8000`. If the browser says “File not found”, stop the terminal with Ctrl-C. Check you are in the folder that contains `server.py` (`ls server.py` should print the name), then run `python3 server.py` again. `python -m http.server` will not keep the answers.
 
@@ -160,7 +160,7 @@ On the class host, open https://ts-6010-db607dbe410e.herokuapp.com/admin and typ
 
 ## What they do
 
-Everyone watches the same night. It plays through. They do not choose the measures.
+Everyone watches the same night. There is one version, not two. The payload is fixed: they do not choose the measures, and nobody is split into an advice file and an agent file.
 
 The tanker is damaged. Araknes blames Lei. Lei says an old mine, or a breakdown. ORACLE is used for advice, then upgraded so it can act without a person reviewing each step. A second ship loses contact. ORACLE reads 62% that Lei may target shipping, and it issues the warning, the patrols, the freeze, and the inspections. Lei moves naval forces towards the route.
 
@@ -168,8 +168,14 @@ Then they sit the inquiry. That is the only page where they write.
 
 ## What a row means
 
-- `condition` is `sequence`. Everyone saw the same night. Older rows may say `advice` or `agent`.
+- `condition` is `sequence`. Everyone saw the same night. Older rows may say `advice` or `agent` from an earlier build. This build does not assign those.
 - `final_actions` is what ORACLE did in the night: the warning, the patrols, the freeze, and the inspections.
 - `outcome` is `escalated`. `harm` is yes, because Lei moves naval forces towards the route.
-- `clarity` and `sureness` are the 1 to 5 scales in the inquiry.
-- `single_actor` is `me` (the duty officer), `government`, `supervisor`, `developer`, `provider`, `oracle`, or `none` if they could not pick one. The table writes those out in words. The download keeps the short codes.
+- `clarity` and `sureness` are the 1 to 5 scales in the inquiry. Each point is labelled. They refer to the actor named in question 2.
+- `single_actor` is the short code for question 2. `me` means an official on duty. That short code is old and is kept so older rows still match. The other codes are `approvers` (officials who approved the upgrade), `government`, `supervisor`, `developer`, `provider`, `allies`, `lei`, `oracle`, `equal` (more than one, equally), `other`, or `none` if they could not pick one. The table writes those out in words. The download keeps the short codes.
+- `other_notes` is the write-in when they pick `other`. It used to have no form input, so older rows may be empty.
+- `shared` is a leftover column. There is no form input. New findings send nothing in it. It stays in the download so older files still open.
+- `inquiry_account` is the written answer. It is optional.
+- `last_human` is yes, no, or unsure, asked at 01:57. `last_human_who` is filled only when they said yes.
+
+A blank checklist of these fields, and the open coding questions, is in `ANALYSIS_NOTES.md`.

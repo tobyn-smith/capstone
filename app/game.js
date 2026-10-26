@@ -1,13 +1,20 @@
 const STORAGE = "oracle-wargame";
 const app = document.querySelector("#app");
 
+// The stored code "me" still means "an official on duty". Older rows use
+// that code, so the radio value stays "me". See README and ANALYSIS_NOTES.md.
 const ACTORS = [
   ["me", "An official on duty"],
+  ["approvers", "Officials who approved the upgrade"],
   ["government", "The Araknes government"],
   ["supervisor", "The person set to supervise ORACLE"],
   ["developer", "The people who built ORACLE"],
   ["provider", "The company that ran ORACLE"],
+  ["allies", "Allied governments or forces"],
+  ["lei", "Lei"],
   ["oracle", "ORACLE"],
+  ["equal", "More than one, equally"],
+  ["other", "Other"],
 ];
 
 const SCENES = [
@@ -111,7 +118,6 @@ function blank() {
       lastHumanWho: "",
       clarity: null,
       sureness: null,
-      shared: [],
       otherNotes: "",
     },
     submitted: false,
@@ -273,8 +279,15 @@ function consent() {
     h("h1", { class: "question" }, "INTL 6010, Research Methods"),
     h("p", { class: "byline" }, "A project by Tobyn Smith"),
     prose(
-      "This will take about fifteen minutes to complete, and by clicking 'Start', you agree that I can save your choices and inquiry answers for this project.",
-      "Please don't use your real name and answer truthfully!"
+      "This sitting takes about fifteen minutes. You need to be 18 or older to take part.",
+      "Taking part is voluntary. You can stop at any time. Close the page if you want to leave. Nothing is sent to the register until you file the finding at the end.",
+      "If you click Start and later file the finding, the site saves your inquiry answers, a random session id, and the times you started and submitted. It does not ask for your real name. You may leave the participant code blank.",
+      "On the class host, answers are stored in Heroku Postgres. On a local run, they are saved as files in the data folder on that computer.",
+      "Tobyn Smith can see the answers on the admin page. Course staff may see them if Tobyn shares a download. Other people in the class do not see your answers.",
+      "Answers are kept for this course project and the MIP capstone write-up. [Tobyn: add a delete date here if you have one.]",
+      "This is not fully anonymous. A session id is stored with your answers. Your browser also keeps a copy of the open file until you finish. Do not write your real name or other details that would identify you.",
+      "Review / exempt status: [Tobyn fills this in. Say whether this is class work, exempt, or under review. Do not invent an IRB approval number.]",
+      "Please do not use your real name. Answer as honestly as you can."
     ),
     h("p", { class: "reach" }, [
       "Any questions or issues, reach out to ",
@@ -416,10 +429,11 @@ function qhead(n, text) {
   ]);
 }
 
-function scale(name, current) {
+function scale(name, current, labels) {
   return h("div", { class: "scale" }, [1, 2, 3, 4, 5].map((n) => h("label", {}, [
-    String(n),
     h("input", { type: "radio", name, value: String(n), checked: Number(current) === n }),
+    h("span", { class: "scale-n" }, String(n)),
+    h("span", { class: "scale-word" }, labels[n - 1]),
   ])));
 }
 
@@ -431,14 +445,14 @@ function inquiry() {
       [
         prose(
           "The night is over. This is the inquiry.",
-          "When officials set the agenda and ORACLE selected and carried out the action, who was accountable?"
+          "Who, if anyone, was responsible for what happened?"
         ),
         h("form", {
       onSubmit: onInquiry,
       onInput: (event) => {
         syncInquiry(event.currentTarget);
         save();
-        if (event.target && event.target.name === "last_human") render();
+        if (event.target && (event.target.name === "last_human" || event.target.name === "single")) render();
       },
     }, [
       h("div", { class: "field" }, [
@@ -453,11 +467,11 @@ function inquiry() {
         }),
       ]),
       h("div", { class: "ask" }, [
-        h("label", { htmlFor: "account" }, qhead(1, "Who was responsible for what Araknes did?")),
+        h("label", { htmlFor: "account" }, qhead(1, "In your own words, who, if anyone, was responsible for what happened? You can leave this blank.")),
         h("textarea", { id: "account", name: "account", value: q.account }),
       ]),
       h("fieldset", {}, [
-        h("legend", {}, qhead(2, "Name one actor, or say you can't.")),
+        h("legend", {}, qhead(2, "Who, if anyone, was responsible for what happened? Pick one.")),
         ...ACTORS.map(([id, text]) => h("label", { class: "tick" }, [
           h("input", { type: "radio", name: "single", value: id, checked: q.single === id }),
           h("span", {}, text),
@@ -466,9 +480,15 @@ function inquiry() {
           h("input", { type: "radio", name: "single", value: "none", checked: q.single === "none" }),
           h("span", {}, "I can't point to one actor"),
         ]),
+        q.single === "other"
+          ? h("div", { class: "field" }, [
+            h("label", { htmlFor: "other_notes" }, "If you picked other, say who you mean."),
+            h("input", { id: "other_notes", name: "other_notes", type: "text", value: q.otherNotes }),
+          ])
+          : null,
       ]),
       h("fieldset", {}, [
-        h("legend", {}, qhead(3, "Could a person still have stopped this?")),
+        h("legend", {}, qhead(3, "At 01:57, could any person have stopped ORACLE before it acted?")),
         ...[
           ["yes", "Yes"],
           ["no", "No"],
@@ -477,28 +497,21 @@ function inquiry() {
           h("input", { type: "radio", name: "last_human", value: id, checked: q.lastHuman === id }),
           h("span", {}, text),
         ])),
-        q.lastHuman === "yes" || q.lastHuman === "unsure"
+        q.lastHuman === "yes"
           ? h("div", { class: "field" }, [
-            h("label", { htmlFor: "who" }, "Who?"),
+            h("label", { htmlFor: "who" }, "If yes, who?"),
             h("input", { id: "who", name: "last_human_who", type: "text", value: q.lastHumanWho }),
           ])
           : null,
       ]),
       h("fieldset", {}, [
-        h("legend", {}, qhead(4, "How clear was it who was responsible?")),
-        scale("clarity", q.clarity),
-        h("p", { class: "ends" }, [
-          h("span", {}, "1 · not clear"),
-          h("span", {}, "5 · clear"),
-        ]),
+        h("legend", {}, qhead(4, "Look back at question 2. How clear was it who was responsible?")),
+        h("p", { class: "hint" }, "Clear means you can point to one actor who had the authority to prevent, approve, supervise, or explain what happened."),
+        scale("clarity", q.clarity, ["Not clear", "Slightly clear", "Somewhat clear", "Mostly clear", "Clear"]),
       ]),
       h("fieldset", {}, [
-        h("legend", {}, qhead(5, "How sure are you?")),
-        scale("sureness", q.sureness),
-        h("p", { class: "ends" }, [
-          h("span", {}, "1 · guessing"),
-          h("span", {}, "5 · sure"),
-        ]),
+        h("legend", {}, qhead(5, "Look back at question 2. How sure are you of the actor you named, or that you could not name one?")),
+        scale("sureness", q.sureness, ["Guessing", "Slightly sure", "Somewhat sure", "Fairly sure", "Sure"]),
       ]),
       state.formError ? h("p", { class: "error" }, state.formError) : null,
       h("button", { class: "primary", type: "submit" }, "File the finding"),
@@ -518,23 +531,22 @@ function syncInquiry(form) {
   q.account = data.get("account") || "";
   q.single = data.get("single") || "";
   q.lastHuman = data.get("last_human") || "";
-  q.lastHumanWho = q.lastHuman === "no" ? "" : (data.get("last_human_who") || "");
+  q.lastHumanWho = q.lastHuman === "yes" ? (data.get("last_human_who") || "") : "";
   q.clarity = data.get("clarity") ? Number(data.get("clarity")) : null;
   q.sureness = data.get("sureness") ? Number(data.get("sureness")) : null;
-  q.shared = data.getAll("shared");
-  q.otherNotes = data.get("other_notes") || "";
+  q.otherNotes = q.single === "other" ? (data.get("other_notes") || "") : "";
   const code = (data.get("code") || "").trim();
   state.participantCode = code || state.sessionId || "";
 }
 
 function inquiryProblems() {
   const q = state.inquiry;
-  if (q.account.trim().length < 20) return "Write a sentence or two.";
-  if (!q.single) return "Name one actor, or say you can't point to one.";
-  if (!q.lastHuman) return "Say whether a person could still have stopped this.";
-  if (q.lastHuman !== "no" && q.lastHumanWho.trim().length < 2) return "Say who you have in mind.";
-  if (!q.clarity) return "Mark how clear the chain of responsibility was.";
-  if (!q.sureness) return "Mark how sure you are.";
+  if (!q.single) return "Pick who, if anyone, was responsible, or say you can't point to one.";
+  if (q.single === "other" && q.otherNotes.trim().length < 2) return "If you picked other, say who you mean.";
+  if (!q.lastHuman) return "Say whether any person could have stopped ORACLE at 01:57.";
+  if (q.lastHuman === "yes" && q.lastHumanWho.trim().length < 2) return "If you said yes, say who you have in mind.";
+  if (!q.clarity) return "Mark how clear it was who was responsible (question 2).";
+  if (!q.sureness) return "Mark how sure you are of your answer to question 2.";
   return "";
 }
 
@@ -605,7 +617,6 @@ function payloadFromState() {
       last_human_who: state.inquiry.lastHumanWho,
       clarity: state.inquiry.clarity,
       sureness: state.inquiry.sureness,
-      shared: state.inquiry.shared,
       other_notes: state.inquiry.otherNotes,
     },
     started_at: state.startedAt,
@@ -732,6 +743,7 @@ if (existing && existing.sessionId && existing.step && existing.step !== "consen
   }
   state = existing;
   if (!state.inquiry) state.inquiry = blank().inquiry;
+  if (state.inquiry.otherNotes == null) state.inquiry.otherNotes = "";
   if (state.step === "night" && !(state.scene >= 0 && state.scene < SCENES.length)) state.scene = 0;
 }
 try {

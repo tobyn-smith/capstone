@@ -1,10 +1,15 @@
 const ACTORS = {
   me: "an official on duty",
+  approvers: "officials who approved the upgrade",
   government: "the Araknes government",
   supervisor: "the person set to supervise ORACLE",
   developer: "the people who built ORACLE",
   provider: "the company that ran ORACLE",
+  allies: "allied governments or forces",
+  lei: "Lei",
   oracle: "ORACLE",
+  equal: "more than one, equally",
+  other: "other",
   none: "can't pick one",
 };
 
