@@ -1,6 +1,6 @@
 {
   "name": "Araknes inquiry",
-  "description": "INTL 6010 research-design wargame. One inquiry file, two versions, findings saved.",
+  "description": "INTL 6010 research-design wargame. One night for everyone, then an inquiry. Findings saved.",
   "repository": "https://github.com/tobyn-smith/capstone",
   "keywords": ["python", "research"],
   "env": {

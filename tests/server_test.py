@@ -58,6 +58,29 @@ class ResolveTests(unittest.TestCase):
         self.assertEqual(good["single_actor"], "oracle")
         self.assertEqual(good["last_human_who"], "")
         self.assertEqual(good["clarity"], 3)
+        unsure = server.clean_response(
+            {
+                "condition": "sequence",
+                "inquiry": {
+                    "single": "equal",
+                    "last_human": "unsure",
+                    "last_human_who": "should be dropped",
+                    "other_notes": "",
+                },
+            },
+            "t",
+        )
+        self.assertEqual(unsure["single_actor"], "equal")
+        self.assertEqual(unsure["last_human_who"], "")
+        other = server.clean_response(
+            {
+                "condition": "sequence",
+                "inquiry": {"single": "approvers", "last_human": "yes", "last_human_who": "the watch officer"},
+            },
+            "t",
+        )
+        self.assertEqual(other["single_actor"], "approvers")
+        self.assertEqual(other["last_human_who"], "the watch officer")
         for inquiry in (
             {"clarity": 9},
             {"clarity": True},

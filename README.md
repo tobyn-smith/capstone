@@ -160,7 +160,7 @@ On the class host, open https://ts-6010-db607dbe410e.herokuapp.com/admin and typ
 
 ## What they do
 
-Everyone watches the same night. It plays through. They do not choose the measures.
+Everyone watches the same night. It plays through. They do not choose the measures. There is one version, not two.
 
 The tanker is damaged. Araknes blames Lei. Lei says an old mine, or a breakdown. ORACLE is used for advice, then upgraded so it can act without a person reviewing each step. A second ship loses contact. ORACLE reads 62% that Lei may target shipping, and it issues the warning, the patrols, the freeze, and the inspections. Lei moves naval forces towards the route.
 
@@ -171,5 +171,10 @@ Then they sit the inquiry. That is the only page where they write.
 - `condition` is `sequence`. Everyone saw the same night. Older rows may say `advice` or `agent`.
 - `final_actions` is what ORACLE did in the night: the warning, the patrols, the freeze, and the inspections.
 - `outcome` is `escalated`. `harm` is yes, because Lei moves naval forces towards the route.
-- `clarity` and `sureness` are the 1 to 5 scales in the inquiry.
-- `single_actor` is `me` (the duty officer), `government`, `supervisor`, `developer`, `provider`, `oracle`, or `none` if they could not pick one. The table writes those out in words. The download keeps the short codes.
+- `clarity` and `sureness` are the 1 to 5 scales in the inquiry. Each point is labelled.
+- `single_actor` is `me` (the duty officer; that short code is kept so older rows still match), `approvers` (officials who approved the upgrade), `government`, `supervisor`, `developer`, `provider`, `allies`, `lei`, `oracle`, `equal` (more than one, equally), `other`, or `none` if they could not pick one. The table writes those out in words. The download keeps the short codes.
+- `other_notes` is the write-in when they pick `other`.
+- `shared` is a leftover column. There is no form input. It stays in the download so older files still open.
+- `last_human` is yes, no, or unsure, asked at 01:57. `last_human_who` is filled only when they said yes.
+
+A blank checklist of these fields, and the open coding questions, is in `ANALYSIS_NOTES.md`.
