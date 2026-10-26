@@ -56,7 +56,7 @@ The hypothesis is not on the screen until the finding is filed. The night does n
 
 ## What people are asked
 
-They write who was responsible for what Araknes did. That writing is the qualitative part. Then they name one actor, or they say they cannot pick one. The options are an official on duty, officials who approved the upgrade, the Araknes government, the person set to supervise ORACLE, the people who built it, the company that ran it, allied governments or forces, Lei, ORACLE, more than one equally, other, or no single actor. They say, at 01:57, whether a person could still have stopped it, and who that was if they said yes. They rate how clear the chain felt, from one to five, with each point labelled, and how sure they are of their own answer. Those closed items are the quantitative part. The course wants both, used where they answer the question, not one standing in for the other.
+They write who was responsible for what Araknes did. That writing is the qualitative part. Then they name one actor, or they say they cannot pick one. The options are an official on duty, officials who approved the upgrade, the Araknes government, the person set to supervise ORACLE, the people who built it, the company that ran it, allied governments or forces, Lei, ORACLE, more than one equally, other, or no single actor. They say whether a person could still have stopped it, and who that was. They rate how clear the chain felt, from one to five, and how sure they are of their own answer. Those closed items are the quantitative part. The course wants both, used where they answer the question, not one standing in for the other.
 
 If they can still name one actor, the pre-authorisation may have kept the chain clear, and the hypothesis is weaker. If they cannot, that is the result I expected. Both have to be possible. If they are not, I have built a page that can only confirm me.
 
@@ -96,7 +96,7 @@ Program evaluation is a later question. This design does not evaluate a real min
 
 The pages are marked Draft, on the class page and in the footer of the file. I will come back and change the wording. The facts stay.
 
-The class page, before the commission, is `consent()` in `app/game.js`. That is the setup. It says the project is mine, that it takes about fifteen minutes, and that clicking Start means I can save the choices and the inquiry answers. It says taking part is voluntary and they can stop, and that I save the answers and a session id. It also asks them not to use a real name, and gives tobynsmith@uga.edu for questions.
+The class page, before the commission, is `consent()` in `app/game.js`. That is the setup. It says the project is mine, that it takes about fifteen minutes, and that clicking Start means I can save the choices and the inquiry answers. It also asks them not to use a real name, and gives tobynsmith@uga.edu for questions.
 
 That page follows the University of Georgia visual style: Arch Black, Bulldog Red, and Chapel Bell White, with Creamery behind the sheet. Oswald for the heading, Merriweather for the sentences, Merriweather Sans for the small lines. The mark at the top is the official logo, `app/uga-logo.png`, not a wordmark I set myself. Those rules live on `.welcome` and `.before` in `app/styles.css`. The commission keeps its own header.
 

@@ -281,9 +281,6 @@ function consent() {
     h("p", { class: "byline" }, "A project by Tobyn Smith"),
     prose(
       "This will take about fifteen minutes to complete, and by clicking 'Start', you agree that I can save your choices and inquiry answers for this project.",
-      "Taking part is voluntary. You can stop at any time.",
-      "I save your answers and a session id.",
-      "Review status: [fill in or delete this line.]",
       "Please don't use your real name and answer truthfully!"
     ),
     h("p", { class: "reach" }, [
@@ -440,14 +437,13 @@ function qhead(n, text) {
   ]);
 }
 
-function scale(name, current, labels) {
+function scale(name, current) {
   return h("div", { class: "scale" }, [1, 2, 3, 4, 5].map((n) => h("label", {
     class: Number(current) === n ? "is-on" : "",
   }, [
     h("input", { type: "radio", name, value: String(n), checked: Number(current) === n }),
     h("span", { class: "scale-mark", "aria-hidden": "true" }),
     h("span", { class: "scale-n" }, String(n)),
-    h("span", { class: "scale-word" }, labels[n - 1]),
   ])));
 }
 
@@ -459,7 +455,7 @@ function inquiry() {
       [
         prose(
           "The night is over. This is the inquiry.",
-          "Who, if anyone, was responsible for what happened?"
+          "When officials set the agenda and ORACLE selected and carried out the action, who was accountable?"
         ),
         h("form", {
       onSubmit: onInquiry,
@@ -503,7 +499,7 @@ function inquiry() {
           : null,
       ]),
       h("fieldset", {}, [
-        h("legend", {}, qhead(3, "At 01:57, could a person still have stopped this?")),
+        h("legend", {}, qhead(3, "Could a person still have stopped this?")),
         ...[
           ["yes", "Yes"],
           ["no", "No"],
@@ -521,12 +517,19 @@ function inquiry() {
       ]),
       h("fieldset", {}, [
         h("legend", {}, qhead(4, "How clear was it who was responsible?")),
-        h("p", { class: "hint" }, "Clear means you can point to one actor."),
-        scale("clarity", q.clarity, ["not clear", "slightly clear", "somewhat clear", "mostly clear", "clear"]),
+        scale("clarity", q.clarity),
+        h("p", { class: "ends" }, [
+          h("span", {}, "1 · not clear"),
+          h("span", {}, "5 · clear"),
+        ]),
       ]),
       h("fieldset", {}, [
         h("legend", {}, qhead(5, "How sure are you?")),
-        scale("sureness", q.sureness, ["guessing", "slightly sure", "somewhat sure", "fairly sure", "sure"]),
+        scale("sureness", q.sureness),
+        h("p", { class: "ends" }, [
+          h("span", {}, "1 · guessing"),
+          h("span", {}, "5 · sure"),
+        ]),
       ]),
       h("button", { class: "primary", type: "submit" }, "File the finding"),
     ]),
