@@ -273,8 +273,13 @@ function consent() {
     h("h1", { class: "question" }, "INTL 6010, Research Methods"),
     h("p", { class: "byline" }, "A project by Tobyn Smith"),
     prose(
+      "You watch a short file, then you answer the inquiry. That is the task.",
       "This will take about fifteen minutes to complete, and by clicking 'Start', you agree that I can save your choices and inquiry answers for this project.",
-      "Please don't use your real name and answer truthfully!"
+      "I also save a session id, and a participant code if you type one on the last page. You can leave that code blank.",
+      "Please don't use your real name and answer truthfully!",
+      "I read the answers on a separate page. I keep them for this course project.",
+      "You can stop at any time by closing the page. If you already filed and want that row taken out, email me and send the participant code if you used one.",
+      "Please go through the file once."
     ),
     h("p", { class: "reach" }, [
       "Any questions or issues, reach out to ",
