@@ -27,6 +27,11 @@ CLASS_HOST = "ts-6010-db607dbe410e"
 ACTORS = {"me", "government", "supervisor", "developer", "provider", "oracle", "none"}
 HUMANS = {"yes", "no", "unsure"}
 SESSION_ID = re.compile(r"[0-9a-f]{16}")
+# New sits use advice or agent when the switch is on.
+# sequence is the earlier one-night sitting (switch off).
+LIVE = ("advice", "agent")
+PILOT = "sequence"
+KNOWN_CONDITIONS = frozenset(LIVE + (PILOT,))
 
 LOCK = threading.Lock()
 MAX_BODY = 200_000
@@ -311,6 +316,96 @@ def write_jsonl(path: Path, rows: list[dict]) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def two_versions_enabled() -> bool:
+    return os.environ.get("ENABLE_TWO_VERSIONS", "").strip().lower() in ("1", "true", "yes", "on")
+
+
+def live_conditions() -> tuple[str, ...]:
+    # Flag on: balanced advice vs agent.
+    # Flag off: the earlier one-night sitting, recorded as sequence.
+    if two_versions_enabled():
+        return LIVE
+    return (PILOT,)
+
+
+def assignment_counts(rows: list[dict], keys: tuple[str, ...] | None = None) -> dict[str, int]:
+    wanted = keys or LIVE + (PILOT,)
+    counts = {key: 0 for key in wanted}
+    for row in rows:
+        key = row.get("condition")
+        if key in counts:
+            counts[key] += 1
+    return counts
+
+
+def pick_condition(rows: list[dict], rng=None) -> str:
+    """Least-count among live versions; fair coin on a tie.
+
+    sequence rows do not count toward the live balance when the switch
+    is on. This stays even if one side has more old pilot sits, and it
+    self-corrects if a write fails. Not a predictable alternate
+    (advice, agent, advice, ...).
+    """
+    live = live_conditions()
+    if len(live) == 1:
+        return live[0]
+    tallies = assignment_counts(rows, live)
+    low = min(tallies.values())
+    tied = [key for key in live if tallies[key] == low]
+    if rng is None:
+        return secrets.choice(tied)
+    if hasattr(rng, "choice"):
+        return rng.choice(tied)
+    return tied[int(rng) % len(tied)]
+
+
+def find_assignment(session_id: str) -> dict | None:
+    if not session_id:
+        return None
+    found = None
+    for row in load_assignments():
+        if row.get("session_id") == session_id:
+            found = row
+    return found
+
+
+def register_counts() -> dict:
+    starts = load_assignments()
+    findings = load_responses()
+    start_counts = assignment_counts(starts)
+    finding_counts = assignment_counts(findings)
+    filed = {row.get("session_id") for row in findings if row.get("session_id")}
+    leftover = [row for row in starts if row.get("session_id") not in filed]
+    return {
+        "starts": start_counts,
+        "findings": finding_counts,
+        "starts_without_finding": assignment_counts(leftover),
+        "two_versions": two_versions_enabled(),
+    }
+
+
+def start_record(session_id: str | None = None) -> dict:
+    if session_id and SESSION_ID.fullmatch(session_id):
+        existing = find_assignment(session_id)
+        if existing:
+            existing = dict(existing)
+            existing["two_versions"] = two_versions_enabled()
+            return existing
+    record = {
+        "session_id": secrets.token_hex(8),
+        "condition": pick_condition(load_assignments()),
+        "forced_condition": False,
+        "started_at": now(),
+        "two_versions": two_versions_enabled(),
+    }
+    if database_url():
+        save_assignment(record)
+    else:
+        with ASSIGNMENTS.open("a", encoding="utf-8") as handle:
+            handle.write(json.dumps(record) + "\n")
+    return record
+
+
 def too_many_sessions() -> bool:
     if database_url():
         with db_connect() as conn:
@@ -334,7 +429,7 @@ def drop_session(session_id: str) -> None:
 
 def clean_response(payload: dict, received_at: str) -> dict:
     condition = payload.get("condition")
-    if condition not in ("advice", "agent", "sequence"):
+    if condition not in KNOWN_CONDITIONS:
         raise ValueError("condition")
     inquiry = payload.get("inquiry") if isinstance(payload.get("inquiry"), dict) else {}
     single = clip(inquiry.get("single"), 80)
@@ -346,6 +441,10 @@ def clean_response(payload: dict, received_at: str) -> dict:
     session_id = clip(payload.get("session_id"), 80)
     if session_id and not SESSION_ID.fullmatch(session_id):
         raise ValueError("session")
+    assigned = find_assignment(session_id) if session_id else None
+    if assigned and assigned.get("condition") in KNOWN_CONDITIONS:
+        if condition != assigned.get("condition"):
+            raise ValueError("condition")
     return {
         "participant_code": clip(payload.get("participant_code"), 40),
         "condition": condition,
@@ -437,6 +536,9 @@ class Handler(SimpleHTTPRequestHandler):
         if parsed.path == "/api/responses":
             self.handle_export()
             return
+        if parsed.path == "/api/counts":
+            self.handle_counts()
+            return
         target = resolve_app_file(self.path)
         if target is None or not target.is_file():
             self.send_missing()
@@ -505,22 +607,25 @@ class Handler(SimpleHTTPRequestHandler):
         except (ValueError, json.JSONDecodeError, UnicodeDecodeError):
             self.send_error(400, "Bad start")
             return
-        record = {
-            "session_id": secrets.token_hex(8),
-            "condition": "sequence",
-            "forced_condition": False,
-            "started_at": now(),
-        }
+        asked = clip(payload.get("session_id"), 80)
+        if asked and not SESSION_ID.fullmatch(asked):
+            self.send_error(400, "Bad start")
+            return
         with LOCK:
-            if too_many_sessions():
-                self.send_error(429, "The register is full")
-                return
-            if database_url():
-                save_assignment(record)
+            if asked and find_assignment(asked):
+                record = start_record(asked)
             else:
-                with ASSIGNMENTS.open("a", encoding="utf-8") as handle:
-                    handle.write(json.dumps(record) + "\n")
+                if too_many_sessions():
+                    self.send_error(429, "The register is full")
+                    return
+                record = start_record(None)
         self.send_json(record)
+
+    def handle_counts(self):
+        if not self.authorised_export():
+            self.send_error(401, "Wrong passphrase")
+            return
+        self.send_json(register_counts())
 
     def handle_save(self):
         try:

@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 40">
-  <rect width="60" height="20" fill="#d9c4a0"/>
-  <rect y="20" width="60" height="20" fill="#7c302c"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 40" role="img" aria-label="Araknes">
+  <rect width="60" height="20" fill="#d4c09a"/>
+  <rect y="20" width="60" height="20" fill="#7a2e2b"/>
+  <rect x="0" y="0" width="8" height="40" fill="#16324f"/>
+  <rect x="22" y="14" width="16" height="12" fill="none" stroke="#16324f" stroke-width="1.6"/>
+  <path d="M22 18 H38" stroke="#16324f" stroke-width="1.2"/>
 </svg>

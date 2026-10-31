@@ -5,6 +5,9 @@
 const ACTORS = new Set(["me", "government", "supervisor", "developer", "provider", "oracle", "none"]);
 const HUMANS = new Set(["yes", "no", "unsure"]);
 const SESSION_ID = /^[0-9a-f]{16}$/;
+const LIVE = ["advice", "agent"];
+const PILOT = "sequence";
+const KNOWN_CONDITIONS = new Set([...LIVE, PILOT]);
 const MAX_TEXT = 5000;
 const MAX_SESSIONS = 2000;
 const MAX_BODY = 200000;
@@ -23,6 +26,9 @@ export default {
       if (path === "/api/responses" && request.method === "GET") {
         return await handleExport(request, env);
       }
+      if (path === "/api/counts" && request.method === "GET") {
+        return await handleCounts(request, env);
+      }
       if (path === "/api/responses/remove" && request.method === "POST") {
         return await handleRemove(request, env);
       }
@@ -39,24 +45,93 @@ export default {
   },
 };
 
+function twoVersionsEnabled(env) {
+  const value = String(env.ENABLE_TWO_VERSIONS || "").trim().toLowerCase();
+  return value === "1" || value === "true" || value === "yes" || value === "on";
+}
+
+function liveConditions(env) {
+  return twoVersionsEnabled(env) ? LIVE : [PILOT];
+}
+
+function assignmentCounts(rows, keys) {
+  const wanted = keys || [...LIVE, PILOT];
+  const counts = Object.fromEntries(wanted.map((key) => [key, 0]));
+  for (const row of rows) {
+    if (row && row.condition in counts) counts[row.condition] += 1;
+  }
+  return counts;
+}
+
+function pickCondition(rows, env) {
+  const live = liveConditions(env);
+  if (live.length === 1) return live[0];
+  const tallies = assignmentCounts(rows, live);
+  const low = Math.min(...live.map((key) => tallies[key]));
+  const tied = live.filter((key) => tallies[key] === low);
+  const idx = crypto.getRandomValues(new Uint32Array(1))[0] % tied.length;
+  return tied[idx];
+}
+
+async function findAssignment(env, sessionId) {
+  if (!sessionId) return null;
+  const raw = await env.STORE.get("asg:" + sessionId);
+  if (!raw) return null;
+  try {
+    const row = JSON.parse(raw);
+    return row && typeof row === "object" ? row : null;
+  } catch {
+    return null;
+  }
+}
+
 async function handleStart(request, env) {
-  await readJson(request);
+  const payload = await readJson(request);
+  const asked = clip(payload.session_id, 80);
+  if (asked && !SESSION_ID.test(asked)) {
+    return new Response("Bad start", { status: 400 });
+  }
+  if (asked) {
+    const existing = await findAssignment(env, asked);
+    if (existing) {
+      existing.two_versions = twoVersionsEnabled(env);
+      return json(existing);
+    }
+  }
   if (await tooMany(env)) {
     return new Response("The register is full", { status: 429 });
   }
+  const starts = await listPrefix(env, "asg:");
   const record = {
     session_id: tokenHex(8),
-    condition: "sequence",
+    condition: pickCondition(starts, env),
     forced_condition: false,
     started_at: now(),
+    two_versions: twoVersionsEnabled(env),
   };
   await env.STORE.put("asg:" + record.session_id, JSON.stringify(record));
   return json(record);
 }
 
+async function handleCounts(request, env) {
+  if (!authorised(request, env)) return new Response("Wrong passphrase", { status: 401 });
+  const starts = await listPrefix(env, "asg:");
+  const findings = await listPrefix(env, "res:");
+  const filed = new Set(findings.map((row) => row.session_id).filter(Boolean));
+  const leftover = starts.filter((row) => !filed.has(row.session_id));
+  return json({
+    starts: assignmentCounts(starts),
+    findings: assignmentCounts(findings),
+    starts_without_finding: assignmentCounts(leftover),
+    two_versions: twoVersionsEnabled(env),
+  });
+}
+
 async function handleSave(request, env) {
   const payload = await readJson(request);
-  const record = cleanResponse(payload, now());
+  const sessionId = clip(payload.session_id, 80);
+  const assigned = SESSION_ID.test(sessionId) ? await findAssignment(env, sessionId) : null;
+  const record = cleanResponse(payload, now(), assigned);
   await env.STORE.put("res:" + (record.session_id || tokenHex(8)), JSON.stringify(record));
   return json({ ok: true });
 }
@@ -137,9 +212,9 @@ async function readJson(request) {
   return payload;
 }
 
-function cleanResponse(payload, receivedAt) {
+function cleanResponse(payload, receivedAt, assigned) {
   const condition = payload.condition;
-  if (!["advice", "agent", "sequence"].includes(condition)) {
+  if (!KNOWN_CONDITIONS.has(condition)) {
     throw Object.assign(new Error("condition"), { status: 400 });
   }
   const inquiry = payload.inquiry && typeof payload.inquiry === "object" ? payload.inquiry : {};
@@ -149,6 +224,9 @@ function cleanResponse(payload, receivedAt) {
   if (lastHuman && !HUMANS.has(lastHuman)) throw Object.assign(new Error("human"), { status: 400 });
   const sessionId = clip(payload.session_id, 80);
   if (sessionId && !SESSION_ID.test(sessionId)) throw Object.assign(new Error("session"), { status: 400 });
+  if (assigned && KNOWN_CONDITIONS.has(assigned.condition) && condition !== assigned.condition) {
+    throw Object.assign(new Error("condition"), { status: 400 });
+  }
   return {
     participant_code: clip(payload.participant_code, 40),
     condition,
