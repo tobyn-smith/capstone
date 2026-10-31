@@ -266,6 +266,41 @@ class AssignmentTests(unittest.TestCase):
                 {"condition": "agent", "session_id": sid, "inquiry": {"account": "A finding."}},
                 "t",
             )
+        with self.assertRaises(ValueError):
+            server.clean_response(
+                {"condition": "advice", "inquiry": {"account": "A finding."}},
+                "t",
+            )
+        with self.assertRaises(ValueError):
+            server.clean_response(
+                {
+                    "condition": "advice",
+                    "session_id": "ee" * 8,
+                    "inquiry": {"account": "A finding."},
+                },
+                "t",
+            )
+
+    def test_an_advice_finding_does_not_record_the_later_night(self):
+        sid = "ab" * 8
+        self.assignments.write_text(
+            '{"session_id":"%s","condition":"advice","forced_condition":false,"started_at":"t"}\n' % sid,
+            encoding="utf-8",
+        )
+        record = server.clean_response(
+            {
+                "condition": "advice",
+                "session_id": sid,
+                "final_actions": ["warning", "patrols", "freeze", "inspections"],
+                "outcome": "escalated",
+                "harm": True,
+                "inquiry": {"account": "Officials asked ORACLE for advice."},
+            },
+            "t",
+        )
+        self.assertEqual(record["final_actions"], [])
+        self.assertEqual(record["outcome"], "")
+        self.assertIsNone(record["harm"])
 
     def test_counts_split_starts_and_findings(self):
         self.assignments.write_text(
@@ -495,6 +530,32 @@ class ServeTests(unittest.TestCase):
                 self.assertEqual(error.code, 400)
             else:
                 self.fail("remove should refuse a session id that is not 16 hex characters")
+
+    def test_a_finding_with_an_unknown_session_is_refused(self):
+        import tempfile
+
+        folder = Path(tempfile.mkdtemp())
+        with patch.dict(os.environ, {"DATABASE_URL": ""}):
+            with patch.object(server, "ASSIGNMENTS", folder / "assignments.jsonl"), patch.object(
+                server, "RESPONSES", folder / "responses.jsonl"
+            ):
+                request = urllib.request.Request(
+                    "http://127.0.0.1:%s/api/responses" % self.port,
+                    data=json.dumps(
+                        {
+                            "condition": "sequence",
+                            "session_id": "ee" * 8,
+                            "inquiry": {"account": "Officials set the goal and ORACLE acted."},
+                        }
+                    ).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                )
+                try:
+                    urllib.request.urlopen(request)
+                except urllib.error.HTTPError as error:
+                    self.assertEqual(error.code, 400)
+                else:
+                    self.fail("a finding with no start row should be refused")
 
     def test_a_finding_without_a_session_is_refused(self):
         request = urllib.request.Request(

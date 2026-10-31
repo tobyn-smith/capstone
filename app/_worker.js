@@ -280,6 +280,7 @@ function cleanResponse(payload, receivedAt, assigned) {
   if (KNOWN_CONDITIONS.has(assigned.condition) && condition !== assigned.condition) {
     throw Object.assign(new Error("condition"), { status: 400 });
   }
+  const advice = condition === "advice";
   return {
     participant_code: clip(payload.participant_code, 40),
     condition,
@@ -290,9 +291,9 @@ function cleanResponse(payload, receivedAt, assigned) {
     first_decision: clip(payload.first_decision, 40),
     authorised: asList(payload.authorised),
     stopped: asList(payload.stopped),
-    final_actions: asList(payload.final_actions),
-    outcome: clip(payload.outcome, 40),
-    harm: Boolean(payload.harm),
+    final_actions: advice ? [] : asList(payload.final_actions),
+    outcome: advice ? "" : clip(payload.outcome, 40),
+    harm: advice ? null : Boolean(payload.harm),
     injury: Boolean(payload.injury),
     inquiry_account: clip(inquiry.account),
     single_actor: single,

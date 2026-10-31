@@ -169,7 +169,7 @@ Then they sit the inquiry. That is the only page where they write.
 ## What a row means
 
 - `condition` is `sequence`. Everyone saw the same night. Older rows may say `advice` or `agent`.
-- `final_actions` is what ORACLE did in the night: the warning, the patrols, the freeze, and the inspections.
-- `outcome` is `escalated`. `harm` is yes, because Lei moves naval forces towards the route.
+- `final_actions` is what ORACLE did in the night: the warning, the patrols, the freeze, and the inspections. On an `advice` row those later-night fields are left blank: `final_actions` is empty, `outcome` is blank, and `harm` is empty.
+- `outcome` is `escalated` and `harm` is yes on `sequence` and `agent` rows, because Lei moves naval forces towards the route.
 - `clarity` and `sureness` are the 1 to 5 scales in the inquiry.
 - `single_actor` is `me` (the duty officer), `government`, `supervisor`, `developer`, `provider`, `oracle`, or `none` if they could not pick one. The table writes those out in words. The download keeps the short codes.

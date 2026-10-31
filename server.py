@@ -464,6 +464,7 @@ def clean_response(payload: dict, received_at: str, assigned: dict | None = None
         raise ValueError("session")
     if assigned.get("condition") in KNOWN_CONDITIONS and condition != assigned.get("condition"):
         raise ValueError("condition")
+    advice = condition == "advice"
     return {
         "participant_code": clip(payload.get("participant_code"), 40),
         "condition": condition,
@@ -474,9 +475,9 @@ def clean_response(payload: dict, received_at: str, assigned: dict | None = None
         "first_decision": clip(payload.get("first_decision"), 40),
         "authorised": as_list(payload.get("authorised")),
         "stopped": as_list(payload.get("stopped")),
-        "final_actions": as_list(payload.get("final_actions")),
-        "outcome": clip(payload.get("outcome"), 40),
-        "harm": bool(payload.get("harm")),
+        "final_actions": [] if advice else as_list(payload.get("final_actions")),
+        "outcome": "" if advice else clip(payload.get("outcome"), 40),
+        "harm": None if advice else bool(payload.get("harm")),
         "injury": bool(payload.get("injury")),
         "inquiry_account": clip(inquiry.get("account")),
         "single_actor": single,

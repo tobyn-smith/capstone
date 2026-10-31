@@ -68,6 +68,7 @@ Dates are UTC `createdAt` from GitHub for that capstone PR, plus `mergedAt` when
 | 2026-10-31 18:06 created; still open | **PR 31 open** (this branch), first stretch `ca5dfec`–`4cff60e` | Optional code (blank stays blank); notes box; one sitting per browser; Cloudflare preview worker + KV; phone gate off only on `*.pages.dev` | Commits on this PR. | Single-night (`sequence`) instrument and preview host. Two-version assignment was not on yet. |
 | 2026-10-31 18:37 | PR 31, commit `29b5ca9` | Two-version assignment turned on for the preview; flag-off records `sequence` (not PR 28’s `agent`); style pass | Commit message: “Turn on two-version assignment and polish the sitting.” Flag-off = `sequence` is **inferred** (see above). | Two-version · `advice` and `agent` when the flag is on. Single-night (`sequence`) when the flag is off. Style pass on every version. |
 | 2026-10-31 (this update) | PR 31, review-hint pass | First finding wins; start session required on save; session reuse if a save fails; advice night gated on `condition` only; worker list uses KV metadata; timing-safe passphrase; `/_worker.js` not served; hex session id on remove | This commit. Not a player-facing wording change. | Same three stored versions. Honest docs. |
+| 2026-10-31 (this update) | PR 31, coach fixes | Dropped the inquiry line “The night is over. This is the inquiry.” Advice findings no longer store later-night `final_actions` / `outcome` `escalated` / `harm` true. Advice inquiry lead uses his file-panel line so it does not say ORACLE carried out the action. Missing or unknown `session_id` still rejected. | Tobyn approved these on this PR. | Same three stored versions. Screenshots below were taken before this pass. |
 
 Presentations PR 5 (`tobyn-smith/presentations`, `ts/reading-discussion-weeks-930d`, `0902131`) is the source of the week files mapped in `docs/readings-to-design.md`. It is not a capstone game change.
 
@@ -124,6 +125,8 @@ Captured locally at `http://127.0.0.1:8000`, viewport 1400×920. No admin passph
 | Debrief | [agent-debrief.png](screenshots/agent-debrief.png) |
 
 Start pages are the same words in every version. Night and inquiry file-panel length differ for `advice` because only the first two scenes (and the first file line) are reused. Debrief omits the hypothesis sentence for `advice`; that sentence is not rewritten. Agent and sequence nights match.
+
+The inquiry frames above still show the line “The night is over. This is the inquiry.” That line is no longer in the live page. The frames were not retaken. The same frames also still show the old advice stem that said ORACLE carried out the action.
 
 Phone-width start after the style pass (preview gate off, 390px): [style-after-phone-start.png](screenshots/style-after-phone-start.png).
 

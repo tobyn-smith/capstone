@@ -509,6 +509,13 @@ function fileLines() {
   return all;
 }
 
+function inquiryLead() {
+  if (state.condition === "advice") {
+    return "Officials asked ORACLE for advice, and chose whether to act. Who was accountable?";
+  }
+  return "When officials set the agenda and ORACLE selected and carried out the action, who was accountable?";
+}
+
 function qhead(n, text) {
   return h("span", { class: "qhead" }, [
     h("span", { class: "num" }, n + "."),
@@ -529,10 +536,7 @@ function inquiry() {
     where(),
     spread(
       [
-        prose(
-          "The night is over. This is the inquiry.",
-          "When officials set the agenda and ORACLE selected and carried out the action, who was accountable?"
-        ),
+        prose(inquiryLead()),
         h("form", {
       onSubmit: onInquiry,
       onInput: (event) => {
@@ -681,6 +685,7 @@ async function sendAgain() {
 }
 
 function payloadFromState() {
+  const advice = state.condition === "advice";
   return {
     participant_code: state.participantCode,
     condition: state.condition,
@@ -691,9 +696,9 @@ function payloadFromState() {
     first_decision: "",
     authorised: ["warning", "patrols", "freeze", "inspections"],
     stopped: [],
-    final_actions: ["warning", "patrols", "freeze", "inspections"],
-    outcome: "escalated",
-    harm: true,
+    final_actions: advice ? [] : ["warning", "patrols", "freeze", "inspections"],
+    outcome: advice ? "" : "escalated",
+    harm: advice ? null : true,
     injury: false,
     inquiry: {
       account: state.inquiry.account,
