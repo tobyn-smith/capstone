@@ -510,6 +510,10 @@ function inquiry() {
           h("span", {}, "5 · sure"),
         ]),
       ]),
+      h("div", { class: "ask" }, [
+        h("label", { htmlFor: "other_notes" }, "Notes, if you want"),
+        h("textarea", { id: "other_notes", name: "other_notes", value: q.otherNotes }),
+      ]),
       state.formError ? h("p", { class: "error" }, state.formError) : null,
       h("button", { class: "primary", type: "submit" }, "File the finding"),
     ]),
