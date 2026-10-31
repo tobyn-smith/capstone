@@ -43,6 +43,7 @@ class ResolveTests(unittest.TestCase):
             {
                 "condition": "sequence",
                 "session_id": "ab" * 8,
+                "participant_code": "",
                 "confidence_bar": None,
                 "inquiry": {
                     "account": "Officials set the goal.",
@@ -51,6 +52,7 @@ class ResolveTests(unittest.TestCase):
                     "last_human_who": "should be dropped",
                     "clarity": 3,
                     "sureness": 5,
+                    "other_notes": "A leftover thought.",
                 },
             },
             "t",
@@ -58,6 +60,8 @@ class ResolveTests(unittest.TestCase):
         self.assertEqual(good["single_actor"], "oracle")
         self.assertEqual(good["last_human_who"], "")
         self.assertEqual(good["clarity"], 3)
+        self.assertEqual(good["participant_code"], "")
+        self.assertEqual(good["other_notes"], "A leftover thought.")
         for inquiry in (
             {"clarity": 9},
             {"clarity": True},
@@ -130,6 +134,35 @@ class ResolveTests(unittest.TestCase):
         self.assertNotIn("drop", left)
         self.assertIn("keep", started)
         self.assertNotIn("drop", started)
+
+    def test_a_second_local_finding_replaces_the_same_session(self):
+        import tempfile
+        from pathlib import Path
+
+        folder = Path(tempfile.mkdtemp())
+        responses = folder / "responses.jsonl"
+        first = {
+            "session_id": "ab" * 8,
+            "inquiry_account": "first",
+            "other_notes": "",
+        }
+        second = {
+            "session_id": "ab" * 8,
+            "inquiry_account": "second",
+            "other_notes": "left on the file",
+        }
+        other = {"session_id": "cd" * 8, "inquiry_account": "keep"}
+        with patch.dict(os.environ, {"DATABASE_URL": ""}):
+            with patch.object(server, "RESPONSES", responses):
+                server.save_local_response(first)
+                server.save_local_response(other)
+                server.save_local_response(second)
+                rows = server.read_jsonl(responses)
+        self.assertEqual(len(rows), 2)
+        by_id = {row["session_id"]: row for row in rows}
+        self.assertEqual(by_id["ab" * 8]["inquiry_account"], "second")
+        self.assertEqual(by_id["ab" * 8]["other_notes"], "left on the file")
+        self.assertEqual(by_id["cd" * 8]["inquiry_account"], "keep")
 
     def test_local_startup_still_prints_the_passphrase(self):
         env = {"DYNO": "", "PASSPHRASE": "local-phrase", "DATABASE_URL": ""}
