@@ -1,4 +1,5 @@
 const STORAGE = "oracle-wargame";
+const FILED = "oracle-filed";
 const app = document.querySelector("#app");
 
 const ACTORS = [
@@ -164,6 +165,22 @@ function save() {
   sessionStorage.setItem(STORAGE, JSON.stringify(state));
 }
 
+function filedHere() {
+  try {
+    return Boolean(localStorage.getItem(FILED));
+  } catch {
+    return false;
+  }
+}
+
+function markFiled() {
+  try {
+    if (state.sessionId) localStorage.setItem(FILED, state.sessionId);
+  } catch {
+    /* Private mode still lets them sit once in this tab. */
+  }
+}
+
 function goto(step) {
   state.step = step;
   state.formError = "";
@@ -307,6 +324,13 @@ function readConsentCode() {
 }
 
 function begin() {
+  if (filedHere()) {
+    state.step = "already";
+    state.formError = "";
+    render();
+    window.scrollTo(0, 0);
+    return;
+  }
   const saved = loadSaved();
   if (saved && saved.sessionId && (saved.step === "night" || saved.step === "inquiry")) {
     state = blank();
@@ -361,15 +385,21 @@ function landing() {
           window.scrollTo(0, 0);
         },
       }, "Return to that file"),
-      h("button", {
-        class: "secondary",
-        type: "button",
-        onClick: () => {
-          sessionStorage.removeItem(STORAGE);
-          state = blank();
-          startNight();
-        },
-      }, "Open a new file"),
+    ]),
+  ]);
+}
+
+function already() {
+  return h("section", { class: "welcome" }, [
+    h("img", { class: "uga-logo", src: "uga-logo.png", alt: "University of Georgia", width: "1024", height: "158" }),
+    h("p", { class: "draft-mark" }, "Draft"),
+    h("h1", { class: "question" }, "INTL 6010, Research Methods"),
+    h("p", { class: "byline" }, "A project by Tobyn Smith"),
+    prose("This browser already filed a finding. You can close this."),
+    h("p", { class: "reach" }, [
+      "Any questions or issues, reach out to ",
+      h("a", { href: "mailto:tobynsmith@uga.edu" }, "tobynsmith@uga.edu"),
+      ".",
     ]),
   ]);
 }
@@ -566,8 +596,10 @@ async function onInquiry(event) {
   const payload = payloadFromState();
   state.savedOk = await postFinding(payload);
   state.submitted = true;
-  if (state.savedOk) localStorage.removeItem("oracle-unsent-" + state.sessionId);
-  else localStorage.setItem("oracle-unsent-" + state.sessionId, JSON.stringify(payload));
+  if (state.savedOk) {
+    markFiled();
+    localStorage.removeItem("oracle-unsent-" + state.sessionId);
+  } else localStorage.setItem("oracle-unsent-" + state.sessionId, JSON.stringify(payload));
   goto("debrief");
 }
 
@@ -590,8 +622,10 @@ async function postFinding(payload) {
 async function sendAgain() {
   const payload = payloadFromState();
   state.savedOk = await postFinding(payload);
-  if (state.savedOk) localStorage.removeItem("oracle-unsent-" + state.sessionId);
-  else localStorage.setItem("oracle-unsent-" + state.sessionId, JSON.stringify(payload));
+  if (state.savedOk) {
+    markFiled();
+    localStorage.removeItem("oracle-unsent-" + state.sessionId);
+  } else localStorage.setItem("oracle-unsent-" + state.sessionId, JSON.stringify(payload));
   save();
   render();
 }
@@ -663,6 +697,7 @@ function downloadCopy() {
 const screens = {
   consent,
   landing,
+  already,
   waiting,
   night,
   inquiry,
@@ -705,15 +740,15 @@ function render() {
   const site = document.querySelector(".site");
   document.body.dataset.step = state.step;
   const inquiry = state.step === "inquiry" || state.step === "debrief";
-  document.title = state.step === "consent"
+  document.title = state.step === "consent" || state.step === "already"
     ? "INTL 6010 · Research Methods"
     : inquiry
       ? "File 26-441 · Araknes Commission of Inquiry"
       : "The night";
-  if (state.step === "consent") {
+  if (state.step === "consent" || state.step === "already") {
     if (before) {
       before.hidden = false;
-      before.replaceChildren(consent());
+      before.replaceChildren(state.step === "already" ? already() : consent());
     }
     if (site) site.hidden = true;
     return;
@@ -736,7 +771,7 @@ function loadSaved() {
   }
 }
 
-const KNOWN = new Set(["consent", "landing", "waiting", "night", "inquiry", "debrief"]);
+const KNOWN = new Set(["consent", "landing", "already", "waiting", "night", "inquiry", "debrief"]);
 const existing = loadSaved();
 if (existing && existing.sessionId && existing.step && existing.step !== "consent" && existing.step !== "waiting") {
   if (!KNOWN.has(existing.step)) {
@@ -746,6 +781,9 @@ if (existing && existing.sessionId && existing.step && existing.step !== "consen
   state = existing;
   if (!state.inquiry) state.inquiry = blank().inquiry;
   if (state.step === "night" && !(state.scene >= 0 && state.scene < SCENES.length)) state.scene = 0;
+}
+if (filedHere() && (!state.sessionId || state.submitted) && state.step !== "debrief") {
+  state.step = "already";
 }
 try {
   satMarkup = await (await fetch("route-sat.svg")).text();
