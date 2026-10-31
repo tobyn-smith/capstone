@@ -34,10 +34,14 @@
   </defs>
 
   <rect width="1200" height="560" fill="#16324f"/>
-  <path d="M0 0 H236 L210 180 L248 320 L196 560 H0 Z" fill="#c4a15a"/>
-  <path d="M0 0 H196 L172 180 L208 320 L164 560 H0 Z" fill="#d4c09a"/>
-  <path d="M1200 0 H958 L986 190 L944 340 L992 560 H1200 Z" fill="#2f4a3a"/>
-  <path d="M1200 0 H988 L1012 190 L972 340 L1018 560 H1200 Z" fill="#3d5a3c"/>
+  <g class="land">
+    <path d="M0 0 H236 L210 180 L248 320 L196 560 H0 Z" fill="#d2b36a"/>
+    <path d="M0 0 H196 L172 180 L208 320 L164 560 H0 Z" fill="#e4c98a"/>
+    <path d="M1200 0 H958 L986 190 L944 340 L992 560 H1200 Z" fill="#4a7c43"/>
+    <path d="M1200 0 H988 L1012 190 L972 340 L1018 560 H1200 Z" fill="#5d9154"/>
+    <path d="M236 0 L210 180 L248 320 L196 560" fill="none" stroke="#3d3318" stroke-width="2.2"/>
+    <path d="M958 0 L986 190 L944 340 L992 560" fill="none" stroke="#243d20" stroke-width="2.2"/>
+  </g>
   <path d="M236 0 L958 0" stroke="#8aa0ad" stroke-width="0.6" opacity="0.35"/>
 
   <g transform="translate(688,48)" fill="none" stroke="#f4efe4" font-family="Source Sans 3, Liberation Sans, sans-serif" font-size="16" font-weight="700">

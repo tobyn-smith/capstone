@@ -7,11 +7,11 @@ if (location.hostname.endsWith(".pages.dev")) {
 }
 
 const ACTORS = [
-  ["me", "An official on duty"],
-  ["government", "The Araknes government"],
-  ["supervisor", "The person set to supervise ORACLE"],
-  ["developer", "The people who built ORACLE"],
-  ["provider", "The company that ran ORACLE"],
+  ["me", "Official"],
+  ["government", "Government"],
+  ["supervisor", "Supervisor"],
+  ["developer", "Developers"],
+  ["provider", "Company"],
   ["oracle", "ORACLE"],
 ];
 
@@ -110,6 +110,7 @@ function blank() {
     startedAt: null,
     scene: 0,
     formError: "",
+    fieldErrors: {},
     inquiry: {
       account: "",
       single: "",
@@ -205,6 +206,7 @@ function openSid() {
 function goto(step) {
   state.step = step;
   state.formError = "";
+  state.fieldErrors = {};
   save();
   render();
   window.scrollTo(0, 0);
@@ -412,7 +414,7 @@ async function startNight() {
 function landing() {
   const saved = loadSaved();
   return h("section", { class: "cover" }, [
-    h("h1", { class: "question" }, "This browser already has a file open."),
+    h("h1", { class: "question" }, "This browser already has answers open."),
     h("div", {}, [
       h("button", {
         class: "primary",
@@ -423,7 +425,7 @@ function landing() {
           render();
           window.scrollTo(0, 0);
         },
-      }, "Return to that file"),
+      }, "Return to them"),
     ]),
   ]);
 }
@@ -434,7 +436,7 @@ function already() {
     h("p", { class: "draft-mark" }, "Draft"),
     h("h1", { class: "question" }, "INTL 6010, Research Methods"),
     h("p", { class: "byline" }, "A project by Tobyn Smith"),
-    prose("This browser already filed a finding. You can close this."),
+    prose("This browser already sent answers. You can close this."),
     h("p", { class: "reach" }, [
       "Any questions or issues, reach out to ",
       h("a", { href: "mailto:tobynsmith@uga.edu" }, "tobynsmith@uga.edu"),
@@ -471,18 +473,9 @@ function nightScenes() {
 function night() {
   const scenes = nightScenes();
   const scene = scenes[state.scene] || scenes[0];
-  const last = state.scene >= scenes.length - 1;
   const copy = h("div", { class: "film-copy" }, [
     scene.chain ? chain(scene.chain) : null,
     prose(...scene.lines),
-    h("div", { class: "film-controls" }, [
-      state.scene > 0
-        ? h("button", { class: "secondary", type: "button", onClick: () => shiftScene(-1) }, "Back")
-        : null,
-      last
-        ? h("button", { class: "primary", type: "button", onClick: () => goto("inquiry") }, "Open the inquiry")
-        : h("button", { class: "secondary", type: "button", onClick: () => shiftScene(1) }, "Next"),
-    ]),
   ]);
   const side = scene.oracle
     ? oracle(scene.oracle.lines, {
@@ -511,9 +504,14 @@ function fileLines() {
 
 function inquiryLead() {
   if (state.condition === "advice") {
-    return "Officials asked ORACLE for advice, and chose whether to act. Who was accountable?";
+    return "Officials asked ORACLE for advice, and chose whether to act. Who was responsible?";
   }
-  return "When officials set the agenda and ORACLE selected and carried out the action, who was accountable?";
+  return "When officials set the agenda and ORACLE selected and carried out the action, who was responsible?";
+}
+
+function fieldError(key) {
+  const message = state.fieldErrors && state.fieldErrors[key];
+  return message ? h("p", { class: "error", id: "err-" + key }, message) : null;
 }
 
 function qhead(n, text) {
@@ -538,6 +536,7 @@ function inquiry() {
       [
         prose(inquiryLead()),
         h("form", {
+      class: "inquiry-form",
       onSubmit: onInquiry,
       onInput: (event) => {
         syncInquiry(event.currentTarget);
@@ -545,12 +544,12 @@ function inquiry() {
         if (event.target && event.target.name === "last_human") render();
       },
     }, [
-      codeField(),
       h("div", { class: "ask" }, [
         h("label", { htmlFor: "account" }, qhead(1, "Who was responsible for what Araknes did?")),
         h("textarea", { id: "account", name: "account", value: q.account }),
+        fieldError("account"),
       ]),
-      h("fieldset", {}, [
+      h("fieldset", { class: "pick-one" }, [
         h("legend", {}, qhead(2, "Name one actor, or say you can't.")),
         ...ACTORS.map(([id, text]) => h("label", { class: "tick" }, [
           h("input", { type: "radio", name: "single", value: id, checked: q.single === id }),
@@ -560,6 +559,7 @@ function inquiry() {
           h("input", { type: "radio", name: "single", value: "none", checked: q.single === "none" }),
           h("span", {}, "I can't point to one actor"),
         ]),
+        fieldError("single"),
       ]),
       h("fieldset", {}, [
         h("legend", {}, qhead(3, "Could a person still have stopped this?")),
@@ -575,8 +575,10 @@ function inquiry() {
           ? h("div", { class: "field" }, [
             h("label", { htmlFor: "who" }, "Who?"),
             h("input", { id: "who", name: "last_human_who", type: "text", value: q.lastHumanWho }),
+            fieldError("lastHumanWho"),
           ])
           : null,
+        fieldError("lastHuman"),
       ]),
       h("fieldset", {}, [
         h("legend", {}, qhead(4, "How clear was it who was responsible?")),
@@ -585,6 +587,7 @@ function inquiry() {
           h("span", {}, "1 · not clear"),
           h("span", {}, "5 · clear"),
         ]),
+        fieldError("clarity"),
       ]),
       h("fieldset", {}, [
         h("legend", {}, qhead(5, "How sure are you?")),
@@ -593,13 +596,12 @@ function inquiry() {
           h("span", {}, "1 · guessing"),
           h("span", {}, "5 · sure"),
         ]),
+        fieldError("sureness"),
       ]),
-      h("div", { class: "ask" }, [
+      h("div", { class: "ask notes" }, [
         h("label", { htmlFor: "other_notes" }, "Notes, if you want"),
         h("textarea", { id: "other_notes", name: "other_notes", value: q.otherNotes }),
       ]),
-      state.formError ? h("p", { class: "error" }, state.formError) : null,
-      h("button", { class: "primary", type: "submit" }, "File the finding"),
     ]),
       ],
       h("div", { class: "file" }, [
@@ -621,32 +623,36 @@ function syncInquiry(form) {
   q.sureness = data.get("sureness") ? Number(data.get("sureness")) : null;
   q.shared = data.getAll("shared");
   q.otherNotes = data.get("other_notes") || "";
-  state.participantCode = (data.get("code") || "").trim();
+  if (data.has("code")) state.participantCode = String(data.get("code") || "").trim();
 }
 
 function inquiryProblems() {
   const q = state.inquiry;
-  if (q.account.trim().length < 20) return "Write a sentence or two.";
-  if (!q.single) return "Name one actor, or say you can't point to one.";
-  if (!q.lastHuman) return "Say whether a person could still have stopped this.";
-  if (q.lastHuman !== "no" && q.lastHumanWho.trim().length < 2) return "Say who you have in mind.";
-  if (!q.clarity) return "Mark how clear the chain of responsibility was.";
-  if (!q.sureness) return "Mark how sure you are.";
-  return "";
+  const errors = {};
+  if (q.account.trim().length < 20) errors.account = "Write a sentence or two.";
+  if (!q.single) errors.single = "Name one actor, or say you can't.";
+  if (!q.lastHuman) errors.lastHuman = "Say whether a person could still have stopped this.";
+  if (q.lastHuman !== "no" && q.lastHumanWho.trim().length < 2) errors.lastHumanWho = "Say who you have in mind.";
+  if (!q.clarity) errors.clarity = "Mark how clear it was who was responsible.";
+  if (!q.sureness) errors.sureness = "Mark how sure you are.";
+  return errors;
 }
 
 async function onInquiry(event) {
   event.preventDefault();
   syncInquiry(event.target);
-  const problem = inquiryProblems();
-  if (problem) {
-    state.formError = problem;
+  const errors = inquiryProblems();
+  if (Object.keys(errors).length) {
+    state.fieldErrors = errors;
     save();
     render();
+    const first = document.querySelector(".inquiry-form .error");
+    if (first) first.scrollIntoView({ block: "nearest" });
     return;
   }
-  const button = event.target.querySelector("button");
-  button.disabled = true;
+  state.fieldErrors = {};
+  const button = document.querySelector("#step-next");
+  if (button) button.disabled = true;
   const payload = payloadFromState();
   state.savedOk = await postFinding(payload);
   state.submitted = true;
@@ -718,8 +724,8 @@ function payloadFromState() {
 
 function debrief() {
   const saved = state.savedOk
-    ? "The finding is on the file."
-    : "The finding did not reach the register. Send it again. If it still will not go, download a copy and email it to tobynsmith@uga.edu.";
+    ? "Your answers are saved."
+    : "Your answers did not save. Send them again. If they still will not go, download a copy and email it to tobynsmith@uga.edu.";
   const actor = state.inquiry.single === "none"
     ? "You could not point to one actor."
     : "You named: " + (labelOf(ACTORS, state.inquiry.single) || "your answer") + ".";
@@ -727,15 +733,15 @@ function debrief() {
     where(),
     prose(
       saved,
-      "You watched the night. Then you sat the inquiry.",
+      "You watched the night. Then you answered the questions.",
       ...(state.condition === "advice"
         ? []
         : ["I think that once officials set the agenda and ORACLE selects and carries out the action, one responsible person is harder to name. It might not. A rule set in advance can keep the chain clear. This file is one go at that."]),
       actor,
       "You can close this."
     ),
-    state.savedOk ? null : h("button", { class: "primary", type: "button", onClick: sendAgain }, "Send the finding again"),
-    h("button", { class: "secondary", type: "button", onClick: downloadCopy }, "Download a copy of my finding"),
+    state.savedOk ? null : h("button", { class: "primary", type: "button", onClick: sendAgain }, "Send my answers again"),
+    h("button", { class: "secondary", type: "button", onClick: downloadCopy }, "Download a copy of my answers"),
     h("p", { class: "colophon" }, "Tobyn Smith · INTL 6010 · University of Georgia"),
   ]);
 }
@@ -765,6 +771,9 @@ function paintChrome() {
   const mast = document.querySelector("#mast");
   const rail = document.querySelector("#rail");
   const banner = document.querySelector(".commission");
+  const bar = document.querySelector("#step-bar");
+  const back = document.querySelector("#step-back");
+  const next = document.querySelector("#step-next");
   const inquiry = state.step === "inquiry" || state.step === "debrief";
   document.body.dataset.step = state.step;
   if (banner) banner.textContent = "Commission of Inquiry";
@@ -781,16 +790,43 @@ function paintChrome() {
     mast.replaceChildren(...bits);
   }
   if (rail) rail.setAttribute("aria-label", state.step === "night" ? "The night" : "Index to the file");
-  if (!rail) return;
-  const items = state.step === "night"
-    ? scenes.map((item, index) => h("li", {
-      class: index === state.scene ? "now" : index < state.scene ? "done" : "",
-    }, item.rail))
-    : [
-      h("li", { class: "done" }, "The night"),
-      h("li", { class: inquiry ? "now" : "" }, "The inquiry"),
-    ];
-  rail.replaceChildren(h("ol", {}, items));
+  if (rail) {
+    const items = state.step === "night"
+      ? scenes.map((item, index) => h("li", {
+        class: index === state.scene ? "now" : index < state.scene ? "done" : "",
+      }, item.rail))
+      : [
+        h("li", { class: "done" }, "The night"),
+        h("li", { class: inquiry ? "now" : "" }, "The inquiry"),
+      ];
+    rail.replaceChildren(h("ol", {}, items));
+  }
+  if (bar && back && next) {
+    const show = state.step === "night" || state.step === "inquiry";
+    bar.hidden = !show;
+    if (show) {
+      back.disabled = state.step === "night" && state.scene === 0;
+      next.disabled = false;
+      next.textContent = state.step === "inquiry" ? "Send my answers" : "Next";
+      back.onclick = () => {
+        if (state.step === "inquiry") {
+          state.scene = Math.max(0, nightScenes().length - 1);
+          goto("night");
+          return;
+        }
+        shiftScene(-1);
+      };
+      next.onclick = () => {
+        if (state.step === "inquiry") {
+          const form = document.querySelector(".inquiry-form");
+          if (form) form.requestSubmit();
+          return;
+        }
+        if (state.scene >= nightScenes().length - 1) goto("inquiry");
+        else shiftScene(1);
+      };
+    }
+  }
 }
 
 function render() {
@@ -838,6 +874,7 @@ if (existing && existing.sessionId && existing.step && existing.step !== "consen
   }
   state = existing;
   if (!state.inquiry) state.inquiry = blank().inquiry;
+  if (!state.fieldErrors) state.fieldErrors = {};
   if (state.step === "night" && !(state.scene >= 0 && state.scene < nightScenes().length)) state.scene = 0;
 }
 const alreadySat = filedHere() || (state.submitted && state.savedOk);

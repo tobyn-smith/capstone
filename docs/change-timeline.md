@@ -72,6 +72,7 @@ Dates are UTC `createdAt` from GitHub for that capstone PR, plus `mergedAt` when
 | 2026-10-31 (this update) | PR 31, two-column laptop layout | Night: scene text and map/ORACLE sit side by side. Inquiry: questions and the file panel sit side by side. Two columns stay at 1280×800. A window under 1040px still stacks. No wording change. | Tobyn asked for the layout. | Same three stored versions. Screenshots below retaken at 1280×800. |
 | 2026-10-31 (this update) | PR 31, preview flag in wrangler.toml | `ENABLE_TWO_VERSIONS = "1"` is in `[env.preview.vars]`, not top-level `[vars]`. Pages preview deploys keep two versions on. The class host is Heroku and does not read this file. | Tobyn approved. Cloudflare Pages docs: top-level `[vars]` apply to local and production Pages. | Config only. |
 | 2026-10-31 (this update) | PR 31, map size and motion | Night map is the wide column at 1280×800. Labels are larger. The SMIL pulses and dashed-path crawls from before `29b5ca9` are back. Copy stays narrow. No wording change. | Tobyn: map was too small and motion looked gone. Diff: `29b5ca9` flattened `route-sat.svg` and dropped those `<animate>` tags. No hull-travel animation was in git. | Same three stored versions. Night screenshots retaken. |
+| 2026-10-31 (this update) | PR 31, theme, footer, island, wording | Back/Next sit in a fixed bar. Next is the filled button. Lei land is green, not navy, so the island is not sea. Inquiry drops the second code box. Buttons and debrief drop “finding” jargon. Blame options are one word. Validation sits on the question. | Tobyn: theme, Next/Back, island blue, make it make sense. Paths unchanged. Saved fields unchanged. | Same three stored versions. Screenshots of every scene retaken. |
 
 Presentations PR 5 (`tobyn-smith/presentations`, `ts/reading-discussion-weeks-930d`, `0902131`) is the source of the week files mapped in `docs/readings-to-design.md`. It is not a capstone game change.
 
@@ -127,9 +128,11 @@ Captured locally at `http://127.0.0.1:8000`, viewport 1280×800. No admin passph
 | Inquiry | [agent-inquiry.png](screenshots/agent-inquiry.png) |
 | Debrief | [agent-debrief.png](screenshots/agent-debrief.png) |
 
+Night beats, all versions of the map: [night-route.png](screenshots/night-route.png), [night-advice.png](screenshots/night-advice.png), [night-upgrade.png](screenshots/night-upgrade.png), [night-second.png](screenshots/night-second.png), [night-acts.png](screenshots/night-acts.png), [night-lei.png](screenshots/night-lei.png). Land is tan on the left and green on the right in each frame.
+
 Start pages are the same words in every version. Night and inquiry file-panel length differ for `advice` because only the first two scenes (and the first file line) are reused. Debrief omits the hypothesis sentence for `advice`; that sentence is not rewritten. Agent and sequence nights match.
 
-The inquiry frames now match the live page: no “The night is over. This is the inquiry.” line, and the advice lead uses the file-panel wording.
+The inquiry frames now match the live page: no “The night is over. This is the inquiry.” line, no second participant-code box, and the lead uses “responsible” to match Q1.
 
 Phone-width start after the style pass (preview gate off, 390px): [style-after-phone-start.png](screenshots/style-after-phone-start.png). That frame is older and was not retaken for this layout pass.
 
