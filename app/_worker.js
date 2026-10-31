@@ -1,6 +1,11 @@
 /**
  * Preview-only worker for Cloudflare Pages. The class host still uses
  * server.py on Heroku. This file is not that host.
+ *
+ * This Pages project has no Durable Object binding. KV is eventually
+ * consistent and handleStart has no lock. A class all pressing Start
+ * at once can unbalance advice/agent. server.py holds LOCK on the
+ * local/Heroku host. Documented limit, not a silent claim of parity.
  */
 const ACTORS = new Set(["me", "government", "supervisor", "developer", "provider", "oracle", "none"]);
 const HUMANS = new Set(["yes", "no", "unsure"]);
@@ -31,6 +36,9 @@ export default {
       }
       if (path === "/api/responses/remove" && request.method === "POST") {
         return await handleRemove(request, env);
+      }
+      if (path === "/_worker.js" || path.startsWith("/_")) {
+        return new Response("Not found", { status: 404 });
       }
       if (path === "/admin" || path === "/export") {
         return env.ASSETS.fetch(new URL("/export.html", request.url));
@@ -98,10 +106,10 @@ async function handleStart(request, env) {
       return json(existing);
     }
   }
-  if (await tooMany(env)) {
+  const starts = await listMeta(env, "asg:");
+  if (starts.length >= MAX_SESSIONS) {
     return new Response("The register is full", { status: 429 });
   }
-  const starts = await listPrefix(env, "asg:");
   const record = {
     session_id: tokenHex(8),
     condition: pickCondition(starts, env),
@@ -109,14 +117,16 @@ async function handleStart(request, env) {
     started_at: now(),
     two_versions: twoVersionsEnabled(env),
   };
-  await env.STORE.put("asg:" + record.session_id, JSON.stringify(record));
+  await env.STORE.put("asg:" + record.session_id, JSON.stringify(record), {
+    metadata: { condition: record.condition, session_id: record.session_id },
+  });
   return json(record);
 }
 
 async function handleCounts(request, env) {
   if (!authorised(request, env)) return new Response("Wrong passphrase", { status: 401 });
-  const starts = await listPrefix(env, "asg:");
-  const findings = await listPrefix(env, "res:");
+  const starts = await listMeta(env, "asg:");
+  const findings = await listMeta(env, "res:");
   const filed = new Set(findings.map((row) => row.session_id).filter(Boolean));
   const leftover = starts.filter((row) => !filed.has(row.session_id));
   return json({
@@ -130,9 +140,19 @@ async function handleCounts(request, env) {
 async function handleSave(request, env) {
   const payload = await readJson(request);
   const sessionId = clip(payload.session_id, 80);
-  const assigned = SESSION_ID.test(sessionId) ? await findAssignment(env, sessionId) : null;
+  if (!SESSION_ID.test(sessionId)) {
+    return new Response("Bad response", { status: 400 });
+  }
+  const assigned = await findAssignment(env, sessionId);
+  if (!assigned) {
+    return new Response("Bad response", { status: 400 });
+  }
   const record = cleanResponse(payload, now(), assigned);
-  await env.STORE.put("res:" + (record.session_id || tokenHex(8)), JSON.stringify(record));
+  const already = await env.STORE.get("res:" + record.session_id);
+  if (already) return json({ ok: true });
+  await env.STORE.put("res:" + record.session_id, JSON.stringify(record), {
+    metadata: { condition: record.condition, session_id: record.session_id },
+  });
   return json({ ok: true });
 }
 
@@ -140,7 +160,7 @@ async function handleRemove(request, env) {
   if (!authorised(request, env)) return new Response("Wrong passphrase", { status: 401 });
   const payload = await readJson(request);
   const sessionId = clip(payload.session_id, 80);
-  if (!sessionId) return new Response("Bad remove", { status: 400 });
+  if (!SESSION_ID.test(sessionId)) return new Response("Bad remove", { status: 400 });
   await env.STORE.delete("res:" + sessionId);
   await env.STORE.delete("asg:" + sessionId);
   return json({ ok: true });
@@ -167,12 +187,44 @@ function authorised(request, env) {
   const expected = (env.PASSPHRASE || "").trim();
   if (!expected) return false;
   const given = request.headers.get("X-Passphrase") || "";
-  return given === expected;
+  return timingSafeEqual(given, expected);
 }
 
-async function tooMany(env) {
-  const rows = await listPrefix(env, "asg:");
-  return rows.length >= MAX_SESSIONS;
+function timingSafeEqual(left, right) {
+  const enc = new TextEncoder();
+  const a = enc.encode(left);
+  const b = enc.encode(right);
+  const n = Math.max(a.length, b.length, 1);
+  let diff = a.length ^ b.length;
+  for (let i = 0; i < n; i += 1) {
+    diff |= (a[i] || 0) ^ (b[i] || 0);
+  }
+  return diff === 0;
+}
+
+async function listMeta(env, prefix) {
+  const rows = [];
+  let cursor;
+  do {
+    const page = await env.STORE.list({ prefix, cursor });
+    for (const key of page.keys || []) {
+      const meta = key.metadata;
+      if (meta && typeof meta === "object") {
+        rows.push(meta);
+        continue;
+      }
+      const raw = await env.STORE.get(key.name);
+      if (!raw) continue;
+      try {
+        const row = JSON.parse(raw);
+        if (row && typeof row === "object") rows.push(row);
+      } catch {
+        /* skip a broken line */
+      }
+    }
+    cursor = page.list_complete ? "" : page.cursor;
+  } while (cursor);
+  return rows;
 }
 
 async function listPrefix(env, prefix) {
@@ -223,8 +275,9 @@ function cleanResponse(payload, receivedAt, assigned) {
   const lastHuman = clip(inquiry.last_human, 20);
   if (lastHuman && !HUMANS.has(lastHuman)) throw Object.assign(new Error("human"), { status: 400 });
   const sessionId = clip(payload.session_id, 80);
-  if (sessionId && !SESSION_ID.test(sessionId)) throw Object.assign(new Error("session"), { status: 400 });
-  if (assigned && KNOWN_CONDITIONS.has(assigned.condition) && condition !== assigned.condition) {
+  if (!SESSION_ID.test(sessionId)) throw Object.assign(new Error("session"), { status: 400 });
+  if (!assigned) throw Object.assign(new Error("session"), { status: 400 });
+  if (KNOWN_CONDITIONS.has(assigned.condition) && condition !== assigned.condition) {
     throw Object.assign(new Error("condition"), { status: 400 });
   }
   return {

@@ -1,5 +1,6 @@
 const STORAGE = "oracle-wargame";
 const FILED = "oracle-filed";
+const OPEN = "oracle-open";
 const app = document.querySelector("#app");
 if (location.hostname.endsWith(".pages.dev")) {
   document.documentElement.classList.add("on-pages-preview");
@@ -185,6 +186,22 @@ function markFiled() {
   }
 }
 
+function rememberOpen(sessionId) {
+  try {
+    if (sessionId) localStorage.setItem(OPEN, sessionId);
+  } catch {
+    /* This tab still has sessionStorage. */
+  }
+}
+
+function openSid() {
+  try {
+    return localStorage.getItem(OPEN) || "";
+  } catch {
+    return "";
+  }
+}
+
 function goto(step) {
   state.step = step;
   state.formError = "";
@@ -328,22 +345,35 @@ function readConsentCode() {
 }
 
 function begin() {
-  if (filedHere()) {
+  readConsentCode();
+  const typed = state.participantCode;
+  const saved = loadSaved();
+  const alreadySat = filedHere() || (state.submitted && state.savedOk) || (saved && saved.submitted && saved.savedOk);
+  if (alreadySat && !(saved && saved.step === "debrief" && saved.savedOk === false)) {
     state.step = "already";
     state.formError = "";
     render();
     window.scrollTo(0, 0);
     return;
   }
-  const saved = loadSaved();
-  if (saved && saved.sessionId && (saved.step === "night" || saved.step === "inquiry")) {
-    state = blank();
-    state.step = "landing";
+  if (saved && saved.sessionId && saved.step === "debrief") {
+    if (typed) saved.participantCode = typed;
+    state = saved;
+    save();
     render();
     window.scrollTo(0, 0);
     return;
   }
-  readConsentCode();
+  if (saved && saved.sessionId && (saved.step === "night" || saved.step === "inquiry")) {
+    if (typed) saved.participantCode = typed;
+    sessionStorage.setItem(STORAGE, JSON.stringify(saved));
+    state = blank();
+    state.step = "landing";
+    state.participantCode = saved.participantCode;
+    render();
+    window.scrollTo(0, 0);
+    return;
+  }
   startNight();
 }
 
@@ -354,7 +384,8 @@ async function startNight() {
   render();
   try {
     const body = {};
-    if (state.sessionId) body.session_id = state.sessionId;
+    const known = state.sessionId || openSid();
+    if (known) body.session_id = known;
     const response = await fetch("/api/start", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -363,6 +394,7 @@ async function startNight() {
     if (!response.ok) throw new Error("start");
     const data = await response.json();
     state.sessionId = data.session_id;
+    rememberOpen(state.sessionId);
     state.condition = data.condition;
     state.twoVersions = !!data.two_versions;
     state.forced = false;
@@ -430,7 +462,9 @@ function shiftScene(delta) {
 
 function nightScenes() {
   // Advice night reuses his route and advice scenes until he writes more.
-  if (state.twoVersions && state.condition === "advice") return [SCENES[0], SCENES[1]];
+  // Gate on the assigned condition, not the live flag, so a mid-session
+  // flag flip does not lengthen or shorten a sitting already underway.
+  if (state.condition === "advice") return [SCENES[0], SCENES[1]];
   return SCENES;
 }
 
@@ -471,7 +505,7 @@ function fileLines() {
     "It issued the warning, the patrols, the freeze, and the inspections.",
     "Lei moved naval forces towards the route.",
   ];
-  if (state.twoVersions && state.condition === "advice") return [all[0]];
+  if (state.condition === "advice") return [all[0]];
   return all;
 }
 
@@ -801,7 +835,8 @@ if (existing && existing.sessionId && existing.step && existing.step !== "consen
   if (!state.inquiry) state.inquiry = blank().inquiry;
   if (state.step === "night" && !(state.scene >= 0 && state.scene < nightScenes().length)) state.scene = 0;
 }
-if (filedHere() && (!state.sessionId || state.submitted) && state.step !== "debrief") {
+const alreadySat = filedHere() || (state.submitted && state.savedOk);
+if (alreadySat && state.step !== "debrief") {
   state.step = "already";
 }
 try {

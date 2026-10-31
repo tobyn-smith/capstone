@@ -265,14 +265,17 @@ def save_assignment(record: dict) -> None:
 def save_response(record: dict) -> None:
     from psycopg.types.json import Jsonb
 
+    session_id = record.get("session_id")
+    if not session_id:
+        raise ValueError("session")
     with db_connect() as conn:
         conn.execute(
             """
             INSERT INTO responses (session_id, payload)
             VALUES (%s, %s)
-            ON CONFLICT (session_id) DO UPDATE SET payload = EXCLUDED.payload
+            ON CONFLICT (session_id) DO NOTHING
             """,
-            (record.get("session_id") or secrets.token_hex(8), Jsonb(record)),
+            (session_id, Jsonb(record)),
         )
         conn.commit()
 
@@ -341,8 +344,10 @@ def assignment_counts(rows: list[dict], keys: tuple[str, ...] | None = None) -> 
 def pick_condition(rows: list[dict], rng=None) -> str:
     """Least-count among live versions; fair coin on a tie.
 
-    sequence rows do not count toward the live balance when the switch
-    is on. This stays even if one side has more old pilot sits, and it
+    Counts start rows, including abandoned starts that never filed.
+    When the switch is on, sequence rows are ignored for that tally
+    (PR 28: "sequence rows do not count toward that balance"). This
+    stays even if one side has more old pilot sits, and it
     self-corrects if a write fails. Not a predictable alternate
     (advice, agent, advice, ...).
     """
@@ -414,6 +419,18 @@ def too_many_sessions() -> bool:
     return len(read_jsonl(ASSIGNMENTS)) >= MAX_SESSIONS
 
 
+def finding_exists(session_id: str) -> bool:
+    if not session_id:
+        return False
+    if database_url():
+        with db_connect() as conn:
+            row = conn.execute(
+                "SELECT 1 FROM responses WHERE session_id = %s", (session_id,)
+            ).fetchone()
+        return bool(row)
+    return any(row.get("session_id") == session_id for row in read_jsonl(RESPONSES))
+
+
 def drop_session(session_id: str) -> None:
     if database_url():
         with db_connect() as conn:
@@ -427,7 +444,7 @@ def drop_session(session_id: str) -> None:
         write_jsonl(ASSIGNMENTS, [row for row in read_jsonl(ASSIGNMENTS) if row.get("session_id") != session_id])
 
 
-def clean_response(payload: dict, received_at: str) -> dict:
+def clean_response(payload: dict, received_at: str, assigned: dict | None = None) -> dict:
     condition = payload.get("condition")
     if condition not in KNOWN_CONDITIONS:
         raise ValueError("condition")
@@ -439,12 +456,14 @@ def clean_response(payload: dict, received_at: str) -> dict:
     if last_human and last_human not in HUMANS:
         raise ValueError("human")
     session_id = clip(payload.get("session_id"), 80)
-    if session_id and not SESSION_ID.fullmatch(session_id):
+    if not SESSION_ID.fullmatch(session_id):
         raise ValueError("session")
-    assigned = find_assignment(session_id) if session_id else None
-    if assigned and assigned.get("condition") in KNOWN_CONDITIONS:
-        if condition != assigned.get("condition"):
-            raise ValueError("condition")
+    if assigned is None:
+        assigned = find_assignment(session_id)
+    if not assigned:
+        raise ValueError("session")
+    if assigned.get("condition") in KNOWN_CONDITIONS and condition != assigned.get("condition"):
+        raise ValueError("condition")
     return {
         "participant_code": clip(payload.get("participant_code"), 40),
         "condition": condition,
@@ -635,6 +654,9 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_error(400, "Bad response")
             return
         with LOCK:
+            if finding_exists(record["session_id"]):
+                self.send_json({"ok": True})
+                return
             if database_url():
                 save_response(record)
             else:
@@ -652,7 +674,7 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_error(400, "Bad remove")
             return
         session_id = clip(payload.get("session_id"), 80)
-        if not session_id:
+        if not SESSION_ID.fullmatch(session_id):
             self.send_error(400, "Bad remove")
             return
         with LOCK:
