@@ -1,4 +1,5 @@
 const STORAGE = "oracle-wargame";
+const FILED = "oracle-filed";
 const app = document.querySelector("#app");
 
 const ACTORS = [
@@ -164,6 +165,22 @@ function save() {
   sessionStorage.setItem(STORAGE, JSON.stringify(state));
 }
 
+function filedHere() {
+  try {
+    return localStorage.getItem(FILED) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markFiled() {
+  try {
+    localStorage.setItem(FILED, "1");
+  } catch {
+    /* A locked store should not stop the finding from saving. */
+  }
+}
+
 function goto(step) {
   state.step = step;
   state.formError = "";
@@ -266,7 +283,40 @@ function plotBoard(beat) {
 }
 
 // Draft voice. The class-page sentences live in consent().
+function already() {
+  const saved = loadSaved();
+  const canReturn = saved && (saved.submitted || saved.step === "debrief");
+  return h("section", { class: "welcome" }, [
+    h("img", { class: "uga-logo", src: "uga-logo.png", alt: "University of Georgia", width: "1024", height: "158" }),
+    h("p", { class: "draft-mark" }, "Draft"),
+    h("h1", { class: "question" }, "INTL 6010, Research Methods"),
+    h("p", { class: "byline" }, "A project by Tobyn Smith"),
+    prose(
+      "This browser already filed a finding. This file is one go.",
+      "If that was you, you can close this. If you need a row taken out, email tobynsmith@uga.edu."
+    ),
+    canReturn
+      ? h("button", {
+        class: "primary",
+        type: "button",
+        onClick: () => {
+          state = saved;
+          if (state.step !== "debrief") state.step = "debrief";
+          render();
+          window.scrollTo(0, 0);
+        },
+      }, "Return to the last page")
+      : null,
+    h("p", { class: "reach" }, [
+      "Any questions or issues, reach out to ",
+      h("a", { href: "mailto:tobynsmith@uga.edu" }, "tobynsmith@uga.edu"),
+      ".",
+    ]),
+  ]);
+}
+
 function consent() {
+  if (filedHere()) return already();
   return h("section", { class: "welcome" }, [
     h("img", { class: "uga-logo", src: "uga-logo.png", alt: "University of Georgia", width: "1024", height: "158" }),
     h("p", { class: "draft-mark" }, "Draft"),
@@ -292,6 +342,11 @@ function consent() {
 }
 
 function begin() {
+  if (filedHere()) {
+    render();
+    window.scrollTo(0, 0);
+    return;
+  }
   const saved = loadSaved();
   if (saved && saved.sessionId && (saved.step === "night" || saved.step === "inquiry")) {
     state = blank();
@@ -304,6 +359,13 @@ function begin() {
 }
 
 async function startNight() {
+  if (filedHere()) {
+    state.step = "consent";
+    save();
+    render();
+    window.scrollTo(0, 0);
+    return;
+  }
   state.formError = "";
   state.step = "waiting";
   save();
@@ -346,15 +408,17 @@ function landing() {
           window.scrollTo(0, 0);
         },
       }, "Return to that file"),
-      h("button", {
-        class: "secondary",
-        type: "button",
-        onClick: () => {
-          sessionStorage.removeItem(STORAGE);
-          state = blank();
-          startNight();
-        },
-      }, "Open a new file"),
+      filedHere()
+        ? null
+        : h("button", {
+          class: "secondary",
+          type: "button",
+          onClick: () => {
+            sessionStorage.removeItem(STORAGE);
+            state = blank();
+            startNight();
+          },
+        }, "Open a new file"),
     ]),
   ]);
 }
@@ -548,6 +612,13 @@ function inquiryProblems() {
 
 async function onInquiry(event) {
   event.preventDefault();
+  if (filedHere() && !state.submitted) {
+    state.step = "consent";
+    save();
+    render();
+    window.scrollTo(0, 0);
+    return;
+  }
   syncInquiry(event.target);
   const problem = inquiryProblems();
   if (problem) {
@@ -561,7 +632,10 @@ async function onInquiry(event) {
   const payload = payloadFromState();
   state.savedOk = await postFinding(payload);
   state.submitted = true;
-  if (state.savedOk) localStorage.removeItem("oracle-unsent-" + state.sessionId);
+  if (state.savedOk) {
+    markFiled();
+    localStorage.removeItem("oracle-unsent-" + state.sessionId);
+  }
   else localStorage.setItem("oracle-unsent-" + state.sessionId, JSON.stringify(payload));
   goto("debrief");
 }
@@ -585,7 +659,10 @@ async function postFinding(payload) {
 async function sendAgain() {
   const payload = payloadFromState();
   state.savedOk = await postFinding(payload);
-  if (state.savedOk) localStorage.removeItem("oracle-unsent-" + state.sessionId);
+  if (state.savedOk) {
+    markFiled();
+    localStorage.removeItem("oracle-unsent-" + state.sessionId);
+  }
   else localStorage.setItem("oracle-unsent-" + state.sessionId, JSON.stringify(payload));
   save();
   render();
@@ -734,13 +811,18 @@ function loadSaved() {
 const KNOWN = new Set(["consent", "landing", "waiting", "night", "inquiry", "debrief"]);
 const existing = loadSaved();
 if (existing && existing.sessionId && existing.step && existing.step !== "consent" && existing.step !== "waiting") {
-  if (!KNOWN.has(existing.step)) {
-    existing.step = "night";
-    existing.scene = 0;
+  if (filedHere() && existing.step !== "debrief" && !existing.submitted) {
+    state = blank();
+    state.step = "consent";
+  } else {
+    if (!KNOWN.has(existing.step)) {
+      existing.step = "night";
+      existing.scene = 0;
+    }
+    state = existing;
+    if (!state.inquiry) state.inquiry = blank().inquiry;
+    if (state.step === "night" && !(state.scene >= 0 && state.scene < SCENES.length)) state.scene = 0;
   }
-  state = existing;
-  if (!state.inquiry) state.inquiry = blank().inquiry;
-  if (state.step === "night" && !(state.scene >= 0 && state.scene < SCENES.length)) state.scene = 0;
 }
 try {
   satMarkup = await (await fetch("route-sat.svg")).text();

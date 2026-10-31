@@ -311,6 +311,15 @@ def write_jsonl(path: Path, rows: list[dict]) -> None:
     path.write_text(text, encoding="utf-8")
 
 
+def save_local_response(record: dict) -> None:
+    rows = read_jsonl(RESPONSES)
+    session_id = record.get("session_id")
+    if session_id:
+        rows = [row for row in rows if row.get("session_id") != session_id]
+    rows.append(record)
+    write_jsonl(RESPONSES, rows)
+
+
 def too_many_sessions() -> bool:
     if database_url():
         with db_connect() as conn:
@@ -531,8 +540,7 @@ class Handler(SimpleHTTPRequestHandler):
             if database_url():
                 save_response(record)
             else:
-                with RESPONSES.open("a", encoding="utf-8") as handle:
-                    handle.write(json.dumps(record, ensure_ascii=False) + "\n")
+                save_local_response(record)
         self.send_json({"ok": True})
 
     def handle_remove(self):
