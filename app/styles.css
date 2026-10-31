@@ -237,6 +237,27 @@ body[data-step="night"] .imprint { display: none; }
 
 .welcome .primary { margin-top: 1.75rem; }
 
+.welcome .field {
+  margin: 1.35rem 0 0;
+}
+
+.welcome .field label {
+  color: #000;
+  font-family: Merriweather, Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 400;
+}
+
+.welcome .field input {
+  display: block;
+  width: 100%;
+  margin-top: 0.4rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid #000;
+  font-family: Merriweather, Georgia, serif;
+  font-size: 1.05rem;
+}
+
 .draft-mark {
   position: absolute;
   top: 1.15rem;

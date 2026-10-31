@@ -281,9 +281,29 @@ function consent() {
       h("a", { href: "mailto:tobynsmith@uga.edu" }, "tobynsmith@uga.edu"),
       ".",
     ]),
+    codeField(),
     state.formError ? h("p", { class: "error" }, state.formError) : null,
     h("button", { class: "primary", type: "button", onClick: begin }, "Start"),
   ]);
+}
+
+function codeField() {
+  return h("div", { class: "field" }, [
+    h("label", { htmlFor: "code" }, "Participant code, if you were given one"),
+    h("input", {
+      id: "code",
+      name: "code",
+      type: "text",
+      autocomplete: "off",
+      maxlength: "40",
+      value: state.participantCode || "",
+    }),
+  ]);
+}
+
+function readConsentCode() {
+  const field = document.querySelector("#code");
+  if (field) state.participantCode = field.value.trim();
 }
 
 function begin() {
@@ -295,6 +315,7 @@ function begin() {
     window.scrollTo(0, 0);
     return;
   }
+  readConsentCode();
   startNight();
 }
 
@@ -315,7 +336,6 @@ async function startNight() {
     state.condition = "sequence";
     state.forced = false;
     state.startedAt = data.started_at;
-    state.participantCode = data.session_id;
     state.scene = 0;
     goto("night");
   } catch {
@@ -441,17 +461,7 @@ function inquiry() {
         if (event.target && event.target.name === "last_human") render();
       },
     }, [
-      h("div", { class: "field" }, [
-        h("label", { htmlFor: "code" }, "Participant code, if you were given one"),
-        h("input", {
-          id: "code",
-          name: "code",
-          type: "text",
-          autocomplete: "off",
-          maxlength: "40",
-          value: state.participantCode && state.participantCode !== state.sessionId ? state.participantCode : "",
-        }),
-      ]),
+      codeField(),
       h("div", { class: "ask" }, [
         h("label", { htmlFor: "account" }, qhead(1, "Who was responsible for what Araknes did?")),
         h("textarea", { id: "account", name: "account", value: q.account }),
@@ -523,8 +533,7 @@ function syncInquiry(form) {
   q.sureness = data.get("sureness") ? Number(data.get("sureness")) : null;
   q.shared = data.getAll("shared");
   q.otherNotes = data.get("other_notes") || "";
-  const code = (data.get("code") || "").trim();
-  state.participantCode = code || state.sessionId || "";
+  state.participantCode = (data.get("code") || "").trim();
 }
 
 function inquiryProblems() {
