@@ -1408,3 +1408,12 @@ body.register { background: #d6d2c4; }
   .before { display: none; }
   .computer-only { display: flex; }
 }
+
+/* Preview host only. The class sitting still turns a phone away. */
+html.on-pages-preview .computer-only { display: none !important; }
+@media (max-width: 1040px) {
+  html.on-pages-preview body:has(.class-gate) { background: #d6d2c4; }
+  html.on-pages-preview .site { display: block; }
+  html.on-pages-preview .before { display: block; }
+  html.on-pages-preview .computer-only { display: none !important; }
+}

@@ -1,6 +1,9 @@
 const STORAGE = "oracle-wargame";
 const FILED = "oracle-filed";
 const app = document.querySelector("#app");
+if (location.hostname.endsWith(".pages.dev")) {
+  document.documentElement.classList.add("on-pages-preview");
+}
 
 const ACTORS = [
   ["me", "An official on duty"],
