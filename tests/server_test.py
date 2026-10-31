@@ -1,3 +1,4 @@
+import json
 import os
 import socket
 import threading
@@ -38,11 +39,18 @@ class ResolveTests(unittest.TestCase):
         self.assertIsNone(server.resolve_app_file("/../../etc/passwd"))
         self.assertIsNone(server.resolve_app_file("/index.html%00.png"))
 
+    def test_preview_worker_files_are_not_served(self):
+        self.assertIsNone(server.resolve_app_file("/_worker.js"))
+        self.assertIsNone(server.resolve_app_file("/_headers"))
+        self.assertIsNone(server.resolve_app_file("/_redirects"))
+
     def test_a_finding_rejects_a_bad_score_and_a_bad_actor(self):
+        sid = "ab" * 8
+        assigned = {"session_id": sid, "condition": "sequence"}
         good = server.clean_response(
             {
                 "condition": "sequence",
-                "session_id": "ab" * 8,
+                "session_id": sid,
                 "confidence_bar": None,
                 "inquiry": {
                     "account": "Officials set the goal.",
@@ -54,6 +62,7 @@ class ResolveTests(unittest.TestCase):
                 },
             },
             "t",
+            assigned,
         )
         self.assertEqual(good["single_actor"], "oracle")
         self.assertEqual(good["last_human_who"], "")
@@ -66,9 +75,15 @@ class ResolveTests(unittest.TestCase):
             {"last_human": "maybe"},
         ):
             with self.assertRaises(ValueError):
-                server.clean_response({"condition": "sequence", "inquiry": inquiry}, "t")
+                server.clean_response(
+                    {"condition": "sequence", "session_id": sid, "inquiry": inquiry},
+                    "t",
+                    assigned,
+                )
         with self.assertRaises(ValueError):
             server.clean_response({"condition": "sequence", "session_id": "../x", "inquiry": {}}, "t")
+        with self.assertRaises(ValueError):
+            server.clean_response({"condition": "sequence", "inquiry": {}}, "t")
 
     def test_heroku_database_url_asks_for_ssl(self):
         with patch.dict(os.environ, {"DATABASE_URL": "postgres://u:p@host:5432/db"}):
@@ -99,12 +114,38 @@ class ResolveTests(unittest.TestCase):
         self.assertNotIn("127.0.0.1", text)
 
     def test_the_night_is_a_valid_finding(self):
+        sid = "ab" * 8
+        assigned = {"session_id": sid, "condition": "sequence"}
         record = server.clean_response(
-            {"condition": "sequence", "inquiry": {"account": "Officials set the goal and ORACLE acted."}},
+            {
+                "condition": "sequence",
+                "session_id": sid,
+                "inquiry": {"account": "Officials set the goal and ORACLE acted."},
+            },
             "t",
+            assigned,
         )
         self.assertEqual(record["condition"], "sequence")
         self.assertEqual(record["inquiry_account"], "Officials set the goal and ORACLE acted.")
+
+    def test_a_blank_code_stays_blank_and_notes_are_kept(self):
+        sid = "ab" * 8
+        assigned = {"session_id": sid, "condition": "sequence"}
+        record = server.clean_response(
+            {
+                "condition": "sequence",
+                "session_id": sid,
+                "participant_code": "",
+                "inquiry": {
+                    "account": "Officials set the goal and ORACLE acted.",
+                    "other_notes": "A spare thought.",
+                },
+            },
+            "t",
+            assigned,
+        )
+        self.assertEqual(record["participant_code"], "")
+        self.assertEqual(record["other_notes"], "A spare thought.")
 
     def test_drop_session_removes_the_local_row(self):
         import tempfile
@@ -137,6 +178,193 @@ class ResolveTests(unittest.TestCase):
             text = "\n".join(server.startup_lines(8000))
         self.assertIn("http://127.0.0.1:8000/admin", text)
         self.assertIn("local-phrase", text)
+
+    def test_old_advice_and_agent_rows_still_load(self):
+        advice_sid = "aa" * 8
+        agent_sid = "bb" * 8
+        advice = server.clean_response(
+            {
+                "condition": "advice",
+                "session_id": advice_sid,
+                "inquiry": {"account": "Officials set the goal and ORACLE advised."},
+            },
+            "t",
+            {"session_id": advice_sid, "condition": "advice"},
+        )
+        agent = server.clean_response(
+            {
+                "condition": "agent",
+                "session_id": agent_sid,
+                "inquiry": {"account": "Officials set the goal and ORACLE acted."},
+            },
+            "t",
+            {"session_id": agent_sid, "condition": "agent"},
+        )
+        self.assertEqual(advice["condition"], "advice")
+        self.assertEqual(agent["condition"], "agent")
+        with self.assertRaises(ValueError):
+            server.clean_response({"condition": "watch", "inquiry": {}}, "t")
+
+
+class AssignmentTests(unittest.TestCase):
+    def setUp(self):
+        import tempfile
+
+        self.folder = Path(tempfile.mkdtemp())
+        self.assignments = self.folder / "assignments.jsonl"
+        self.responses = self.folder / "responses.jsonl"
+        self.env = patch.dict(os.environ, {"DATABASE_URL": "", "ENABLE_TWO_VERSIONS": ""}, clear=False)
+        self.env.start()
+        self.p_assign = patch.object(server, "ASSIGNMENTS", self.assignments)
+        self.p_resp = patch.object(server, "RESPONSES", self.responses)
+        self.p_assign.start()
+        self.p_resp.start()
+
+    def tearDown(self):
+        self.p_resp.stop()
+        self.p_assign.stop()
+        self.env.stop()
+
+    def test_flag_off_assigns_sequence_only(self):
+        rows = []
+        for _ in range(12):
+            rows.append({"condition": server.pick_condition(rows)})
+        self.assertTrue(all(row["condition"] == "sequence" for row in rows))
+
+    def test_assignment_balance_when_flag_on(self):
+        with patch.dict(os.environ, {"ENABLE_TWO_VERSIONS": "1", "DATABASE_URL": ""}):
+            rows = [{"condition": "sequence"}] * 7
+            for _ in range(20):
+                rows.append({"condition": server.pick_condition(rows)})
+            live = [row["condition"] for row in rows if row["condition"] in ("advice", "agent")]
+            advice = live.count("advice")
+            agent = live.count("agent")
+            self.assertEqual(advice + agent, 20)
+            self.assertLessEqual(abs(advice - agent), 1)
+
+    def test_same_session_keeps_the_version(self):
+        with patch.dict(os.environ, {"ENABLE_TWO_VERSIONS": "1", "DATABASE_URL": ""}):
+            first = server.start_record()
+            again = server.start_record(first["session_id"])
+        self.assertEqual(first["session_id"], again["session_id"])
+        self.assertEqual(first["condition"], again["condition"])
+        self.assertIn(first["condition"], ("advice", "agent"))
+
+    def test_submit_must_match_the_start(self):
+        sid = "ab" * 8
+        self.assignments.write_text(
+            '{"session_id":"%s","condition":"advice","forced_condition":false,"started_at":"t"}\n' % sid,
+            encoding="utf-8",
+        )
+        ok = server.clean_response(
+            {"condition": "advice", "session_id": sid, "inquiry": {"account": "A finding."}},
+            "t",
+        )
+        self.assertEqual(ok["condition"], "advice")
+        with self.assertRaises(ValueError):
+            server.clean_response(
+                {"condition": "agent", "session_id": sid, "inquiry": {"account": "A finding."}},
+                "t",
+            )
+        with self.assertRaises(ValueError):
+            server.clean_response(
+                {"condition": "advice", "inquiry": {"account": "A finding."}},
+                "t",
+            )
+        with self.assertRaises(ValueError):
+            server.clean_response(
+                {
+                    "condition": "advice",
+                    "session_id": "ee" * 8,
+                    "inquiry": {"account": "A finding."},
+                },
+                "t",
+            )
+
+    def test_an_advice_finding_does_not_record_the_later_night(self):
+        sid = "ab" * 8
+        self.assignments.write_text(
+            '{"session_id":"%s","condition":"advice","forced_condition":false,"started_at":"t"}\n' % sid,
+            encoding="utf-8",
+        )
+        record = server.clean_response(
+            {
+                "condition": "advice",
+                "session_id": sid,
+                "final_actions": ["warning", "patrols", "freeze", "inspections"],
+                "outcome": "escalated",
+                "harm": True,
+                "inquiry": {"account": "Officials asked ORACLE for advice."},
+            },
+            "t",
+        )
+        self.assertEqual(record["final_actions"], [])
+        self.assertEqual(record["outcome"], "")
+        self.assertIsNone(record["harm"])
+
+    def test_counts_split_starts_and_findings(self):
+        self.assignments.write_text(
+            "\n".join(
+                [
+                    '{"session_id":"aaaaaaaaaaaaaaaa","condition":"advice"}',
+                    '{"session_id":"bbbbbbbbbbbbbbbb","condition":"agent"}',
+                    '{"session_id":"cccccccccccccccc","condition":"agent"}',
+                    '{"session_id":"dddddddddddddddd","condition":"sequence"}',
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        self.responses.write_text(
+            "\n".join(
+                [
+                    '{"session_id":"aaaaaaaaaaaaaaaa","condition":"advice"}',
+                    '{"session_id":"dddddddddddddddd","condition":"sequence"}',
+                ]
+            )
+            + "\n",
+            encoding="utf-8",
+        )
+        counts = server.register_counts()
+        self.assertEqual(counts["starts"]["advice"], 1)
+        self.assertEqual(counts["starts"]["agent"], 2)
+        self.assertEqual(counts["starts"]["sequence"], 1)
+        self.assertEqual(counts["findings"]["advice"], 1)
+        self.assertEqual(counts["findings"]["agent"], 0)
+        self.assertEqual(counts["findings"]["sequence"], 1)
+        self.assertEqual(counts["starts_without_finding"]["agent"], 2)
+        self.assertEqual(counts["starts_without_finding"]["advice"], 0)
+
+    def test_a_second_finding_for_the_same_session_is_kept_as_the_first(self):
+        sid = "ab" * 8
+        self.assignments.write_text(
+            '{"session_id":"%s","condition":"advice","forced_condition":false,"started_at":"t"}\n' % sid,
+            encoding="utf-8",
+        )
+        first = server.clean_response(
+            {
+                "condition": "advice",
+                "session_id": sid,
+                "inquiry": {"account": "The first finding is the one that stays."},
+            },
+            "t1",
+        )
+        self.responses.write_text(json.dumps(first) + "\n", encoding="utf-8")
+        self.assertTrue(server.finding_exists(sid))
+        with self.assertRaises(ValueError):
+            server.clean_response(
+                {
+                    "condition": "agent",
+                    "session_id": sid,
+                    "inquiry": {"account": "A later write must not change the version."},
+                },
+                "t2",
+            )
+
+    def test_remove_needs_a_hex_session_id(self):
+        self.assertTrue(server.SESSION_ID.fullmatch("ab" * 8))
+        self.assertIsNone(server.SESSION_ID.fullmatch("drop"))
+        self.assertIsNone(server.SESSION_ID.fullmatch(""))
 
 
 class ServeTests(unittest.TestCase):
@@ -212,6 +440,140 @@ class ServeTests(unittest.TestCase):
             self.assertNotIn(b"Nothing matches the given URI", body)
         else:
             self.fail("missing page should 404")
+
+    def _start(self, payload):
+        request = urllib.request.Request(
+            "http://127.0.0.1:%s/api/start" % self.port,
+            data=payload,
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(request) as response:
+            return json.loads(response.read().decode("utf-8"))
+
+    def test_start_keeps_the_same_version_on_reopen(self):
+        import tempfile
+
+        folder = Path(tempfile.mkdtemp())
+        assignments = folder / "assignments.jsonl"
+        responses = folder / "responses.jsonl"
+        with patch.dict(os.environ, {"DATABASE_URL": "", "ENABLE_TWO_VERSIONS": "1"}):
+            with patch.object(server, "ASSIGNMENTS", assignments), patch.object(server, "RESPONSES", responses):
+                first = self._start(b"{}")
+                again = self._start(json.dumps({"session_id": first["session_id"]}).encode("utf-8"))
+        self.assertEqual(first["session_id"], again["session_id"])
+        self.assertEqual(first["condition"], again["condition"])
+        self.assertIn(first["condition"], ("advice", "agent"))
+        self.assertTrue(first["two_versions"])
+
+    def test_start_is_sequence_when_the_second_night_is_off(self):
+        import tempfile
+
+        folder = Path(tempfile.mkdtemp())
+        with patch.dict(os.environ, {"DATABASE_URL": "", "ENABLE_TWO_VERSIONS": ""}):
+            with patch.object(server, "ASSIGNMENTS", folder / "assignments.jsonl"), patch.object(
+                server, "RESPONSES", folder / "responses.jsonl"
+            ):
+                first = self._start(b"{}")
+        self.assertEqual(first["condition"], "sequence")
+        self.assertFalse(first["two_versions"])
+
+    def test_a_second_save_keeps_the_first_finding(self):
+        import tempfile
+
+        folder = Path(tempfile.mkdtemp())
+        assignments = folder / "assignments.jsonl"
+        responses = folder / "responses.jsonl"
+        finding = {
+            "condition": "sequence",
+            "session_id": "",
+            "inquiry": {"account": "Officials set the goal and ORACLE acted first."},
+        }
+        later = {
+            "condition": "sequence",
+            "session_id": "",
+            "inquiry": {"account": "A second write tried to replace the first finding."},
+        }
+        with patch.dict(os.environ, {"DATABASE_URL": "", "ENABLE_TWO_VERSIONS": ""}):
+            with patch.object(server, "ASSIGNMENTS", assignments), patch.object(
+                server, "RESPONSES", responses
+            ):
+                started = self._start(b"{}")
+                finding["session_id"] = started["session_id"]
+                later["session_id"] = started["session_id"]
+                for payload in (finding, later):
+                    request = urllib.request.Request(
+                        "http://127.0.0.1:%s/api/responses" % self.port,
+                        data=json.dumps(payload).encode("utf-8"),
+                        headers={"Content-Type": "application/json"},
+                    )
+                    with urllib.request.urlopen(request) as response:
+                        self.assertEqual(response.status, 200)
+                rows = [
+                    json.loads(line)
+                    for line in responses.read_text(encoding="utf-8").splitlines()
+                    if line.strip()
+                ]
+        self.assertEqual(len(rows), 1)
+        self.assertIn("acted first", rows[0]["inquiry_account"])
+
+    def test_remove_rejects_a_session_id_that_is_not_hex(self):
+        with patch.object(server.Handler, "authorised_export", return_value=True):
+            try:
+                urllib.request.urlopen(
+                    urllib.request.Request(
+                        "http://127.0.0.1:%s/api/responses/remove" % self.port,
+                        data=b'{"session_id":"drop"}',
+                        headers={"Content-Type": "application/json"},
+                    )
+                )
+            except urllib.error.HTTPError as error:
+                self.assertEqual(error.code, 400)
+            else:
+                self.fail("remove should refuse a session id that is not 16 hex characters")
+
+    def test_a_finding_with_an_unknown_session_is_refused(self):
+        import tempfile
+
+        folder = Path(tempfile.mkdtemp())
+        with patch.dict(os.environ, {"DATABASE_URL": ""}):
+            with patch.object(server, "ASSIGNMENTS", folder / "assignments.jsonl"), patch.object(
+                server, "RESPONSES", folder / "responses.jsonl"
+            ):
+                request = urllib.request.Request(
+                    "http://127.0.0.1:%s/api/responses" % self.port,
+                    data=json.dumps(
+                        {
+                            "condition": "sequence",
+                            "session_id": "ee" * 8,
+                            "inquiry": {"account": "Officials set the goal and ORACLE acted."},
+                        }
+                    ).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                )
+                try:
+                    urllib.request.urlopen(request)
+                except urllib.error.HTTPError as error:
+                    self.assertEqual(error.code, 400)
+                else:
+                    self.fail("a finding with no start row should be refused")
+
+    def test_a_finding_without_a_session_is_refused(self):
+        request = urllib.request.Request(
+            "http://127.0.0.1:%s/api/responses" % self.port,
+            data=json.dumps(
+                {
+                    "condition": "sequence",
+                    "inquiry": {"account": "Officials set the goal and ORACLE acted."},
+                }
+            ).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+        )
+        try:
+            urllib.request.urlopen(request)
+        except urllib.error.HTTPError as error:
+            self.assertEqual(error.code, 400)
+        else:
+            self.fail("a finding with no session should be refused")
 
     def test_a_full_register_refuses_another_start(self):
         with patch.object(server, "too_many_sessions", return_value=True):

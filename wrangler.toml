@@ -1,0 +1,22 @@
+name = "capstone-preview"
+compatibility_date = "2026-10-27"
+pages_build_output_dir = "app"
+
+# Preview only. The class host is still Heroku. Do not point this
+# project at the class sitting. Heroku reads ENABLE_TWO_VERSIONS from
+# the dyno config, not from this file.
+#
+# Pages: a top-level [vars] block applies to local and to production
+# Pages deploys. Preview-only values go in [env.preview.vars].
+# https://developers.cloudflare.com/pages/functions/wrangler-configuration/
+
+[[kv_namespaces]]
+binding = "STORE"
+id = "274b742a1b3d4677b7a26dbcf6e7d1a6"
+
+[[env.preview.kv_namespaces]]
+binding = "STORE"
+id = "274b742a1b3d4677b7a26dbcf6e7d1a6"
+
+[env.preview.vars]
+ENABLE_TWO_VERSIONS = "1"
