@@ -500,6 +500,10 @@ function inquiry() {
           h("span", {}, "5 · sure"),
         ]),
       ]),
+      h("div", { class: "field" }, [
+        h("label", { htmlFor: "other_notes" }, "Anything else you want on the file. Optional."),
+        h("textarea", { id: "other_notes", name: "other_notes", value: q.otherNotes }),
+      ]),
       state.formError ? h("p", { class: "error" }, state.formError) : null,
       h("button", { class: "primary", type: "submit" }, "File the finding"),
     ]),
