@@ -130,6 +130,8 @@ Heroku still asks for a credit card before the credit applies. If the card is a 
 
 When this repository changes and you want the class host to match it, merge the change into main on GitHub. Then in the Heroku dashboard open ts-6010, go to Deploy, and choose Deploy Branch on main. Do not create a second app.
 
+`wrangler.toml` is only for the Cloudflare Pages preview project. The class host is Heroku and does not read that file, so new sits there stay `sequence` unless `ENABLE_TWO_VERSIONS` is set on the dyno. In a Pages Wrangler file, a top-level `[vars]` block applies to local and to **production Pages** deploys of that project. This repo puts `ENABLE_TWO_VERSIONS = "1"` in `[env.preview.vars]` so a `wrangler pages deploy` of a preview branch cannot switch that flag off. A production Pages deploy of the same project would not get that value from this file.
+
 The admin page is https://ts-6010-db607dbe410e.herokuapp.com/admin. `/export` opens the same page. Do not send `/admin` or `/export` to the class. Do not send this GitHub page. The note here says what the design is testing, and people should write the finding before they read it.
 
 Tell them it takes about fifteen minutes, and to go through the file once. It has to be a computer. A phone is turned away. The link to send is https://ts-6010-db607dbe410e.herokuapp.com
