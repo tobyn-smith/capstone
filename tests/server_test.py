@@ -106,6 +106,21 @@ class ResolveTests(unittest.TestCase):
         self.assertEqual(record["condition"], "sequence")
         self.assertEqual(record["inquiry_account"], "Officials set the goal and ORACLE acted.")
 
+    def test_a_blank_code_stays_blank_and_notes_are_kept(self):
+        record = server.clean_response(
+            {
+                "condition": "sequence",
+                "participant_code": "",
+                "inquiry": {
+                    "account": "Officials set the goal and ORACLE acted.",
+                    "other_notes": "A spare thought.",
+                },
+            },
+            "t",
+        )
+        self.assertEqual(record["participant_code"], "")
+        self.assertEqual(record["other_notes"], "A spare thought.")
+
     def test_drop_session_removes_the_local_row(self):
         import tempfile
         from pathlib import Path
