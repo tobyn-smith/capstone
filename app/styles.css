@@ -32,9 +32,13 @@ body {
 .story-bar,
 .banner { display: none; }
 
-body[data-step="night"],
-body[data-step="inquiry"] {
+body[data-step="night"] {
   overflow: hidden;
+}
+
+body[data-step="inquiry"] {
+  overflow: auto;
+  padding-bottom: var(--step);
 }
 
 body[data-step="night"] .frame {
@@ -45,8 +49,7 @@ body[data-step="night"] .frame {
   padding-bottom: 0;
 }
 
-body[data-step="night"] .paper,
-body[data-step="inquiry"] .paper {
+body[data-step="night"] .paper {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -54,8 +57,7 @@ body[data-step="inquiry"] .paper {
   box-shadow: none;
 }
 
-body[data-step="night"] .sheet,
-body[data-step="inquiry"] .sheet {
+body[data-step="night"] .sheet {
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -1555,11 +1557,8 @@ body.register { background: #d6d2c4; }
 }
 
 body[data-step="inquiry"] .frame {
-  display: flex;
-  flex-direction: column;
-  min-height: calc(100vh - var(--step));
+  min-height: 0;
   padding-bottom: 0;
-  overflow: hidden;
 }
 
 body[data-step="inquiry"] .banner-row {
@@ -1583,38 +1582,7 @@ body[data-step="inquiry"] .mast .doc {
 }
 
 body[data-step="inquiry"] #app {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
   padding: 0.45rem 1.15rem 0.3rem;
-}
-
-body[data-step="inquiry"] #app > section {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
-
-body[data-step="inquiry"] .spread {
-  flex: 1;
-  gap: 0.85rem 1.15rem;
-  min-height: 0;
-  overflow: hidden;
-}
-
-body[data-step="inquiry"] .spread-main,
-body[data-step="inquiry"] .inquiry-form {
-  min-height: 0;
-}
-
-body[data-step="inquiry"] .inquiry-form {
-  flex: 1;
-  max-height: none;
-  overflow: auto;
-  padding-bottom: 0.25rem;
 }
 
 body[data-step="inquiry"] .prose p {
