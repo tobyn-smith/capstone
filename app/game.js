@@ -315,7 +315,7 @@ async function startNight() {
     state.condition = "sequence";
     state.forced = false;
     state.startedAt = data.started_at;
-    state.participantCode = data.session_id;
+    state.participantCode = "";
     state.scene = 0;
     goto("night");
   } catch {
@@ -442,14 +442,14 @@ function inquiry() {
       },
     }, [
       h("div", { class: "field" }, [
-        h("label", { htmlFor: "code" }, "Participant code, if you were given one"),
+        h("label", { htmlFor: "code" }, "Participant code, if you were given one. You can leave this blank."),
         h("input", {
           id: "code",
           name: "code",
           type: "text",
           autocomplete: "off",
           maxlength: "40",
-          value: state.participantCode && state.participantCode !== state.sessionId ? state.participantCode : "",
+          value: state.participantCode,
         }),
       ]),
       h("div", { class: "ask" }, [
@@ -527,8 +527,7 @@ function syncInquiry(form) {
   q.sureness = data.get("sureness") ? Number(data.get("sureness")) : null;
   q.shared = data.getAll("shared");
   q.otherNotes = data.get("other_notes") || "";
-  const code = (data.get("code") || "").trim();
-  state.participantCode = code || state.sessionId || "";
+  state.participantCode = (data.get("code") || "").trim();
 }
 
 function inquiryProblems() {
