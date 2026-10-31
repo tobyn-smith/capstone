@@ -600,6 +600,7 @@ body[data-step="night"] #app {
   min-height: 0;
   margin: 0;
   display: flex;
+  justify-content: center;
   align-items: center;
 }
 
@@ -610,13 +611,17 @@ body[data-step="night"] #app {
 
 .film-visual .sat {
   display: block;
-  width: 100%;
+  flex: 0 1 auto;
+  width: min(100%, calc((100vh - var(--step) - 10.4rem) * 1200 / 560));
   height: auto;
+  max-width: 100%;
   max-height: calc(100vh - var(--step) - 10.4rem);
+  aspect-ratio: 1200 / 560;
   animation: beat-in 0.4s ease both;
 }
 
 .film-visual.has-oracle .sat {
+  width: min(100%, calc((100vh - var(--step) - 23.2rem) * 1200 / 560));
   max-height: calc(100vh - var(--step) - 23.2rem);
 }
 
