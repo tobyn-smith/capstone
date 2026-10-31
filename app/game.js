@@ -493,7 +493,7 @@ function night() {
     : null;
   return h("section", { class: "film" }, [
     copy,
-    h("div", { class: "film-visual" }, [plotBoard(scene.beat), side]),
+    h("div", { class: side ? "film-visual has-oracle" : "film-visual" }, [plotBoard(scene.beat), side]),
   ]);
 }
 

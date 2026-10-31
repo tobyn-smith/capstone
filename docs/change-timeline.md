@@ -71,6 +71,7 @@ Dates are UTC `createdAt` from GitHub for that capstone PR, plus `mergedAt` when
 | 2026-10-31 (this update) | PR 31, coach fixes | Dropped the inquiry line “The night is over. This is the inquiry.” Advice findings no longer store later-night `final_actions` / `outcome` `escalated` / `harm` true. Advice inquiry lead uses his file-panel line so it does not say ORACLE carried out the action. Missing or unknown `session_id` still rejected. | Tobyn approved these on this PR. | Same three stored versions. |
 | 2026-10-31 (this update) | PR 31, two-column laptop layout | Night: scene text and map/ORACLE sit side by side. Inquiry: questions and the file panel sit side by side. Two columns stay at 1280×800. A window under 1040px still stacks. No wording change. | Tobyn asked for the layout. | Same three stored versions. Screenshots below retaken at 1280×800. |
 | 2026-10-31 (this update) | PR 31, preview flag in wrangler.toml | `ENABLE_TWO_VERSIONS = "1"` is in `[env.preview.vars]`, not top-level `[vars]`. Pages preview deploys keep two versions on. The class host is Heroku and does not read this file. | Tobyn approved. Cloudflare Pages docs: top-level `[vars]` apply to local and production Pages. | Config only. |
+| 2026-10-31 (this update) | PR 31, map size and motion | Night map is the wide column at 1280×800. Labels are larger. The SMIL pulses and dashed-path crawls from before `29b5ca9` are back. Copy stays narrow. No wording change. | Tobyn: map was too small and motion looked gone. Diff: `29b5ca9` flattened `route-sat.svg` and dropped those `<animate>` tags. No hull-travel animation was in git. | Same three stored versions. Night screenshots retaken. |
 
 Presentations PR 5 (`tobyn-smith/presentations`, `ts/reading-discussion-weeks-930d`, `0902131`) is the source of the week files mapped in `docs/readings-to-design.md`. It is not a capstone game change.
 
@@ -95,7 +96,7 @@ Captured locally at `http://127.0.0.1:8000`, viewport 1280×800. No admin passph
 | Screen | Before | After |
 | --- | --- | --- |
 | Start | [style-before-start.png](screenshots/style-before-start.png) | [sequence-start.png](screenshots/sequence-start.png) |
-| Night (Lei moves) | [style-before-night.png](screenshots/style-before-night.png) | [sequence-night.png](screenshots/sequence-night.png) |
+| Night | [style-before-night.png](screenshots/style-before-night.png) (Lei moves, older stacked frame) | [sequence-night.png](screenshots/sequence-night.png) (upgrade, current two-column) |
 | Inquiry | [style-before-inquiry.png](screenshots/style-before-inquiry.png) | [sequence-inquiry.png](screenshots/sequence-inquiry.png) |
 | Debrief | [style-before-debrief.png](screenshots/style-before-debrief.png) | [sequence-debrief.png](screenshots/sequence-debrief.png) |
 
