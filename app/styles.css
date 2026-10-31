@@ -31,7 +31,7 @@ body {
 .story-bar,
 .banner { display: none; }
 
-body[data-step="night"] .frame { padding-top: 1.65rem; }
+body[data-step="night"] .frame { padding-top: 0.85rem; padding-bottom: 1rem; }
 
 body[data-step="night"] .paper {
   box-shadow: none;
@@ -43,7 +43,7 @@ body[data-step="night"] .story-bar {
   justify-content: space-between;
   gap: 1.5rem;
   margin: 0;
-  padding: 1rem 1.85rem 0.9rem;
+  padding: 0.7rem 1.85rem 0.55rem;
   background: var(--paper);
   border: 1px solid #d5dbe3;
   border-bottom: none;
@@ -97,7 +97,24 @@ body[data-step="debrief"] .banner {
 }
 
 body[data-step="night"] .mast {
+  padding-top: 0.7rem;
+  padding-bottom: 0.55rem;
   border-bottom: 1px solid var(--hair);
+}
+
+body[data-step="night"] .story-title,
+body[data-step="night"] .mast .doc {
+  font-size: 1.4rem;
+}
+
+body[data-step="night"] .rail li {
+  padding-top: 0.55rem;
+  padding-bottom: 0.4rem;
+}
+
+body[data-step="night"] .film-controls .primary,
+body[data-step="night"] .film-controls .secondary {
+  margin-top: 0.35rem;
 }
 
 body[data-step="night"] .imprint { display: none; }
@@ -404,6 +421,11 @@ body[data-step="night"] .imprint { display: none; }
 
 #app { padding: 1.35rem 1.85rem 0.5rem; }
 
+body[data-step="night"] #app {
+  padding-top: 0.85rem;
+  padding-bottom: 0.35rem;
+}
+
 .opening {
   max-width: 40rem;
   min-height: 52vh;
@@ -503,13 +525,68 @@ body[data-step="night"] .imprint { display: none; }
 .spread {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(16rem, 22.5rem);
-  gap: 2rem;
+  gap: 1.5rem 1.75rem;
   align-items: start;
 }
 
 .spread-side {
   position: sticky;
   top: 1.25rem;
+}
+
+.film {
+  display: grid;
+  grid-template-columns: minmax(17rem, 1fr) minmax(20rem, 1.15fr);
+  gap: 1rem 1.5rem;
+  align-items: start;
+}
+
+.film-copy .prose p {
+  max-width: none;
+  font-size: 1.08rem;
+  line-height: 1.5;
+  margin: 0 0 0.7rem;
+}
+
+.film-copy .film-controls {
+  margin-top: 0.85rem;
+}
+
+.film-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.film-visual .plot {
+  margin: 0;
+}
+
+.film-visual .sat {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: min(34vh, 15.5rem);
+}
+
+.film-visual .shot figcaption {
+  margin-bottom: 0.3rem;
+}
+
+.film-visual .oracle-chrome {
+  padding: 0.5rem 0.75rem 0.4rem;
+}
+
+.film-visual .oracle-body {
+  gap: 0.55rem;
+  padding: 0.1rem 0.75rem 0.75rem;
+}
+
+.film-visual .model-out p {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  margin-bottom: 0.3rem;
 }
 
 .column { max-width: 40rem; }
@@ -651,12 +728,17 @@ body[data-step="night"] .imprint { display: none; }
   #app,
   .rail ol { padding-left: 1.15rem; padding-right: 1.15rem; }
   .rail li { letter-spacing: 0.08em; }
+  .chain { font-size: 1.05rem; }
+}
+
+@media (max-width: 1039px) {
   .spread { grid-template-columns: 1fr; }
   .spread-side {
     position: static;
     max-width: 36rem;
   }
-  .chain { font-size: 1.05rem; }
+  .film { grid-template-columns: 1fr; }
+  .film-visual .sat { max-height: none; }
 }
 
 @media (min-width: 1700px) {

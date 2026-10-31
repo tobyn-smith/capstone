@@ -472,7 +472,7 @@ function night() {
   const scenes = nightScenes();
   const scene = scenes[state.scene] || scenes[0];
   const last = state.scene >= scenes.length - 1;
-  const copy = [
+  const copy = h("div", { class: "film-copy" }, [
     scene.chain ? chain(scene.chain) : null,
     prose(...scene.lines),
     h("div", { class: "film-controls" }, [
@@ -483,7 +483,7 @@ function night() {
         ? h("button", { class: "primary", type: "button", onClick: () => goto("inquiry") }, "Open the inquiry")
         : h("button", { class: "secondary", type: "button", onClick: () => shiftScene(1) }, "Next"),
     ]),
-  ];
+  ]);
   const side = scene.oracle
     ? oracle(scene.oracle.lines, {
       role: scene.oracle.role,
@@ -492,8 +492,8 @@ function night() {
     })
     : null;
   return h("section", { class: "film" }, [
-    plotBoard(scene.beat),
-    side ? spread(copy, side) : h("div", {}, copy),
+    copy,
+    h("div", { class: "film-visual" }, [plotBoard(scene.beat), side]),
   ]);
 }
 
