@@ -180,6 +180,24 @@ function flag(name) {
   return h("img", { class: "flag", src: "flag-" + name + ".svg", alt: "" });
 }
 
+function lights() {
+  return h("span", { class: "win-lights", "aria-hidden": "true" }, [
+    h("i", {}),
+    h("i", {}),
+    h("i", {}),
+  ]);
+}
+
+function win(title, body, extraClass) {
+  return h("div", { class: extraClass ? "win " + extraClass : "win" }, [
+    h("div", { class: "win-bar" }, [
+      lights(),
+      title ? h("p", { class: "win-title" }, title) : null,
+    ]),
+    h("div", { class: "win-body" }, body),
+  ]);
+}
+
 function parties() {
   return h("section", { class: "parties", "aria-label": "The parties" }, [
     h("p", { class: "parties-label" }, "The parties"),
@@ -201,12 +219,10 @@ function oracle(lines, options = {}) {
   return h("figure", { class: "shot" }, [
     h("figcaption", {}, "From the screen that night"),
     h("aside", { class: "oracle", "aria-label": "ORACLE" }, [
-      h("div", { class: "oracle-chrome" }, [
-        h("span", { class: "win-dots", "aria-hidden": "true" }, [h("i"), h("i"), h("i")]),
-        h("span", { class: "mark", "aria-hidden": "true" }),
-        h("p", { class: "oracle-name" }, "ORACLE"),
+      h("div", { class: "oracle-chrome win-bar" }, [
+        lights(),
+        h("p", { class: "oracle-name win-title" }, "ORACLE"),
         options.role ? h("p", { class: "oracle-role" }, options.role) : null,
-        h("p", { class: "oracle-live" }, "On watch"),
       ]),
       h("div", { class: "oracle-body" }, [
         options.prompt ? h("div", { class: "human" }, [
@@ -273,16 +289,16 @@ function consent() {
   return h("section", { class: "welcome" }, [
     h("p", { class: "draft-mark" }, "Draft"),
     h("div", { class: "bento intro-bento" }, [
-      h("div", { class: "tile tile-hero" }, [
+      h("div", { class: "tile tile-hero" }, win(null, [
         h("img", { class: "uga-logo", src: "uga-logo.png", alt: "University of Georgia", width: "1024", height: "158" }),
         h("h1", { class: "question" }, "INTL 6010, Research Methods"),
         h("p", { class: "byline" }, "A project by Tobyn Smith"),
         h("button", { class: "primary", type: "button", onClick: begin }, "Start"),
-      ]),
-      h("div", { class: "tile tile-copy" }, prose(
+      ])),
+      h("div", { class: "tile tile-copy tile-statement" }, prose(
         "This will take about fifteen minutes to complete, and by clicking 'Start', you agree that I can save your choices and inquiry answers for this project."
       )),
-      h("div", { class: "tile tile-note" }, prose(
+      h("div", { class: "tile tile-note tile-statement" }, prose(
         "Please don't use your real name and answer truthfully!"
       )),
       h("div", { class: "tile tile-contact" }, [
@@ -341,7 +357,7 @@ function landing() {
   const saved = loadSaved();
   return h("section", { class: "cover" }, [
     h("div", { class: "bento landing-bento" }, [
-      h("div", { class: "tile tile-hero" }, [
+      h("div", { class: "tile tile-hero" }, win(null, [
         h("h1", { class: "question" }, "This browser already has a file open."),
         h("div", { class: "tile-actions" }, [
           h("button", {
@@ -364,7 +380,7 @@ function landing() {
             },
           }, "Open a new file"),
         ]),
-      ]),
+      ])),
     ]),
   ]);
 }
@@ -431,7 +447,7 @@ function scale(name, current) {
 
 function inquiry() {
   const q = state.inquiry;
-  return h("section", {}, [
+  return h("section", { class: "inquiry-board" }, [
     where(),
     spread(
       [
@@ -511,10 +527,7 @@ function inquiry() {
       h("button", { class: "primary", type: "submit" }, "File the finding"),
     ]),
       ],
-      h("div", { class: "file briefing-bento" }, [
-        h("p", { class: "label" }, "The file"),
-        h("ul", {}, fileLines().map((line) => h("li", {}, line))),
-      ])
+      win("The file", h("ul", {}, fileLines().map((line) => h("li", {}, line))), "file")
     ),
   ]);
 }
@@ -631,12 +644,12 @@ function debrief() {
   return h("section", { class: "column debrief" }, [
     where(),
     h("div", { class: "bento debrief-bento" }, [
-      h("div", { class: "tile tile-hero" }, prose(saved)),
-      h("div", { class: "tile tile-copy" }, prose(
+      h("div", { class: "tile tile-hero" }, win(null, prose(saved))),
+      h("div", { class: "tile tile-copy tile-statement" }, prose(
         "You watched the night. Then you sat the inquiry.",
         "I think that once officials set the agenda and ORACLE selects and carries out the action, one responsible person is harder to name. It might not. A rule set in advance can keep the chain clear. This file is one go at that."
       )),
-      h("div", { class: "tile tile-note" }, prose(actor)),
+      h("div", { class: "tile tile-note tile-statement" }, prose(actor)),
       h("div", { class: "tile tile-contact" }, [
         prose("You can close this."),
         state.savedOk ? null : h("button", { class: "primary", type: "button", onClick: sendAgain }, "Send the finding again"),
