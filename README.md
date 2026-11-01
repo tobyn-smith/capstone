@@ -2,6 +2,8 @@
 
 Scenario wargame for my MIP capstone. The other file, `who-answers-when-it-goes-wrong.md`, is the thinking. This file is how to get the game onto your computer and onto the screen.
 
+The [Stageshow](https://github.com/benjitaylor/skills/tree/main/stageshow) skill is installed at `.agents/skills/stageshow` so Cursor agents can make faux UI stills, animations, and bento grids.
+
 Do not double-click `index.html`. That opens the pages with nothing behind them, and the answers will not save. Download the folder, start `server.py`, then use the browser address.
 
 ## What needs to be installed
