@@ -2043,13 +2043,17 @@ button.secondary {
   text-transform: none;
 }
 
-.oracle .readout-label { color: #c8c8cc; }
-.oracle .figure { color: #ececee; }
-.oracle .figure .unit { color: #d4c29a; white-space: nowrap; }
+.oracle .readout-label { color: #ececee; }
+.oracle .figure { color: #f4f4f6; }
+.oracle .figure .unit { color: #e8d4a8; white-space: nowrap; }
 .oracle .human .who,
-.oracle .model-name { color: #d4c29a; }
+.oracle .model-name { color: #e8d4a8; }
+.oracle .human p:last-child,
+.oracle .model-out p {
+  color: #f4f4f6;
+}
 .film-visual .shot figcaption {
-  color: #c8c8cc;
+  color: #ececee;
   letter-spacing: 0.04em;
 }
 
@@ -2157,21 +2161,54 @@ body[data-step="inquiry"] button:focus-visible,
   object-position: center;
 }
 
+html, body { height: 100%; }
+
 body[data-step="night"],
 body[data-step="inquiry"] {
-  padding-bottom: calc(var(--step) + 3.75rem);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-height: 100dvh;
+  overflow: hidden;
+  padding-bottom: 0;
 }
 
 body[data-step="night"] .site,
+body[data-step="inquiry"] .site {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
 body[data-step="night"] .frame,
 body[data-step="night"] .paper,
 body[data-step="night"] .sheet,
-body[data-step="night"] #app {
+body[data-step="night"] #app,
+body[data-step="inquiry"] .frame,
+body[data-step="inquiry"] .paper,
+body[data-step="inquiry"] .sheet {
   min-height: 0;
+  flex: 0 1 auto;
 }
 
+body[data-step="night"] #app,
 body[data-step="inquiry"] #app {
-  padding-bottom: 1.5rem;
+  padding-bottom: 1.25rem;
+}
+
+.step-bar {
+  position: static;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  flex: 0 0 auto;
+  width: 100%;
+  height: auto;
+  min-height: var(--step);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  box-shadow: none;
 }
 
 .tile,
@@ -2191,8 +2228,14 @@ body[data-step="inquiry"] #app {
 .shot { animation-delay: 180ms; }
 
 @keyframes ss-arrive {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: none; }
+  from { transform: translateY(8px); }
+  to { transform: none; }
+}
+
+.shot,
+.oracle,
+.oracle * {
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -2237,6 +2280,12 @@ body[data-step="inquiry"] #app {
 
 html.on-pages-preview .welcome { max-width: 58rem; }
 html.on-pages-preview .film { min-height: 0; }
+html.on-pages-preview body[data-step="night"] .site,
+html.on-pages-preview body[data-step="inquiry"] .site {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
 
 @media (max-width: 1039px) {
   html.on-pages-preview .intro-bento,

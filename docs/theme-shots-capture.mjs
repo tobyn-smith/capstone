@@ -10,7 +10,11 @@ async (page) => {
       document.documentElement.style.zoom = "1";
       window.scrollTo(0, 0);
     });
-    await page.waitForTimeout(180);
+    await page.evaluate(async () => {
+      const animations = document.getAnimations ? document.getAnimations() : [];
+      await Promise.all(animations.map((a) => a.finished.catch(() => {})));
+    });
+    await page.waitForTimeout(80);
     await page.screenshot({ path: out + name + ".png", fullPage: false });
   }
   const night = {

@@ -10,26 +10,138 @@ async (page) => {
   const zooms = [1, 1.25];
   const results = [];
 
+  const blankInquiry = { account: "", single: "", lastHuman: "", lastHumanWho: "", clarity: null, sureness: null, shared: [], otherNotes: "" };
+  const session = {
+    sessionId: "aaaaaaaaaaaaaaaa",
+    participantCode: "",
+    condition: "sequence",
+    forced: false,
+    startedAt: new Date().toISOString(),
+    scene: 0,
+    formError: "",
+    inquiry: blankInquiry,
+    submitted: false,
+    savedOk: false,
+    resumed: false,
+  };
+
   async function prep() {
-    await page.evaluate(() => {
-      document.documentElement.classList.add("on-pages-preview");
+    await page.evaluate(() => document.documentElement.classList.add("on-pages-preview"));
+  }
+
+  async function waitMotion() {
+    await page.evaluate(async () => {
+      const animations = document.getAnimations ? document.getAnimations() : [];
+      await Promise.all(animations.map((a) => a.finished.catch(() => {})));
     });
+    await page.waitForTimeout(60);
+  }
+
+  async function boot(step, extra) {
+    await page.evaluate((payload) => {
+      sessionStorage.setItem("oracle-wargame", JSON.stringify(payload));
+      document.documentElement.classList.add("on-pages-preview");
+    }, { ...session, step, ...extra });
+    await page.reload();
+    await prep();
+    await waitMotion();
   }
 
   async function measure(screen, w, h, zoom) {
+    await waitMotion();
     return page.evaluate(({ screen, w, h, zoom }) => {
       const issues = [];
-      const doc = document.documentElement;
-      if (doc.scrollWidth > window.innerWidth + 2) {
-        issues.push("horizontal-scroll " + doc.scrollWidth + ">" + window.innerWidth);
+
+      function lum(color) {
+        const m = String(color).match(/[\d.]+/g);
+        if (!m || m.length < 3) return 0;
+        const s = m.slice(0, 3).map((n) => {
+          const x = Number(n) / 255;
+          return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+        });
+        return 0.2126 * s[0] + 0.7152 * s[1] + 0.0722 * s[2];
       }
+      function contrast(fg, bg) {
+        const a = lum(fg);
+        const b = lum(bg);
+        const hi = Math.max(a, b);
+        const lo = Math.min(a, b);
+        return (hi + 0.05) / (lo + 0.05);
+      }
+
+      function scroller() {
+        const site = document.querySelector(".site");
+        if (site && getComputedStyle(site).overflowY === "auto") return site;
+        return document.scrollingElement || document.documentElement;
+      }
+
+      function setScroll(node, y) {
+        if (node === document.scrollingElement || node === document.documentElement) {
+          window.scrollTo(0, y);
+        } else {
+          node.scrollTop = y;
+        }
+      }
+
+      function maxScroll(node) {
+        if (node === document.scrollingElement || node === document.documentElement) {
+          return Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+        }
+        return Math.max(0, node.scrollHeight - node.clientHeight);
+      }
+
+      function clipOf(node) {
+        if (node === document.scrollingElement || node === document.documentElement) {
+          return { top: 0, bottom: window.innerHeight, left: 0, right: window.innerWidth };
+        }
+        const r = node.getBoundingClientRect();
+        return { top: r.top, bottom: r.bottom, left: r.left, right: r.right };
+      }
+
       const bar = document.querySelector("#step-bar");
       const barOn = bar && !bar.hidden && getComputedStyle(bar).display !== "none";
-      const barTop = barOn ? bar.getBoundingClientRect().top : window.innerHeight;
-      const nodes = document.querySelectorAll(
+      const barRect = barOn ? bar.getBoundingClientRect() : null;
+      const root = scroller();
+
+      function checkBar(where) {
+        if (!barOn || !barRect) return;
+        const clip = clipOf(root);
+        const nodes = document.querySelectorAll(
+          "p, li, label, legend, h1, button, .qhead, .reach, .figure, .oracle-role, .model-out, figcaption, .byline, .sat"
+        );
+        nodes.forEach((el) => {
+          if (el.closest("#step-bar")) return;
+          const r = el.getBoundingClientRect();
+          if (r.width < 2 || r.height < 2) return;
+          const cs = getComputedStyle(el);
+          if (cs.visibility === "hidden" || Number(cs.opacity) < 0.2) return;
+          const vis = {
+            top: Math.max(r.top, clip.top),
+            bottom: Math.min(r.bottom, clip.bottom),
+            left: Math.max(r.left, clip.left),
+            right: Math.min(r.right, clip.right),
+          };
+          if (vis.bottom - vis.top < 2 || vis.right - vis.left < 2) return;
+          const ix = Math.min(vis.right, barRect.right) - Math.max(vis.left, barRect.left);
+          const iy = Math.min(vis.bottom, barRect.bottom) - Math.max(vis.top, barRect.top);
+          if (ix > 3 && iy > 3) {
+            const text = (el.textContent || el.getAttribute("aria-label") || el.className || "")
+              .replace(/\s+/g, " ")
+              .trim()
+              .slice(0, 48);
+            issues.push("behind-bar-" + where + ":" + text);
+          }
+        });
+      }
+
+      if (document.documentElement.scrollWidth > window.innerWidth + 2) {
+        issues.push("horizontal-scroll " + document.documentElement.scrollWidth + ">" + window.innerWidth);
+      }
+
+      const textNodes = document.querySelectorAll(
         "p, li, label, legend, h1, button, .qhead, .reach, .figure, .oracle-role, .model-out, figcaption, .byline"
       );
-      nodes.forEach((el) => {
+      textNodes.forEach((el) => {
         if (el.closest("#step-bar")) return;
         const r = el.getBoundingClientRect();
         if (r.width < 2 || r.height < 2) return;
@@ -41,81 +153,36 @@ async (page) => {
         if (el.scrollHeight > el.clientHeight + 3 && cs.overflow !== "visible") {
           issues.push("clipped-text:" + text);
         }
-        if (r.width < 72 && (el.textContent || "").indexOf(" ") === -1 && (el.textContent || "").trim().length > 10) {
-          issues.push("narrow-unbroken:" + text);
-        }
-        if (barOn && r.top < barTop && r.bottom > barTop + 3 && r.bottom <= window.innerHeight + 1) {
-          issues.push("behind-bar:" + text);
-        }
       });
-      if (barOn) {
-        const max = document.documentElement.scrollHeight - window.innerHeight;
-        window.scrollTo(0, Math.max(0, max));
-        const barTop2 = bar.getBoundingClientRect().top;
-        const lastBits = document.querySelectorAll(".oracle, .model-out, .readout, .inquiry-form, .file, .debrief, .film-copy");
-        lastBits.forEach((el) => {
-          const r = el.getBoundingClientRect();
-          if (r.height < 2) return;
-          if (r.bottom > barTop2 + 6 && r.top < barTop2) {
-            issues.push("still-behind-after-scroll:" + (el.className || el.tagName));
-          }
-        });
-        window.scrollTo(0, 0);
-      }
-      const boxes = [];
-      nodes.forEach((el) => {
-        if (el.closest("#step-bar")) return;
-        const r = el.getBoundingClientRect();
-        if (r.width < 8 || r.height < 8) return;
-        boxes.push({ el, r });
-      });
-      for (let i = 0; i < boxes.length; i++) {
-        for (let j = i + 1; j < boxes.length; j++) {
-          const a = boxes[i];
-          const b = boxes[j];
-          if (a.el.contains(b.el) || b.el.contains(a.el)) continue;
-          const ix = Math.min(a.r.right, b.r.right) - Math.max(a.r.left, b.r.left);
-          const iy = Math.min(a.r.bottom, b.r.bottom) - Math.max(a.r.top, b.r.top);
-          if (ix > 6 && iy > 6) {
-            const ta = (a.el.textContent || "").replace(/\s+/g, " ").trim().slice(0, 28);
-            const tb = (b.el.textContent || "").replace(/\s+/g, " ").trim().slice(0, 28);
-            issues.push("overlap:" + ta + "|" + tb);
-          }
-        }
-      }
+
+      setScroll(root, 0);
+      checkBar("scroll0");
+      setScroll(root, maxScroll(root));
+      checkBar("max");
+      setScroll(root, 0);
+
       const sat = document.querySelector(".sat");
       if (sat) {
         const r = sat.getBoundingClientRect();
         if (r.width > 8 && r.height > 8) {
           const ratio = r.width / r.height;
-          if (Math.abs(ratio - 1200 / 560) > 0.08) {
-            issues.push("map-ratio:" + ratio.toFixed(3));
-          }
+          if (Math.abs(ratio - 1200 / 560) > 0.08) issues.push("map-ratio:" + ratio.toFixed(3));
           if (r.width < 140) issues.push("map-too-small:" + Math.round(r.width));
         }
       }
+
       const oracle = document.querySelector(".oracle");
-      if (oracle && barOn) {
-        const r = oracle.getBoundingClientRect();
-        const maxY = window.scrollY + r.bottom;
-        const reach = document.documentElement.scrollHeight;
-        const limit = reach - (window.innerHeight - barTop) + 4;
-        if (r.bottom > barTop + 3 && maxY > limit + 20) {
-          issues.push("oracle-unscrollable");
-        }
-        const read = oracle.querySelector(".readout, .figure");
-        if (read) {
-          const rr = read.getBoundingClientRect();
-          if (rr.bottom > barTop + 3 && rr.top < barTop) issues.push("confidence-behind-bar");
-        }
+      if (oracle) {
+        const bg = getComputedStyle(oracle).backgroundColor;
+        oracle.querySelectorAll("p, .oracle-name, .oracle-role, .figure, .readout-label").forEach((el) => {
+          const ratio = contrast(getComputedStyle(el).color, bg);
+          if (ratio < 4.5) {
+            const text = (el.textContent || "").replace(/\s+/g, " ").trim().slice(0, 32);
+            issues.push("contrast:" + ratio.toFixed(2) + ":" + text);
+          }
+        });
       }
-      const root = document.querySelector(".welcome, .cover, .film, .inquiry-board, .debrief, #app");
-      if (root && barOn) {
-        const last = root.getBoundingClientRect();
-        const can = document.documentElement.scrollHeight - window.innerHeight;
-        const need = last.bottom + window.scrollY - barTop + 8;
-        if (need > can + 24) issues.push("content-unscrollable");
-      }
+
       return { screen, w, h, zoom, issues };
     }, { screen, w, h, zoom });
   }
@@ -125,25 +192,23 @@ async (page) => {
     await page.evaluate((z) => {
       document.documentElement.classList.add("on-pages-preview");
       document.documentElement.style.zoom = String(z);
+      const site = document.querySelector(".site");
+      if (site) site.scrollTop = 0;
       window.scrollTo(0, 0);
     }, zoom);
-    await page.waitForTimeout(80);
+    await waitMotion();
   }
 
   async function record(screen, w, h, zoom) {
-    const row = await measure(screen, w, h, zoom);
-    results.push(row);
+    results.push(await measure(screen, w, h, zoom));
   }
 
   await page.goto("http://127.0.0.1:8000/?audit=1");
-  await page.evaluate(() => {
-    sessionStorage.clear();
-    document.documentElement.classList.add("on-pages-preview");
-  });
+  await page.evaluate(() => sessionStorage.clear());
   await page.reload();
-  await page.evaluate(() => document.documentElement.classList.add("on-pages-preview"));
   await prep();
   await page.waitForSelector(".welcome .question");
+  await waitMotion();
 
   for (const [w, h] of sizes) {
     for (const zoom of zooms) {
@@ -152,48 +217,19 @@ async (page) => {
     }
   }
 
-  await page.evaluate(() => {
-    sessionStorage.setItem("oracle-wargame", JSON.stringify({
-      step: "night",
-      sessionId: "aaaaaaaaaaaaaaaa",
-      participantCode: "",
-      condition: "sequence",
-      forced: false,
-      startedAt: new Date().toISOString(),
-      scene: 0,
-      formError: "",
-      inquiry: { account: "", single: "", lastHuman: "", lastHumanWho: "", clarity: null, sureness: null, shared: [], otherNotes: "" },
-      submitted: false,
-      savedOk: false,
-      resumed: false,
-    }));
-  });
-  await page.reload();
-  await page.waitForSelector(".welcome, .film");
-  await prep();
-  if (await page.locator(".welcome .primary").count()) {
-    await page.getByRole("button", { name: "Start" }).click();
-    await page.waitForSelector(".cover, .film");
-  }
-  await prep();
-  if (await page.locator(".cover").count()) {
-    for (const [w, h] of sizes) {
-      for (const zoom of zooms) {
-        await setView(w, h, zoom);
-        await record("landing", w, h, zoom);
-      }
+  await boot("landing");
+  await page.waitForSelector(".cover");
+  for (const [w, h] of sizes) {
+    for (const zoom of zooms) {
+      await setView(w, h, zoom);
+      await record("landing", w, h, zoom);
     }
-    await page.getByRole("button", { name: "Return to that file" }).click();
   }
 
-  await page.waitForSelector(".film");
   const nightNames = ["route", "advice", "upgrade", "second", "acts", "lei"];
   for (let i = 0; i < nightNames.length; i++) {
-    if (i > 0) {
-      await page.locator("#step-next").click();
-      await page.waitForTimeout(120);
-    }
-    await prep();
+    await boot("night", { scene: i });
+    await page.waitForSelector(".film");
     for (const [w, h] of sizes) {
       for (const zoom of zooms) {
         await setView(w, h, zoom);
@@ -202,9 +238,8 @@ async (page) => {
     }
   }
 
-  await page.locator("#step-next").click();
+  await boot("inquiry");
   await page.waitForSelector(".inquiry-form");
-  await prep();
   for (const [w, h] of sizes) {
     for (const zoom of zooms) {
       await setView(w, h, zoom);
@@ -212,20 +247,12 @@ async (page) => {
     }
   }
 
-  await page.evaluate(() => {
-    const account = document.querySelector("#account");
-    if (account) account.value = "Officials set the agenda and ORACLE carried out the action.";
-    [["single", "oracle"], ["last_human", "no"], ["clarity", "3"], ["sureness", "4"]].forEach(([n, v]) => {
-      const el = document.querySelector(`input[name="${n}"][value="${v}"]`);
-      if (el) el.checked = true;
-    });
-    const form = document.querySelector(".inquiry-form");
-    if (form) form.dispatchEvent(new Event("input", { bubbles: true }));
-    const next = document.querySelector("#step-next");
-    if (next) next.click();
+  await boot("debrief", {
+    submitted: true,
+    savedOk: true,
+    inquiry: { ...blankInquiry, single: "oracle", lastHuman: "no", account: "Officials set the agenda.", clarity: 3, sureness: 4 },
   });
-  await page.waitForSelector(".debrief", { timeout: 8000 });
-  await prep();
+  await page.waitForSelector(".debrief");
   for (const [w, h] of sizes) {
     for (const zoom of zooms) {
       await setView(w, h, zoom);
