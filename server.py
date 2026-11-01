@@ -395,6 +395,8 @@ def resolve_app_file(url_path: str) -> Path | None:
             continue
         if part == ".." or "\x00" in part:
             return None
+        if part.startswith("_"):
+            return None
         parts.append(part)
     if not parts:
         parts = ["index.html"]

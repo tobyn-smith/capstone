@@ -38,6 +38,11 @@ class ResolveTests(unittest.TestCase):
         self.assertIsNone(server.resolve_app_file("/../../etc/passwd"))
         self.assertIsNone(server.resolve_app_file("/index.html%00.png"))
 
+    def test_preview_worker_files_are_not_served(self):
+        self.assertIsNone(server.resolve_app_file("/_worker.js"))
+        self.assertIsNone(server.resolve_app_file("/_headers"))
+        self.assertIsNone(server.resolve_app_file("/_redirects"))
+
     def test_a_finding_rejects_a_bad_score_and_a_bad_actor(self):
         good = server.clean_response(
             {

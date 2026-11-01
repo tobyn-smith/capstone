@@ -12,6 +12,9 @@ const gate = document.querySelector("#gate");
 const out = document.querySelector("#out");
 const message = document.querySelector("#message");
 let key = "";
+if (location.hostname.endsWith(".pages.dev")) {
+  document.documentElement.classList.add("on-pages-preview");
+}
 
 function h(tag, attrs = {}, children = []) {
   const node = document.createElement(tag);
