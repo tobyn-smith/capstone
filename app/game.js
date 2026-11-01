@@ -202,8 +202,11 @@ function oracle(lines, options = {}) {
     h("figcaption", {}, "From the screen that night"),
     h("aside", { class: "oracle", "aria-label": "ORACLE" }, [
       h("div", { class: "oracle-chrome" }, [
+        h("span", { class: "win-dots", "aria-hidden": "true" }, [h("i"), h("i"), h("i")]),
         h("span", { class: "mark", "aria-hidden": "true" }),
         h("p", { class: "oracle-name" }, "ORACLE"),
+        options.role ? h("p", { class: "oracle-role" }, options.role) : null,
+        h("p", { class: "oracle-live" }, "On watch"),
       ]),
       h("div", { class: "oracle-body" }, [
         options.prompt ? h("div", { class: "human" }, [
@@ -268,21 +271,29 @@ function plotBoard(beat) {
 // Draft voice. The class-page sentences live in consent().
 function consent() {
   return h("section", { class: "welcome" }, [
-    h("img", { class: "uga-logo", src: "uga-logo.png", alt: "University of Georgia", width: "1024", height: "158" }),
     h("p", { class: "draft-mark" }, "Draft"),
-    h("h1", { class: "question" }, "INTL 6010, Research Methods"),
-    h("p", { class: "byline" }, "A project by Tobyn Smith"),
-    prose(
-      "This will take about fifteen minutes to complete, and by clicking 'Start', you agree that I can save your choices and inquiry answers for this project.",
-      "Please don't use your real name and answer truthfully!"
-    ),
-    h("p", { class: "reach" }, [
-      "Any questions or issues, reach out to ",
-      h("a", { href: "mailto:tobynsmith@uga.edu" }, "tobynsmith@uga.edu"),
-      ".",
+    h("div", { class: "bento intro-bento" }, [
+      h("div", { class: "tile tile-hero" }, [
+        h("img", { class: "uga-logo", src: "uga-logo.png", alt: "University of Georgia", width: "1024", height: "158" }),
+        h("h1", { class: "question" }, "INTL 6010, Research Methods"),
+        h("p", { class: "byline" }, "A project by Tobyn Smith"),
+        h("button", { class: "primary", type: "button", onClick: begin }, "Start"),
+      ]),
+      h("div", { class: "tile tile-copy" }, prose(
+        "This will take about fifteen minutes to complete, and by clicking 'Start', you agree that I can save your choices and inquiry answers for this project."
+      )),
+      h("div", { class: "tile tile-note" }, prose(
+        "Please don't use your real name and answer truthfully!"
+      )),
+      h("div", { class: "tile tile-contact" }, [
+        h("p", { class: "reach" }, [
+          "Any questions or issues, reach out to ",
+          h("a", { href: "mailto:tobynsmith@uga.edu" }, "tobynsmith@uga.edu"),
+          ".",
+        ]),
+      ]),
     ]),
     state.formError ? h("p", { class: "error" }, state.formError) : null,
-    h("button", { class: "primary", type: "button", onClick: begin }, "Start"),
   ]);
 }
 
@@ -329,27 +340,31 @@ async function startNight() {
 function landing() {
   const saved = loadSaved();
   return h("section", { class: "cover" }, [
-    h("h1", { class: "question" }, "This browser already has a file open."),
-    h("div", {}, [
-      h("button", {
-        class: "primary",
-        type: "button",
-        onClick: () => {
-          state = saved;
-          if (state.step === "night" && !(state.scene >= 0 && state.scene < SCENES.length)) state.scene = 0;
-          render();
-          window.scrollTo(0, 0);
-        },
-      }, "Return to that file"),
-      h("button", {
-        class: "secondary",
-        type: "button",
-        onClick: () => {
-          sessionStorage.removeItem(STORAGE);
-          state = blank();
-          startNight();
-        },
-      }, "Open a new file"),
+    h("div", { class: "bento landing-bento" }, [
+      h("div", { class: "tile tile-hero" }, [
+        h("h1", { class: "question" }, "This browser already has a file open."),
+        h("div", { class: "tile-actions" }, [
+          h("button", {
+            class: "primary",
+            type: "button",
+            onClick: () => {
+              state = saved;
+              if (state.step === "night" && !(state.scene >= 0 && state.scene < SCENES.length)) state.scene = 0;
+              render();
+              window.scrollTo(0, 0);
+            },
+          }, "Return to that file"),
+          h("button", {
+            class: "secondary",
+            type: "button",
+            onClick: () => {
+              sessionStorage.removeItem(STORAGE);
+              state = blank();
+              startNight();
+            },
+          }, "Open a new file"),
+        ]),
+      ]),
     ]),
   ]);
 }
@@ -373,19 +388,10 @@ function shiftScene(delta) {
 
 function night() {
   const scene = SCENES[state.scene] || SCENES[0];
-  const last = state.scene >= SCENES.length - 1;
-  const copy = [
+  const copy = h("div", { class: "film-copy" }, [
     scene.chain ? chain(scene.chain) : null,
     prose(...scene.lines),
-    h("div", { class: "film-controls" }, [
-      state.scene > 0
-        ? h("button", { class: "secondary", type: "button", onClick: () => shiftScene(-1) }, "Back")
-        : null,
-      last
-        ? h("button", { class: "primary", type: "button", onClick: () => goto("inquiry") }, "Open the inquiry")
-        : h("button", { class: "secondary", type: "button", onClick: () => shiftScene(1) }, "Next"),
-    ]),
-  ];
+  ]);
   const side = scene.oracle
     ? oracle(scene.oracle.lines, {
       role: scene.oracle.role,
@@ -394,8 +400,8 @@ function night() {
     })
     : null;
   return h("section", { class: "film" }, [
-    plotBoard(scene.beat),
-    side ? spread(copy, side) : h("div", {}, copy),
+    copy,
+    h("div", { class: side ? "film-visual has-oracle" : "film-visual" }, [plotBoard(scene.beat), side]),
   ]);
 }
 
@@ -434,6 +440,7 @@ function inquiry() {
           "When officials set the agenda and ORACLE selected and carried out the action, who was accountable?"
         ),
         h("form", {
+      class: "inquiry-form",
       onSubmit: onInquiry,
       onInput: (event) => {
         syncInquiry(event.currentTarget);
@@ -504,7 +511,7 @@ function inquiry() {
       h("button", { class: "primary", type: "submit" }, "File the finding"),
     ]),
       ],
-      h("div", { class: "file" }, [
+      h("div", { class: "file briefing-bento" }, [
         h("p", { class: "label" }, "The file"),
         h("ul", {}, fileLines().map((line) => h("li", {}, line))),
       ])
@@ -621,18 +628,22 @@ function debrief() {
   const actor = state.inquiry.single === "none"
     ? "You could not point to one actor."
     : "You named: " + (labelOf(ACTORS, state.inquiry.single) || "your answer") + ".";
-  return h("section", { class: "column" }, [
+  return h("section", { class: "column debrief" }, [
     where(),
-    prose(
-      saved,
-      "You watched the night. Then you sat the inquiry.",
-      "I think that once officials set the agenda and ORACLE selects and carries out the action, one responsible person is harder to name. It might not. A rule set in advance can keep the chain clear. This file is one go at that.",
-      actor,
-      "You can close this."
-    ),
-    state.savedOk ? null : h("button", { class: "primary", type: "button", onClick: sendAgain }, "Send the finding again"),
-    h("button", { class: "secondary", type: "button", onClick: downloadCopy }, "Download a copy of my finding"),
-    h("p", { class: "colophon" }, "Tobyn Smith · INTL 6010 · University of Georgia"),
+    h("div", { class: "bento debrief-bento" }, [
+      h("div", { class: "tile tile-hero" }, prose(saved)),
+      h("div", { class: "tile tile-copy" }, prose(
+        "You watched the night. Then you sat the inquiry.",
+        "I think that once officials set the agenda and ORACLE selects and carries out the action, one responsible person is harder to name. It might not. A rule set in advance can keep the chain clear. This file is one go at that."
+      )),
+      h("div", { class: "tile tile-note" }, prose(actor)),
+      h("div", { class: "tile tile-contact" }, [
+        prose("You can close this."),
+        state.savedOk ? null : h("button", { class: "primary", type: "button", onClick: sendAgain }, "Send the finding again"),
+        h("button", { class: "secondary", type: "button", onClick: downloadCopy }, "Download a copy of my finding"),
+        h("p", { class: "colophon" }, "Tobyn Smith · INTL 6010 · University of Georgia"),
+      ]),
+    ]),
   ]);
 }
 
@@ -660,6 +671,9 @@ function paintChrome() {
   const mast = document.querySelector("#mast");
   const rail = document.querySelector("#rail");
   const banner = document.querySelector(".commission");
+  const bar = document.querySelector("#step-bar");
+  const back = document.querySelector("#step-back");
+  const next = document.querySelector("#step-next");
   const inquiry = state.step === "inquiry" || state.step === "debrief";
   document.body.dataset.step = state.step;
   if (banner) banner.textContent = "Commission of Inquiry";
@@ -675,16 +689,47 @@ function paintChrome() {
     mast.replaceChildren(...bits);
   }
   if (rail) rail.setAttribute("aria-label", state.step === "night" ? "The night" : "Index to the file");
-  if (!rail) return;
-  const items = state.step === "night"
-    ? SCENES.map((item, index) => h("li", {
-      class: index === state.scene ? "now" : index < state.scene ? "done" : "",
-    }, item.rail))
-    : [
-      h("li", { class: "done" }, "The night"),
-      h("li", { class: inquiry ? "now" : "" }, "The inquiry"),
-    ];
-  rail.replaceChildren(h("ol", {}, items));
+  if (rail) {
+    const items = state.step === "night"
+      ? SCENES.map((item, index) => h("li", {
+        class: index === state.scene ? "now" : index < state.scene ? "done" : "",
+      }, item.rail))
+      : [
+        h("li", { class: "done" }, "The night"),
+        h("li", { class: inquiry ? "now" : "" }, "The inquiry"),
+      ];
+    rail.replaceChildren(h("ol", {}, items));
+  }
+  if (bar && back && next) {
+    const show = state.step === "night" || state.step === "inquiry";
+    bar.hidden = !show;
+    if (show) {
+      back.disabled = state.step === "night" && state.scene === 0;
+      next.disabled = false;
+      next.textContent = state.step === "inquiry"
+        ? "File the finding"
+        : state.scene >= SCENES.length - 1
+          ? "Open the inquiry"
+          : "Next";
+      back.onclick = () => {
+        if (state.step === "inquiry") {
+          state.scene = Math.max(0, SCENES.length - 1);
+          goto("night");
+          return;
+        }
+        shiftScene(-1);
+      };
+      next.onclick = () => {
+        if (state.step === "inquiry") {
+          const form = document.querySelector(".inquiry-form");
+          if (form) form.requestSubmit();
+          return;
+        }
+        if (state.scene >= SCENES.length - 1) goto("inquiry");
+        else shiftScene(1);
+      };
+    }
+  }
 }
 
 function render() {
