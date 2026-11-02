@@ -571,10 +571,6 @@ function inquiryLead() {
   return "When officials set the agenda and ORACLE selected and carried out the action, who was accountable?";
 }
 
-function accountReady(text) {
-  return (text || "").trim().length >= 20;
-}
-
 function fieldError(key) {
   const message = state.fieldErrors && state.fieldErrors[key];
   return message ? h("p", { class: "error", id: "err-" + key, role: "alert" }, message) : null;
@@ -596,7 +592,6 @@ function scale(name, current) {
 
 function inquiry() {
   const q = state.inquiry;
-  const open = accountReady(q.account);
   return h("section", { class: "inquiry-board" }, [
     where(),
     spread(
@@ -606,21 +601,9 @@ function inquiry() {
       class: "inquiry-form",
       onSubmit: onInquiry,
       onInput: (event) => {
-        const wasOpen = accountReady(state.inquiry.account);
-        const caret = event.target && event.target.id === "account" ? event.target.selectionStart : null;
         syncInquiry(event.currentTarget);
         save();
-        const nowOpen = accountReady(state.inquiry.account);
-        const flip = event.target && (event.target.name === "last_human" || event.target.name === "single");
-        if (!flip && wasOpen === nowOpen) return;
-        render();
-        if (caret != null) {
-          const box = document.querySelector("#account");
-          if (box) {
-            box.focus();
-            box.setSelectionRange(caret, caret);
-          }
-        }
+        if (event.target && (event.target.name === "last_human" || event.target.name === "single")) render();
       },
     }, [
       state.formError ? h("p", { class: "error", role: "alert" }, state.formError) : null,
@@ -629,7 +612,7 @@ function inquiry() {
         h("textarea", { id: "account", name: "account", value: q.account }),
         fieldError("account"),
       ]),
-      open ? h("fieldset", { class: "pick-one" }, [
+      h("fieldset", { class: "pick-one" }, [
         h("legend", {}, qhead(2, "Name one actor, or say you can't.")),
         ...ACTORS.map(([id, text]) => h("label", { class: "tick" }, [
           h("input", { type: "radio", name: "single", value: id, checked: q.single === id }),
@@ -647,8 +630,8 @@ function inquiry() {
           ])
           : null,
         fieldError("single"),
-      ]) : null,
-      open ? h("fieldset", {}, [
+      ]),
+      h("fieldset", {}, [
         h("legend", {}, qhead(3, "Could a person still have stopped this?")),
         ...[
           ["yes", "Yes"],
@@ -658,7 +641,7 @@ function inquiry() {
           h("input", { type: "radio", name: "last_human", value: id, checked: q.lastHuman === id }),
           h("span", {}, text),
         ])),
-        q.lastHuman === "yes"
+        q.lastHuman === "yes" || q.lastHuman === "unsure"
           ? h("div", { class: "field follow follow-stop" }, [
             h("label", { htmlFor: "who" }, "Who?"),
             h("input", { id: "who", name: "last_human_who", type: "text", value: q.lastHumanWho }),
@@ -666,8 +649,8 @@ function inquiry() {
           ])
           : null,
         fieldError("lastHuman"),
-      ]) : null,
-      open ? h("fieldset", {}, [
+      ]),
+      h("fieldset", {}, [
         h("legend", {}, qhead(4, "How clear was it who was responsible?")),
         scale("clarity", q.clarity),
         h("p", { class: "ends" }, [
@@ -675,8 +658,8 @@ function inquiry() {
           h("span", {}, "5 · clear"),
         ]),
         fieldError("clarity"),
-      ]) : null,
-      open ? h("fieldset", {}, [
+      ]),
+      h("fieldset", {}, [
         h("legend", {}, qhead(5, "How sure are you?")),
         scale("sureness", q.sureness),
         h("p", { class: "ends" }, [
@@ -684,11 +667,11 @@ function inquiry() {
           h("span", {}, "5 · sure"),
         ]),
         fieldError("sureness"),
-      ]) : null,
-      open ? h("div", { class: "ask notes" }, [
+      ]),
+      h("div", { class: "ask notes" }, [
         h("label", { htmlFor: "other_notes" }, "Notes, if you want"),
         h("textarea", { id: "other_notes", name: "other_notes", value: q.notes || "" }),
-      ]) : null,
+      ]),
     ]),
       ],
       win("The file", h("ul", {}, fileLines().map((line) => h("li", {}, line))), "file")
@@ -702,7 +685,7 @@ function syncInquiry(form) {
   q.account = data.get("account") || "";
   q.single = data.get("single") || "";
   q.lastHuman = data.get("last_human") || "";
-  q.lastHumanWho = q.lastHuman === "yes" ? (data.get("last_human_who") || "") : "";
+  q.lastHumanWho = q.lastHuman === "no" ? "" : (data.get("last_human_who") || "");
   q.clarity = data.get("clarity") ? Number(data.get("clarity")) : null;
   q.sureness = data.get("sureness") ? Number(data.get("sureness")) : null;
   q.shared = data.getAll("shared");
@@ -718,7 +701,7 @@ function inquiryProblems() {
   if (q.account.trim().length < 20) errors.account = "Write a sentence or two.";
   if (!q.single) errors.single = "Name one actor, or say you can't.";
   if (!q.lastHuman) errors.lastHuman = "Say whether a person could still have stopped this.";
-  if (q.lastHuman === "yes" && q.lastHumanWho.trim().length < 2) errors.lastHumanWho = "Say who you have in mind.";
+  if ((q.lastHuman === "yes" || q.lastHuman === "unsure") && q.lastHumanWho.trim().length < 2) errors.lastHumanWho = "Say who you have in mind.";
   if (q.single === "other" && !(q.otherWho || "").trim()) errors.otherWho = "Say who you have in mind.";
   if (!q.clarity) errors.clarity = "Mark how clear it was who was responsible.";
   if (!q.sureness) errors.sureness = "Mark how sure you are.";
