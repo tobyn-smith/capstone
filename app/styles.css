@@ -33,16 +33,6 @@ body {
 .story-bar,
 .banner { display: none; }
 
-body[data-step="night"] {
-  overflow: auto;
-  padding-bottom: var(--step);
-}
-
-body[data-step="inquiry"] {
-  overflow: auto;
-  padding-bottom: var(--step);
-}
-
 body[data-step="night"] .site {
   display: flex;
   flex-direction: column;
@@ -805,34 +795,25 @@ body[data-step="night"] #app {
   font-weight: 400;
 }
 
-.film-controls {
-  display: none;
-}
-
 .step-bar {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: static;
   z-index: 8;
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 0.7rem;
-  height: var(--step);
+  gap: 0.45rem;
+  flex: 0 0 auto;
+  width: 100%;
+  height: auto;
   min-height: var(--step);
-  padding: 0 1.5rem;
+  padding: 0 0.75rem env(safe-area-inset-bottom, 0px);
   background: var(--paper);
   border-top: 1px solid var(--hair);
-  box-shadow: 0 -8px 20px rgba(18, 21, 26, 0.06);
 }
 
 .step-bar[hidden] { display: none; }
 
-.step-bar {
-  gap: 0.45rem;
-  padding: 0 0.75rem;
-}
+.step-bar button[hidden] { display: none; }
 
 .step-bar button.primary,
 .step-bar button.secondary {
@@ -1724,7 +1705,6 @@ body[data-step="night"] .film-copy .prose p {
 /* Preview host only. The class sitting still turns a phone away. */
 html.on-pages-preview .computer-only { display: none !important; }
 @media (max-width: 1040px) {
-  html.on-pages-preview body:has(.class-gate) { background: #d6d2c4; }
   html.on-pages-preview .site { display: block; }
   html.on-pages-preview .site[hidden] { display: none; }
   html.on-pages-preview .before { display: block; }
@@ -1800,7 +1780,10 @@ p, li, label, legend, .qhead, button, .reach, .byline, .win-title, .oracle-role 
   hyphens: none;
 }
 
-.inquiry-form > button.primary { display: none; }
+.inquiry-form > button.primary {
+  display: inline-flex;
+  margin-top: 0.75rem;
+}
 
 button.primary,
 button.secondary {
@@ -1809,20 +1792,6 @@ button.secondary {
   width: auto;
   white-space: normal;
   line-height: 1.3;
-}
-
-.step-bar {
-  gap: 0.45rem;
-  padding: 0 0.75rem;
-}
-
-.step-bar button.primary,
-.step-bar button.secondary {
-  margin: 0;
-  min-width: 0;
-  flex: 1 1 0;
-  max-width: 14rem;
-  padding: 0.42rem 0.7rem;
 }
 
 .mast {
@@ -2071,6 +2040,10 @@ body[data-step="night"] .sheet {
 
 body[data-step="night"] .story-bar { background: #1d1d20; }
 
+body[data-step="night"] .site {
+  background: #111113;
+}
+
 body[data-step="night"] .story-title,
 body[data-step="night"] .mast .doc,
 body[data-step="night"] .story-parties li,
@@ -2195,20 +2168,7 @@ body[data-step="inquiry"] .sheet {
 
 body[data-step="night"] #app,
 body[data-step="inquiry"] #app {
-  padding-bottom: 1.25rem;
-}
-
-.step-bar {
-  position: static;
-  left: auto;
-  right: auto;
-  bottom: auto;
-  flex: 0 0 auto;
-  width: 100%;
-  height: auto;
-  min-height: var(--step);
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  box-shadow: none;
+  padding-bottom: 1.75rem;
 }
 
 .tile,
@@ -2262,8 +2222,11 @@ body[data-step="inquiry"] #app {
 }
 
 @media (max-width: 699px) {
-  .before { align-items: flex-start; padding-top: 1.25rem; }
+  .before { align-items: flex-start; padding-top: 1.25rem; padding-bottom: 2rem; }
   .welcome { width: 100%; padding: 0.85rem; }
+  body[data-step="night"] .film-visual .sat {
+    min-height: 11rem;
+  }
   .tile-hero .question { max-width: none; }
   .tile-actions button { flex-basis: 100%; }
   .oracle-role { max-width: 100%; text-align: left; }
