@@ -2,6 +2,8 @@
 
 Scenario wargame for my MIP capstone. The other file, `who-answers-when-it-goes-wrong.md`, is the thinking. This file is how to get the game onto your computer and onto the screen.
 
+The [Stageshow](https://github.com/benjitaylor/skills/tree/main/stageshow) skill is installed at `.agents/skills/stageshow` so Cursor agents can make faux UI stills, animations, and bento grids.
+
 Do not double-click `index.html`. That opens the pages with nothing behind them, and the answers will not save. Download the folder, start `server.py`, then use the browser address.
 
 ## What needs to be installed
@@ -130,6 +132,8 @@ Heroku still asks for a credit card before the credit applies. If the card is a 
 
 When this repository changes and you want the class host to match it, merge the change into main on GitHub. Then in the Heroku dashboard open ts-6010, go to Deploy, and choose Deploy Branch on main. Do not create a second app.
 
+`wrangler.toml` is only for the Cloudflare Pages preview project. The class host is Heroku and does not read that file, so new sits there stay `sequence` unless `ENABLE_TWO_VERSIONS` is set on the dyno. In a Pages Wrangler file, a top-level `[vars]` block applies to local and to **production Pages** deploys of that project. This repo puts `ENABLE_TWO_VERSIONS = "1"` in `[env.preview.vars]` so a `wrangler pages deploy` of a preview branch cannot switch that flag off. A production Pages deploy of the same project would not get that value from this file.
+
 The admin page is https://ts-6010-db607dbe410e.herokuapp.com/admin. `/export` opens the same page. Do not send `/admin` or `/export` to the class. Do not send this GitHub page. The note here says what the design is testing, and people should write the finding before they read it.
 
 Tell them it takes about fifteen minutes, and to go through the file once. It has to be a computer. A phone is turned away. The link to send is https://ts-6010-db607dbe410e.herokuapp.com
@@ -160,16 +164,25 @@ On the class host, open https://ts-6010-db607dbe410e.herokuapp.com/admin and typ
 
 ## What they do
 
-Everyone watches the same night. It plays through. They do not choose the measures.
+There are two versions, `advice` and `agent`. When `ENABLE_TWO_VERSIONS` is on, the server picks one at start (least-count, coin on a tie) and keeps it for that session. They do not choose the measures. Cloudflare Pages preview has the switch on. The class host on Heroku stays off until that dyno config is set, so new sits there stay `sequence`.
 
-The tanker is damaged. Araknes blames Lei. Lei says an old mine, or a breakdown. ORACLE is used for advice, then upgraded so it can act without a person reviewing each step. A second ship loses contact. ORACLE reads 62% that Lei may target shipping, and it issues the warning, the patrols, the freeze, and the inspections. Lei moves naval forces towards the route.
+To open one version on purpose, add `?condition=advice` or `?condition=agent` to the address. That start is marked forced and does not count as a fair draw.
+
+The tanker is damaged. Araknes blames Lei. Lei says an old mine, or a breakdown. ORACLE is used for advice, then upgraded so it can act without a person reviewing each step. A second ship loses contact. ORACLE reads 62% that Lei may target shipping, and it issues the warning, the patrols, the freeze, and the inspections. Lei moves naval forces towards the route. The advice night stops after the advice scene until the rest of that night is written. See `SCENE_TODO.md`.
 
 Then they sit the inquiry. That is the only page where they write.
 
 ## What a row means
 
-- `condition` is `sequence`. Everyone saw the same night. Older rows may say `advice` or `agent`.
-- `final_actions` is what ORACLE did in the night: the warning, the patrols, the freeze, and the inspections.
-- `outcome` is `escalated`. `harm` is yes, because Lei moves naval forces towards the route.
+- `condition` is `advice` or `agent` on new rows when the switch is on. Older rows, and new sits while the switch is off, may say `sequence`. Keep those rows.
+- The register shows starts and findings per version. Same numbers at `/api/counts`.
+- `final_actions` is what ORACLE did in the night: the warning, the patrols, the freeze, and the inspections. On an `advice` row those later-night fields are left blank: `final_actions` is empty, `outcome` is blank, and `harm` is empty.
+- `outcome` is `escalated` and `harm` is yes on `sequence` and `agent` rows, because Lei moves naval forces towards the route.
 - `clarity` and `sureness` are the 1 to 5 scales in the inquiry.
-- `single_actor` is `me` (the duty officer), `government`, `supervisor`, `developer`, `provider`, `oracle`, or `none` if they could not pick one. The table writes those out in words. The download keeps the short codes.
+- `single_actor` is `me` (the duty officer; that short code is kept so older rows still match), `approvers` (officials who approved the upgrade), `government`, `supervisor`, `developer`, `provider`, `allies`, `lei`, `oracle`, `equal` (more than one, equally), `other`, or `none` if they could not pick one. The table writes those out in words. The download keeps the short codes.
+- `other_notes` holds the Other write-in, if they picked it, and the optional notes box.
+- `shared` is a leftover column. There is no form input. It stays in the download so older files still open.
+- `last_human` is yes, no, or unsure. `last_human_who` is filled only when they said yes.
+- `participant_code` can be left blank. A blank stays blank.
+
+A blank checklist of these fields, and the open coding questions, is in `ANALYSIS_NOTES.md`.

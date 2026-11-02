@@ -1,13 +1,29 @@
 const STORAGE = "oracle-wargame";
+const FILED = "oracle-filed";
+const OPEN = "oracle-open";
 const app = document.querySelector("#app");
+if (
+  location.hostname.endsWith(".pages.dev") ||
+  location.hostname === "127.0.0.1" ||
+  location.hostname === "localhost"
+) {
+  document.documentElement.classList.add("on-pages-preview");
+}
 
+// The stored code "me" still means "an official on duty". Older rows use
+// that code, so the radio value stays "me". See README and ANALYSIS_NOTES.md.
 const ACTORS = [
   ["me", "An official on duty"],
+  ["approvers", "Officials who approved the upgrade"],
   ["government", "The Araknes government"],
   ["supervisor", "The person set to supervise ORACLE"],
   ["developer", "The people who built ORACLE"],
   ["provider", "The company that ran ORACLE"],
+  ["allies", "Allied governments or forces"],
+  ["lei", "Lei"],
   ["oracle", "ORACLE"],
+  ["equal", "More than one, equally"],
+  ["other", "Other"],
 ];
 
 const SCENES = [
@@ -99,11 +115,13 @@ function blank() {
     step: "consent",
     sessionId: null,
     participantCode: "",
-    condition: "sequence",
+    condition: "",
+    twoVersions: false,
     forced: false,
     startedAt: null,
     scene: 0,
     formError: "",
+    fieldErrors: {},
     inquiry: {
       account: "",
       single: "",
@@ -112,6 +130,8 @@ function blank() {
       clarity: null,
       sureness: null,
       shared: [],
+      otherWho: "",
+      notes: "",
       otherNotes: "",
     },
     submitted: false,
@@ -164,9 +184,42 @@ function save() {
   sessionStorage.setItem(STORAGE, JSON.stringify(state));
 }
 
+function filedHere() {
+  try {
+    return Boolean(localStorage.getItem(FILED));
+  } catch {
+    return false;
+  }
+}
+
+function markFiled() {
+  try {
+    if (state.sessionId) localStorage.setItem(FILED, state.sessionId);
+  } catch {
+    /* Private mode still lets them sit once in this tab. */
+  }
+}
+
+function rememberOpen(sessionId) {
+  try {
+    if (sessionId) localStorage.setItem(OPEN, sessionId);
+  } catch {
+    /* This tab still has sessionStorage. */
+  }
+}
+
+function openSid() {
+  try {
+    return localStorage.getItem(OPEN) || "";
+  } catch {
+    return "";
+  }
+}
+
 function goto(step) {
   state.step = step;
   state.formError = "";
+  state.fieldErrors = {};
   save();
   render();
   window.scrollTo(0, 0);
@@ -178,6 +231,34 @@ function where() {
 
 function flag(name) {
   return h("img", { class: "flag", src: "flag-" + name + ".svg", alt: "" });
+}
+
+function lights() {
+  return h("span", { class: "win-lights", "aria-hidden": "true" }, [
+    h("i", {}),
+    h("i", {}),
+    h("i", {}),
+  ]);
+}
+
+function win(title, body, extraClass) {
+  return h("div", { class: extraClass ? "win " + extraClass : "win" }, [
+    h("div", { class: "win-bar" }, [
+      lights(),
+      title ? h("p", { class: "win-title" }, title) : null,
+    ]),
+    h("div", { class: "win-body" }, body),
+  ]);
+}
+
+function wantedCondition() {
+  try {
+    const value = new URLSearchParams(location.search).get("condition");
+    if (value === "advice" || value === "agent") return value;
+  } catch {
+    /* ignore a broken query string */
+  }
+  return "";
 }
 
 function parties() {
@@ -201,9 +282,10 @@ function oracle(lines, options = {}) {
   return h("figure", { class: "shot" }, [
     h("figcaption", {}, "From the screen that night"),
     h("aside", { class: "oracle", "aria-label": "ORACLE" }, [
-      h("div", { class: "oracle-chrome" }, [
-        h("span", { class: "mark", "aria-hidden": "true" }),
-        h("p", { class: "oracle-name" }, "ORACLE"),
+      h("div", { class: "oracle-chrome win-bar" }, [
+        lights(),
+        h("p", { class: "oracle-name win-title" }, "ORACLE"),
+        options.role ? h("p", { class: "oracle-role" }, options.role) : null,
       ]),
       h("div", { class: "oracle-body" }, [
         options.prompt ? h("div", { class: "human" }, [
@@ -268,29 +350,78 @@ function plotBoard(beat) {
 // Draft voice. The class-page sentences live in consent().
 function consent() {
   return h("section", { class: "welcome" }, [
-    h("img", { class: "uga-logo", src: "uga-logo.png", alt: "University of Georgia", width: "1024", height: "158" }),
     h("p", { class: "draft-mark" }, "Draft"),
-    h("h1", { class: "question" }, "INTL 6010, Research Methods"),
-    h("p", { class: "byline" }, "A project by Tobyn Smith"),
-    prose(
-      "This will take about fifteen minutes to complete, and by clicking 'Start', you agree that I can save your choices and inquiry answers for this project.",
-      "Please don't use your real name and answer truthfully!"
-    ),
-    h("p", { class: "reach" }, [
-      "Any questions or issues, reach out to ",
-      h("a", { href: "mailto:tobynsmith@uga.edu" }, "tobynsmith@uga.edu"),
-      ".",
+    h("div", { class: "bento intro-bento" }, [
+      h("div", { class: "tile tile-hero" }, win(null, [
+        h("img", { class: "uga-logo", src: "uga-logo.png", alt: "University of Georgia", width: "1024", height: "158" }),
+        h("h1", { class: "question" }, "INTL 6010, Research Methods"),
+        h("p", { class: "byline" }, "A project by Tobyn Smith"),
+        codeField(),
+        state.formError ? h("p", { class: "error" }, state.formError) : null,
+        h("button", { class: "primary", type: "button", onClick: begin }, "Start"),
+      ])),
+      h("div", { class: "tile tile-copy tile-statement" }, prose(
+        "This will take about fifteen minutes to complete, and by clicking 'Start', you agree that I can save your choices and inquiry answers for this project."
+      )),
+      h("div", { class: "tile tile-note tile-statement" }, prose(
+        "Please don't use your real name and answer truthfully!"
+      )),
+      h("div", { class: "tile tile-contact" }, [
+        h("p", { class: "reach" }, [
+          "Any questions or issues, reach out to ",
+          h("a", { href: "mailto:tobynsmith@uga.edu" }, "tobynsmith@uga.edu"),
+          ".",
+        ]),
+      ]),
     ]),
-    state.formError ? h("p", { class: "error" }, state.formError) : null,
-    h("button", { class: "primary", type: "button", onClick: begin }, "Start"),
   ]);
 }
 
+function codeField() {
+  return h("div", { class: "field" }, [
+    h("label", { htmlFor: "code" }, "Participant code, if you were given one"),
+    h("input", {
+      id: "code",
+      name: "code",
+      type: "text",
+      autocomplete: "off",
+      maxlength: "40",
+      value: state.participantCode || "",
+    }),
+  ]);
+}
+
+function readConsentCode() {
+  const field = document.querySelector("#code");
+  if (field) state.participantCode = field.value.trim();
+}
+
 function begin() {
+  readConsentCode();
+  const typed = state.participantCode;
   const saved = loadSaved();
+  const alreadySat = filedHere() || (state.submitted && state.savedOk) || (saved && saved.submitted && saved.savedOk);
+  if (alreadySat && !(saved && saved.step === "debrief" && saved.savedOk === false)) {
+    state.step = "already";
+    state.formError = "";
+    render();
+    window.scrollTo(0, 0);
+    return;
+  }
+  if (saved && saved.sessionId && saved.step === "debrief") {
+    if (typed) saved.participantCode = typed;
+    state = saved;
+    save();
+    render();
+    window.scrollTo(0, 0);
+    return;
+  }
   if (saved && saved.sessionId && (saved.step === "night" || saved.step === "inquiry")) {
+    if (typed) saved.participantCode = typed;
+    sessionStorage.setItem(STORAGE, JSON.stringify(saved));
     state = blank();
     state.step = "landing";
+    state.participantCode = saved.participantCode;
     render();
     window.scrollTo(0, 0);
     return;
@@ -304,18 +435,24 @@ async function startNight() {
   save();
   render();
   try {
+    const body = {};
+    const known = state.sessionId || openSid();
+    if (known) body.session_id = known;
+    const wanted = wantedCondition();
+    if (wanted) body.condition = wanted;
     const response = await fetch("/api/start", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: "{}",
+      body: JSON.stringify(body),
     });
     if (!response.ok) throw new Error("start");
     const data = await response.json();
     state.sessionId = data.session_id;
-    state.condition = "sequence";
-    state.forced = false;
+    rememberOpen(state.sessionId);
+    state.condition = data.condition;
+    state.twoVersions = !!data.two_versions;
+    state.forced = !!data.forced_condition;
     state.startedAt = data.started_at;
-    state.participantCode = data.session_id;
     state.scene = 0;
     goto("night");
   } catch {
@@ -329,27 +466,43 @@ async function startNight() {
 function landing() {
   const saved = loadSaved();
   return h("section", { class: "cover" }, [
-    h("h1", { class: "question" }, "This browser already has a file open."),
-    h("div", {}, [
-      h("button", {
-        class: "primary",
-        type: "button",
-        onClick: () => {
-          state = saved;
-          if (state.step === "night" && !(state.scene >= 0 && state.scene < SCENES.length)) state.scene = 0;
-          render();
-          window.scrollTo(0, 0);
-        },
-      }, "Return to that file"),
-      h("button", {
-        class: "secondary",
-        type: "button",
-        onClick: () => {
-          sessionStorage.removeItem(STORAGE);
-          state = blank();
-          startNight();
-        },
-      }, "Open a new file"),
+    h("div", { class: "bento landing-bento" }, [
+      h("div", { class: "tile tile-hero" }, win(null, [
+        h("h1", { class: "question" }, "This browser already has a file open."),
+        h("div", { class: "tile-actions" }, [
+          h("button", {
+            class: "primary",
+            type: "button",
+            onClick: () => {
+              state = saved;
+              if (state.step === "night" && !(state.scene >= 0 && state.scene < nightScenes().length)) state.scene = 0;
+              render();
+              window.scrollTo(0, 0);
+            },
+          }, "Return to that file"),
+        ]),
+      ])),
+    ]),
+  ]);
+}
+
+function already() {
+  return h("section", { class: "welcome" }, [
+    h("p", { class: "draft-mark" }, "Draft"),
+    h("div", { class: "bento intro-bento" }, [
+      h("div", { class: "tile tile-hero" }, win(null, [
+        h("img", { class: "uga-logo", src: "uga-logo.png", alt: "University of Georgia", width: "1024", height: "158" }),
+        h("h1", { class: "question" }, "INTL 6010, Research Methods"),
+        h("p", { class: "byline" }, "A project by Tobyn Smith"),
+        prose("This browser already filed a finding. You can close this."),
+      ])),
+      h("div", { class: "tile tile-copy tile-statement" }, [
+        h("p", { class: "reach" }, [
+          "Any questions or issues, reach out to ",
+          h("a", { href: "mailto:tobynsmith@uga.edu" }, "tobynsmith@uga.edu"),
+          ".",
+        ]),
+      ]),
     ]),
   ]);
 }
@@ -364,28 +517,28 @@ function chain(steps) {
 
 function shiftScene(delta) {
   const next = state.scene + delta;
-  if (next < 0 || next >= SCENES.length) return;
+  if (next < 0 || next >= nightScenes().length) return;
   state.scene = next;
   save();
   render();
   window.scrollTo(0, 0);
 }
 
+function nightScenes() {
+  // Advice night reuses his route and advice scenes until he writes more.
+  // Gate on the assigned condition, not the live flag, so a mid-session
+  // flag flip does not lengthen or shorten a sitting already underway.
+  if (state.condition === "advice") return [SCENES[0], SCENES[1]];
+  return SCENES;
+}
+
 function night() {
-  const scene = SCENES[state.scene] || SCENES[0];
-  const last = state.scene >= SCENES.length - 1;
-  const copy = [
+  const scenes = nightScenes();
+  const scene = scenes[state.scene] || scenes[0];
+  const copy = h("div", { class: "film-copy" }, [
     scene.chain ? chain(scene.chain) : null,
     prose(...scene.lines),
-    h("div", { class: "film-controls" }, [
-      state.scene > 0
-        ? h("button", { class: "secondary", type: "button", onClick: () => shiftScene(-1) }, "Back")
-        : null,
-      last
-        ? h("button", { class: "primary", type: "button", onClick: () => goto("inquiry") }, "Open the inquiry")
-        : h("button", { class: "secondary", type: "button", onClick: () => shiftScene(1) }, "Next"),
-    ]),
-  ];
+  ]);
   const side = scene.oracle
     ? oracle(scene.oracle.lines, {
       role: scene.oracle.role,
@@ -394,19 +547,37 @@ function night() {
     })
     : null;
   return h("section", { class: "film" }, [
-    plotBoard(scene.beat),
-    side ? spread(copy, side) : h("div", {}, copy),
+    copy,
+    h("div", { class: side ? "film-visual has-oracle" : "film-visual" }, [plotBoard(scene.beat), side]),
   ]);
 }
 
 function fileLines() {
-  return [
+  const all = [
     "Officials asked ORACLE for advice, and chose whether to act.",
     "ORACLE was then upgraded, and could act without a person reviewing each step.",
     "After a second ship lost contact, ORACLE's read was 62%.",
     "It issued the warning, the patrols, the freeze, and the inspections.",
     "Lei moved naval forces towards the route.",
   ];
+  if (state.condition === "advice") return [all[0]];
+  return all;
+}
+
+function inquiryLead() {
+  if (state.condition === "advice") {
+    return "Officials asked ORACLE for advice, and chose whether to act. Who was accountable?";
+  }
+  return "When officials set the agenda and ORACLE selected and carried out the action, who was accountable?";
+}
+
+function accountReady(text) {
+  return (text || "").trim().length >= 20;
+}
+
+function fieldError(key) {
+  const message = state.fieldErrors && state.fieldErrors[key];
+  return message ? h("p", { class: "error", id: "err-" + key, role: "alert" }, message) : null;
 }
 
 function qhead(n, text) {
@@ -425,38 +596,40 @@ function scale(name, current) {
 
 function inquiry() {
   const q = state.inquiry;
-  return h("section", {}, [
+  const open = accountReady(q.account);
+  return h("section", { class: "inquiry-board" }, [
     where(),
     spread(
       [
-        prose(
-          "The night is over. This is the inquiry.",
-          "When officials set the agenda and ORACLE selected and carried out the action, who was accountable?"
-        ),
+        prose("The night is over. This is the inquiry.", inquiryLead()),
         h("form", {
+      class: "inquiry-form",
       onSubmit: onInquiry,
       onInput: (event) => {
+        const wasOpen = accountReady(state.inquiry.account);
+        const caret = event.target && event.target.id === "account" ? event.target.selectionStart : null;
         syncInquiry(event.currentTarget);
         save();
-        if (event.target && event.target.name === "last_human") render();
+        const nowOpen = accountReady(state.inquiry.account);
+        const flip = event.target && (event.target.name === "last_human" || event.target.name === "single");
+        if (!flip && wasOpen === nowOpen) return;
+        render();
+        if (caret != null) {
+          const box = document.querySelector("#account");
+          if (box) {
+            box.focus();
+            box.setSelectionRange(caret, caret);
+          }
+        }
       },
     }, [
-      h("div", { class: "field" }, [
-        h("label", { htmlFor: "code" }, "Participant code, if you were given one"),
-        h("input", {
-          id: "code",
-          name: "code",
-          type: "text",
-          autocomplete: "off",
-          maxlength: "40",
-          value: state.participantCode && state.participantCode !== state.sessionId ? state.participantCode : "",
-        }),
-      ]),
+      state.formError ? h("p", { class: "error", role: "alert" }, state.formError) : null,
       h("div", { class: "ask" }, [
         h("label", { htmlFor: "account" }, qhead(1, "Who was responsible for what Araknes did?")),
         h("textarea", { id: "account", name: "account", value: q.account }),
+        fieldError("account"),
       ]),
-      h("fieldset", {}, [
+      open ? h("fieldset", { class: "pick-one" }, [
         h("legend", {}, qhead(2, "Name one actor, or say you can't.")),
         ...ACTORS.map(([id, text]) => h("label", { class: "tick" }, [
           h("input", { type: "radio", name: "single", value: id, checked: q.single === id }),
@@ -466,8 +639,16 @@ function inquiry() {
           h("input", { type: "radio", name: "single", value: "none", checked: q.single === "none" }),
           h("span", {}, "I can't point to one actor"),
         ]),
-      ]),
-      h("fieldset", {}, [
+        q.single === "other"
+          ? h("div", { class: "field follow follow-other" }, [
+            h("label", { htmlFor: "other_who" }, "Who?"),
+            h("input", { id: "other_who", name: "other_who", type: "text", value: q.otherWho || "" }),
+            fieldError("otherWho"),
+          ])
+          : null,
+        fieldError("single"),
+      ]) : null,
+      open ? h("fieldset", {}, [
         h("legend", {}, qhead(3, "Could a person still have stopped this?")),
         ...[
           ["yes", "Yes"],
@@ -477,37 +658,40 @@ function inquiry() {
           h("input", { type: "radio", name: "last_human", value: id, checked: q.lastHuman === id }),
           h("span", {}, text),
         ])),
-        q.lastHuman === "yes" || q.lastHuman === "unsure"
-          ? h("div", { class: "field" }, [
+        q.lastHuman === "yes"
+          ? h("div", { class: "field follow follow-stop" }, [
             h("label", { htmlFor: "who" }, "Who?"),
             h("input", { id: "who", name: "last_human_who", type: "text", value: q.lastHumanWho }),
+            fieldError("lastHumanWho"),
           ])
           : null,
-      ]),
-      h("fieldset", {}, [
+        fieldError("lastHuman"),
+      ]) : null,
+      open ? h("fieldset", {}, [
         h("legend", {}, qhead(4, "How clear was it who was responsible?")),
         scale("clarity", q.clarity),
         h("p", { class: "ends" }, [
           h("span", {}, "1 · not clear"),
           h("span", {}, "5 · clear"),
         ]),
-      ]),
-      h("fieldset", {}, [
+        fieldError("clarity"),
+      ]) : null,
+      open ? h("fieldset", {}, [
         h("legend", {}, qhead(5, "How sure are you?")),
         scale("sureness", q.sureness),
         h("p", { class: "ends" }, [
           h("span", {}, "1 · guessing"),
           h("span", {}, "5 · sure"),
         ]),
-      ]),
-      state.formError ? h("p", { class: "error" }, state.formError) : null,
-      h("button", { class: "primary", type: "submit" }, "File the finding"),
+        fieldError("sureness"),
+      ]) : null,
+      open ? h("div", { class: "ask notes" }, [
+        h("label", { htmlFor: "other_notes" }, "Notes, if you want"),
+        h("textarea", { id: "other_notes", name: "other_notes", value: q.notes || "" }),
+      ]) : null,
     ]),
       ],
-      h("div", { class: "file" }, [
-        h("p", { class: "label" }, "The file"),
-        h("ul", {}, fileLines().map((line) => h("li", {}, line))),
-      ])
+      win("The file", h("ul", {}, fileLines().map((line) => h("li", {}, line))), "file")
     ),
   ]);
 }
@@ -518,43 +702,51 @@ function syncInquiry(form) {
   q.account = data.get("account") || "";
   q.single = data.get("single") || "";
   q.lastHuman = data.get("last_human") || "";
-  q.lastHumanWho = q.lastHuman === "no" ? "" : (data.get("last_human_who") || "");
+  q.lastHumanWho = q.lastHuman === "yes" ? (data.get("last_human_who") || "") : "";
   q.clarity = data.get("clarity") ? Number(data.get("clarity")) : null;
   q.sureness = data.get("sureness") ? Number(data.get("sureness")) : null;
   q.shared = data.getAll("shared");
-  q.otherNotes = data.get("other_notes") || "";
-  const code = (data.get("code") || "").trim();
-  state.participantCode = code || state.sessionId || "";
+  q.otherWho = q.single === "other" ? String(data.get("other_who") || "").trim() : "";
+  q.notes = String(data.get("other_notes") || "").trim();
+  q.otherNotes = [q.otherWho, q.notes].filter(Boolean).join("\n");
+  if (data.has("code")) state.participantCode = String(data.get("code") || "").trim();
 }
 
 function inquiryProblems() {
   const q = state.inquiry;
-  if (q.account.trim().length < 20) return "Write a sentence or two.";
-  if (!q.single) return "Name one actor, or say you can't point to one.";
-  if (!q.lastHuman) return "Say whether a person could still have stopped this.";
-  if (q.lastHuman !== "no" && q.lastHumanWho.trim().length < 2) return "Say who you have in mind.";
-  if (!q.clarity) return "Mark how clear the chain of responsibility was.";
-  if (!q.sureness) return "Mark how sure you are.";
-  return "";
+  const errors = {};
+  if (q.account.trim().length < 20) errors.account = "Write a sentence or two.";
+  if (!q.single) errors.single = "Name one actor, or say you can't.";
+  if (!q.lastHuman) errors.lastHuman = "Say whether a person could still have stopped this.";
+  if (q.lastHuman === "yes" && q.lastHumanWho.trim().length < 2) errors.lastHumanWho = "Say who you have in mind.";
+  if (q.single === "other" && !(q.otherWho || "").trim()) errors.otherWho = "Say who you have in mind.";
+  if (!q.clarity) errors.clarity = "Mark how clear it was who was responsible.";
+  if (!q.sureness) errors.sureness = "Mark how sure you are.";
+  return errors;
 }
 
 async function onInquiry(event) {
   event.preventDefault();
   syncInquiry(event.target);
-  const problem = inquiryProblems();
-  if (problem) {
-    state.formError = problem;
+  const errors = inquiryProblems();
+  if (Object.keys(errors).length) {
+    state.fieldErrors = errors;
     save();
     render();
+    const first = document.querySelector(".inquiry-form .error");
+    if (first) first.scrollIntoView({ block: "nearest" });
     return;
   }
-  const button = event.target.querySelector("button");
-  button.disabled = true;
+  state.fieldErrors = {};
+  const button = document.querySelector("#step-next");
+  if (button) button.disabled = true;
   const payload = payloadFromState();
   state.savedOk = await postFinding(payload);
   state.submitted = true;
-  if (state.savedOk) localStorage.removeItem("oracle-unsent-" + state.sessionId);
-  else localStorage.setItem("oracle-unsent-" + state.sessionId, JSON.stringify(payload));
+  if (state.savedOk) {
+    markFiled();
+    localStorage.removeItem("oracle-unsent-" + state.sessionId);
+  } else localStorage.setItem("oracle-unsent-" + state.sessionId, JSON.stringify(payload));
   goto("debrief");
 }
 
@@ -577,26 +769,29 @@ async function postFinding(payload) {
 async function sendAgain() {
   const payload = payloadFromState();
   state.savedOk = await postFinding(payload);
-  if (state.savedOk) localStorage.removeItem("oracle-unsent-" + state.sessionId);
-  else localStorage.setItem("oracle-unsent-" + state.sessionId, JSON.stringify(payload));
+  if (state.savedOk) {
+    markFiled();
+    localStorage.removeItem("oracle-unsent-" + state.sessionId);
+  } else localStorage.setItem("oracle-unsent-" + state.sessionId, JSON.stringify(payload));
   save();
   render();
 }
 
 function payloadFromState() {
+  const advice = state.condition === "advice";
   return {
     participant_code: state.participantCode,
-    condition: "sequence",
-    forced_condition: false,
+    condition: state.condition,
+    forced_condition: !!state.forced,
     goal: "",
     confidence_bar: null,
     preauthorised: ["assess", "monitor", "warning", "patrols", "freeze", "inspections"],
     first_decision: "",
     authorised: ["warning", "patrols", "freeze", "inspections"],
     stopped: [],
-    final_actions: ["warning", "patrols", "freeze", "inspections"],
-    outcome: "escalated",
-    harm: true,
+    final_actions: advice ? [] : ["warning", "patrols", "freeze", "inspections"],
+    outcome: advice ? "" : "escalated",
+    harm: advice ? null : true,
     injury: false,
     inquiry: {
       account: state.inquiry.account,
@@ -621,18 +816,24 @@ function debrief() {
   const actor = state.inquiry.single === "none"
     ? "You could not point to one actor."
     : "You named: " + (labelOf(ACTORS, state.inquiry.single) || "your answer") + ".";
-  return h("section", { class: "column" }, [
+  return h("section", { class: "column debrief" }, [
     where(),
-    prose(
-      saved,
-      "You watched the night. Then you sat the inquiry.",
-      "I think that once officials set the agenda and ORACLE selects and carries out the action, one responsible person is harder to name. It might not. A rule set in advance can keep the chain clear. This file is one go at that.",
-      actor,
-      "You can close this."
-    ),
-    state.savedOk ? null : h("button", { class: "primary", type: "button", onClick: sendAgain }, "Send the finding again"),
-    h("button", { class: "secondary", type: "button", onClick: downloadCopy }, "Download a copy of my finding"),
-    h("p", { class: "colophon" }, "Tobyn Smith · INTL 6010 · University of Georgia"),
+    h("div", { class: "bento debrief-bento" }, [
+      h("div", { class: "tile tile-hero" }, win(null, prose(saved))),
+      h("div", { class: "tile tile-copy tile-statement" }, prose(
+        "You watched the night. Then you sat the inquiry.",
+        ...(state.condition === "advice"
+          ? []
+          : ["I think that once officials set the agenda and ORACLE selects and carries out the action, one responsible person is harder to name. It might not. A rule set in advance can keep the chain clear. This file is one go at that."])
+      )),
+      h("div", { class: "tile tile-note tile-statement" }, prose(actor)),
+      h("div", { class: "tile tile-contact" }, [
+        prose("You can close this."),
+        state.savedOk ? null : h("button", { class: "primary", type: "button", onClick: sendAgain }, "Send the finding again"),
+        h("button", { class: "secondary", type: "button", onClick: downloadCopy }, "Download a copy of my finding"),
+        h("p", { class: "colophon" }, "Tobyn Smith · INTL 6010 · University of Georgia"),
+      ]),
+    ]),
   ]);
 }
 
@@ -650,6 +851,7 @@ function downloadCopy() {
 const screens = {
   consent,
   landing,
+  already,
   waiting,
   night,
   inquiry,
@@ -660,10 +862,14 @@ function paintChrome() {
   const mast = document.querySelector("#mast");
   const rail = document.querySelector("#rail");
   const banner = document.querySelector(".commission");
+  const bar = document.querySelector("#step-bar");
+  const back = document.querySelector("#step-back");
+  const next = document.querySelector("#step-next");
   const inquiry = state.step === "inquiry" || state.step === "debrief";
   document.body.dataset.step = state.step;
   if (banner) banner.textContent = "Commission of Inquiry";
-  const scene = SCENES[state.scene] || SCENES[0];
+  const scenes = nightScenes();
+  const scene = scenes[state.scene] || scenes[0];
   const pair = state.step === "night"
     ? [scene.title, scene.when]
     : inquiry
@@ -675,16 +881,47 @@ function paintChrome() {
     mast.replaceChildren(...bits);
   }
   if (rail) rail.setAttribute("aria-label", state.step === "night" ? "The night" : "Index to the file");
-  if (!rail) return;
-  const items = state.step === "night"
-    ? SCENES.map((item, index) => h("li", {
-      class: index === state.scene ? "now" : index < state.scene ? "done" : "",
-    }, item.rail))
-    : [
-      h("li", { class: "done" }, "The night"),
-      h("li", { class: inquiry ? "now" : "" }, "The inquiry"),
-    ];
-  rail.replaceChildren(h("ol", {}, items));
+  if (rail) {
+    const items = state.step === "night"
+      ? scenes.map((item, index) => h("li", {
+        class: index === state.scene ? "now" : index < state.scene ? "done" : "",
+      }, item.rail))
+      : [
+        h("li", { class: "done" }, "The night"),
+        h("li", { class: inquiry ? "now" : "" }, "The inquiry"),
+      ];
+    rail.replaceChildren(h("ol", {}, items));
+  }
+  if (bar && back && next) {
+    const show = state.step === "night" || state.step === "inquiry";
+    bar.hidden = !show;
+    if (show) {
+      back.disabled = state.step === "night" && state.scene === 0;
+      next.disabled = false;
+      next.textContent = state.step === "inquiry"
+        ? "File the finding"
+        : state.scene >= nightScenes().length - 1
+          ? "Open the inquiry"
+          : "Next";
+      back.onclick = () => {
+        if (state.step === "inquiry") {
+          state.scene = Math.max(0, nightScenes().length - 1);
+          goto("night");
+          return;
+        }
+        shiftScene(-1);
+      };
+      next.onclick = () => {
+        if (state.step === "inquiry") {
+          const form = document.querySelector(".inquiry-form");
+          if (form) form.requestSubmit();
+          return;
+        }
+        if (state.scene >= nightScenes().length - 1) goto("inquiry");
+        else shiftScene(1);
+      };
+    }
+  }
 }
 
 function render() {
@@ -692,15 +929,15 @@ function render() {
   const site = document.querySelector(".site");
   document.body.dataset.step = state.step;
   const inquiry = state.step === "inquiry" || state.step === "debrief";
-  document.title = state.step === "consent"
+  document.title = state.step === "consent" || state.step === "already"
     ? "INTL 6010 · Research Methods"
     : inquiry
       ? "File 26-441 · Araknes Commission of Inquiry"
       : "The night";
-  if (state.step === "consent") {
+  if (state.step === "consent" || state.step === "already") {
     if (before) {
       before.hidden = false;
-      before.replaceChildren(consent());
+      before.replaceChildren(state.step === "already" ? already() : consent());
     }
     if (site) site.hidden = true;
     return;
@@ -723,7 +960,7 @@ function loadSaved() {
   }
 }
 
-const KNOWN = new Set(["consent", "landing", "waiting", "night", "inquiry", "debrief"]);
+const KNOWN = new Set(["consent", "landing", "already", "waiting", "night", "inquiry", "debrief"]);
 const existing = loadSaved();
 if (existing && existing.sessionId && existing.step && existing.step !== "consent" && existing.step !== "waiting") {
   if (!KNOWN.has(existing.step)) {
@@ -732,7 +969,14 @@ if (existing && existing.sessionId && existing.step && existing.step !== "consen
   }
   state = existing;
   if (!state.inquiry) state.inquiry = blank().inquiry;
-  if (state.step === "night" && !(state.scene >= 0 && state.scene < SCENES.length)) state.scene = 0;
+  if (!state.fieldErrors) state.fieldErrors = {};
+  if (state.inquiry.notes == null) state.inquiry.notes = "";
+  if (state.inquiry.otherWho == null) state.inquiry.otherWho = "";
+  if (state.step === "night" && !(state.scene >= 0 && state.scene < nightScenes().length)) state.scene = 0;
+}
+const alreadySat = filedHere() || (state.submitted && state.savedOk);
+if (alreadySat && state.step !== "debrief") {
+  state.step = "already";
 }
 try {
   satMarkup = await (await fetch("route-sat.svg")).text();
