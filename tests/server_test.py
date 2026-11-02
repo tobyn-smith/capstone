@@ -623,5 +623,32 @@ class ServeTests(unittest.TestCase):
                 self.fail("a full register should refuse a new sitting")
 
 
+class InquiryFormTests(unittest.TestCase):
+    def test_all_inquiry_questions_are_in_the_form_on_open(self):
+        source = (Path(__file__).resolve().parents[1] / "app" / "game.js").read_text(encoding="utf-8")
+        inquiry = source.split("function inquiry()", 1)[1].split("function syncInquiry", 1)[0]
+        self.assertNotIn("accountReady", source)
+        self.assertNotIn("open ?", inquiry)
+        self.assertNotIn("const open", inquiry)
+        for line in (
+            'qhead(1, "Who was responsible for what Araknes did?")',
+            'qhead(2, "Name one actor, or say you can\'t.")',
+            'qhead(3, "Could a person still have stopped this?")',
+            'qhead(4, "How clear was it who was responsible?")',
+            'qhead(5, "How sure are you?")',
+            '"Notes, if you want"',
+            'win("The file"',
+            '"File the finding"',
+        ):
+            self.assertIn(line, inquiry)
+        self.assertLess(inquiry.find('"Notes, if you want"'), inquiry.find('win("The file"'))
+        self.assertLess(inquiry.find('win("The file"'), inquiry.find('"File the finding"'))
+        self.assertIn('q.lastHuman === "yes" || q.lastHuman === "unsure"', inquiry)
+        self.assertIn("onChange:", inquiry)
+        chrome = source.split("function paintChrome()", 1)[1].split("function render()", 1)[0]
+        self.assertIn('next.hidden = state.step === "inquiry"', chrome)
+        self.assertNotIn('"File the finding"', chrome)
+
+
 if __name__ == "__main__":
     unittest.main()

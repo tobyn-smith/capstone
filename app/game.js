@@ -571,10 +571,6 @@ function inquiryLead() {
   return "When officials set the agenda and ORACLE selected and carried out the action, who was accountable?";
 }
 
-function accountReady(text) {
-  return (text || "").trim().length >= 20;
-}
-
 function fieldError(key) {
   const message = state.fieldErrors && state.fieldErrors[key];
   return message ? h("p", { class: "error", id: "err-" + key, role: "alert" }, message) : null;
@@ -596,103 +592,96 @@ function scale(name, current) {
 
 function inquiry() {
   const q = state.inquiry;
-  const open = accountReady(q.account);
   return h("section", { class: "inquiry-board" }, [
     where(),
-    spread(
-      [
-        prose("The night is over. This is the inquiry.", inquiryLead()),
-        h("form", {
+    h("form", {
       class: "inquiry-form",
       onSubmit: onInquiry,
       onInput: (event) => {
-        const wasOpen = accountReady(state.inquiry.account);
-        const caret = event.target && event.target.id === "account" ? event.target.selectionStart : null;
         syncInquiry(event.currentTarget);
         save();
-        const nowOpen = accountReady(state.inquiry.account);
-        const flip = event.target && (event.target.name === "last_human" || event.target.name === "single");
-        if (!flip && wasOpen === nowOpen) return;
-        render();
-        if (caret != null) {
-          const box = document.querySelector("#account");
-          if (box) {
-            box.focus();
-            box.setSelectionRange(caret, caret);
-          }
-        }
+        if (event.target && (event.target.name === "last_human" || event.target.name === "single")) render();
+      },
+      onChange: (event) => {
+        syncInquiry(event.currentTarget);
+        save();
+        if (event.target && (event.target.name === "last_human" || event.target.name === "single")) render();
       },
     }, [
       state.formError ? h("p", { class: "error", role: "alert" }, state.formError) : null,
-      h("div", { class: "ask" }, [
-        h("label", { htmlFor: "account" }, qhead(1, "Who was responsible for what Araknes did?")),
-        h("textarea", { id: "account", name: "account", value: q.account }),
-        fieldError("account"),
-      ]),
-      open ? h("fieldset", { class: "pick-one" }, [
-        h("legend", {}, qhead(2, "Name one actor, or say you can't.")),
-        ...ACTORS.map(([id, text]) => h("label", { class: "tick" }, [
-          h("input", { type: "radio", name: "single", value: id, checked: q.single === id }),
-          h("span", {}, text),
-        ])),
-        h("label", { class: "tick" }, [
-          h("input", { type: "radio", name: "single", value: "none", checked: q.single === "none" }),
-          h("span", {}, "I can't point to one actor"),
-        ]),
-        q.single === "other"
-          ? h("div", { class: "field follow follow-other" }, [
-            h("label", { htmlFor: "other_who" }, "Who?"),
-            h("input", { id: "other_who", name: "other_who", type: "text", value: q.otherWho || "" }),
-            fieldError("otherWho"),
-          ])
-          : null,
-        fieldError("single"),
-      ]) : null,
-      open ? h("fieldset", {}, [
-        h("legend", {}, qhead(3, "Could a person still have stopped this?")),
-        ...[
-          ["yes", "Yes"],
-          ["no", "No"],
-          ["unsure", "I'm not sure"],
-        ].map(([id, text]) => h("label", { class: "tick" }, [
-          h("input", { type: "radio", name: "last_human", value: id, checked: q.lastHuman === id }),
-          h("span", {}, text),
-        ])),
-        q.lastHuman === "yes"
-          ? h("div", { class: "field follow follow-stop" }, [
-            h("label", { htmlFor: "who" }, "Who?"),
-            h("input", { id: "who", name: "last_human_who", type: "text", value: q.lastHumanWho }),
-            fieldError("lastHumanWho"),
-          ])
-          : null,
-        fieldError("lastHuman"),
-      ]) : null,
-      open ? h("fieldset", {}, [
-        h("legend", {}, qhead(4, "How clear was it who was responsible?")),
-        scale("clarity", q.clarity),
-        h("p", { class: "ends" }, [
-          h("span", {}, "1 · not clear"),
-          h("span", {}, "5 · clear"),
-        ]),
-        fieldError("clarity"),
-      ]) : null,
-      open ? h("fieldset", {}, [
-        h("legend", {}, qhead(5, "How sure are you?")),
-        scale("sureness", q.sureness),
-        h("p", { class: "ends" }, [
-          h("span", {}, "1 · guessing"),
-          h("span", {}, "5 · sure"),
-        ]),
-        fieldError("sureness"),
-      ]) : null,
-      open ? h("div", { class: "ask notes" }, [
-        h("label", { htmlFor: "other_notes" }, "Notes, if you want"),
-        h("textarea", { id: "other_notes", name: "other_notes", value: q.notes || "" }),
-      ]) : null,
+      spread(
+        [
+          prose("The night is over. This is the inquiry.", inquiryLead()),
+          h("div", { class: "ask" }, [
+            h("label", { htmlFor: "account" }, qhead(1, "Who was responsible for what Araknes did?")),
+            h("textarea", { id: "account", name: "account", value: q.account }),
+            fieldError("account"),
+          ]),
+          h("fieldset", { class: "pick-one" }, [
+            h("legend", {}, qhead(2, "Name one actor, or say you can't.")),
+            ...ACTORS.map(([id, text]) => h("label", { class: "tick" }, [
+              h("input", { type: "radio", name: "single", value: id, checked: q.single === id }),
+              h("span", {}, text),
+            ])),
+            h("label", { class: "tick" }, [
+              h("input", { type: "radio", name: "single", value: "none", checked: q.single === "none" }),
+              h("span", {}, "I can't point to one actor"),
+            ]),
+            q.single === "other"
+              ? h("div", { class: "field follow follow-other" }, [
+                h("label", { htmlFor: "other_who" }, "Who?"),
+                h("input", { id: "other_who", name: "other_who", type: "text", value: q.otherWho || "" }),
+                fieldError("otherWho"),
+              ])
+              : null,
+            fieldError("single"),
+          ]),
+          h("fieldset", {}, [
+            h("legend", {}, qhead(3, "Could a person still have stopped this?")),
+            ...[
+              ["yes", "Yes"],
+              ["no", "No"],
+              ["unsure", "I'm not sure"],
+            ].map(([id, text]) => h("label", { class: "tick" }, [
+              h("input", { type: "radio", name: "last_human", value: id, checked: q.lastHuman === id }),
+              h("span", {}, text),
+            ])),
+            q.lastHuman === "yes" || q.lastHuman === "unsure"
+              ? h("div", { class: "field follow follow-stop" }, [
+                h("label", { htmlFor: "who" }, "Who?"),
+                h("input", { id: "who", name: "last_human_who", type: "text", value: q.lastHumanWho }),
+                fieldError("lastHumanWho"),
+              ])
+              : null,
+            fieldError("lastHuman"),
+          ]),
+          h("fieldset", {}, [
+            h("legend", {}, qhead(4, "How clear was it who was responsible?")),
+            scale("clarity", q.clarity),
+            h("p", { class: "ends" }, [
+              h("span", {}, "1 · not clear"),
+              h("span", {}, "5 · clear"),
+            ]),
+            fieldError("clarity"),
+          ]),
+          h("fieldset", {}, [
+            h("legend", {}, qhead(5, "How sure are you?")),
+            scale("sureness", q.sureness),
+            h("p", { class: "ends" }, [
+              h("span", {}, "1 · guessing"),
+              h("span", {}, "5 · sure"),
+            ]),
+            fieldError("sureness"),
+          ]),
+          h("div", { class: "ask notes" }, [
+            h("label", { htmlFor: "other_notes" }, "Notes, if you want"),
+            h("textarea", { id: "other_notes", name: "other_notes", value: q.notes || "" }),
+          ]),
+        ],
+        win("The file", h("ul", {}, fileLines().map((line) => h("li", {}, line))), "file")
+      ),
+      h("button", { class: "primary", type: "submit" }, "File the finding"),
     ]),
-      ],
-      win("The file", h("ul", {}, fileLines().map((line) => h("li", {}, line))), "file")
-    ),
   ]);
 }
 
@@ -702,7 +691,7 @@ function syncInquiry(form) {
   q.account = data.get("account") || "";
   q.single = data.get("single") || "";
   q.lastHuman = data.get("last_human") || "";
-  q.lastHumanWho = q.lastHuman === "yes" ? (data.get("last_human_who") || "") : "";
+  q.lastHumanWho = q.lastHuman === "no" ? "" : (data.get("last_human_who") || "");
   q.clarity = data.get("clarity") ? Number(data.get("clarity")) : null;
   q.sureness = data.get("sureness") ? Number(data.get("sureness")) : null;
   q.shared = data.getAll("shared");
@@ -718,7 +707,7 @@ function inquiryProblems() {
   if (q.account.trim().length < 20) errors.account = "Write a sentence or two.";
   if (!q.single) errors.single = "Name one actor, or say you can't.";
   if (!q.lastHuman) errors.lastHuman = "Say whether a person could still have stopped this.";
-  if (q.lastHuman === "yes" && q.lastHumanWho.trim().length < 2) errors.lastHumanWho = "Say who you have in mind.";
+  if ((q.lastHuman === "yes" || q.lastHuman === "unsure") && q.lastHumanWho.trim().length < 2) errors.lastHumanWho = "Say who you have in mind.";
   if (q.single === "other" && !(q.otherWho || "").trim()) errors.otherWho = "Say who you have in mind.";
   if (!q.clarity) errors.clarity = "Mark how clear it was who was responsible.";
   if (!q.sureness) errors.sureness = "Mark how sure you are.";
@@ -895,14 +884,13 @@ function paintChrome() {
   if (bar && back && next) {
     const show = state.step === "night" || state.step === "inquiry";
     bar.hidden = !show;
+    next.hidden = state.step === "inquiry";
     if (show) {
       back.disabled = state.step === "night" && state.scene === 0;
       next.disabled = false;
-      next.textContent = state.step === "inquiry"
-        ? "File the finding"
-        : state.scene >= nightScenes().length - 1
-          ? "Open the inquiry"
-          : "Next";
+      next.textContent = state.scene >= nightScenes().length - 1
+        ? "Open the inquiry"
+        : "Next";
       back.onclick = () => {
         if (state.step === "inquiry") {
           state.scene = Math.max(0, nightScenes().length - 1);
