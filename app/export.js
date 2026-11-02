@@ -1,10 +1,15 @@
 const ACTORS = {
   me: "an official on duty",
+  approvers: "officials who approved the upgrade",
   government: "the Araknes government",
   supervisor: "the person set to supervise ORACLE",
   developer: "the people who built ORACLE",
   provider: "the company that ran ORACLE",
+  allies: "allied governments or forces",
+  lei: "Lei",
   oracle: "ORACLE",
+  equal: "more than one, equally",
+  other: "other",
   none: "can't pick one",
 };
 
@@ -12,6 +17,9 @@ const gate = document.querySelector("#gate");
 const out = document.querySelector("#out");
 const message = document.querySelector("#message");
 let key = "";
+if (location.hostname.endsWith(".pages.dev")) {
+  document.documentElement.classList.add("on-pages-preview");
+}
 
 function h(tag, attrs = {}, children = []) {
   const node = document.createElement(tag);
@@ -41,11 +49,33 @@ function head() {
   return h("thead", {}, h("tr", {}, HEADS.map((label) => h("th", {}, label))));
 }
 
-function render(rows) {
+function countsTable(counts) {
+  if (!counts || !counts.starts) return null;
+  const keys = ["advice", "agent", "sequence"];
+  const body = h("tbody", {}, keys.map((key) => h("tr", {}, [
+    h("td", {}, word(key) || key),
+    h("td", { class: "score" }, String(counts.starts[key] || 0)),
+    h("td", { class: "score" }, String(counts.findings[key] || 0)),
+    h("td", { class: "score" }, String((counts.starts_without_finding && counts.starts_without_finding[key]) || 0)),
+  ])));
+  return h("table", { class: "register-table" }, [
+    h("thead", {}, h("tr", {}, [
+      h("th", {}, "Version"),
+      h("th", {}, "Starts"),
+      h("th", {}, "Findings"),
+      h("th", {}, "No finding"),
+    ])),
+    body,
+  ]);
+}
+
+function render(rows, counts) {
   out.replaceChildren();
   gate.classList.add("is-open");
   document.querySelector(".register-sheet")?.classList.add("is-open");
   document.querySelector(".register-desk")?.classList.add("is-open");
+  const tally = countsTable(counts);
+  if (tally) out.append(tally);
   if (!rows.length) {
     out.append(
       h("table", { class: "register-table" }, [
@@ -114,7 +144,7 @@ async function removeRow(sessionId) {
     return;
   }
   show("");
-  render(await again.json());
+  render(await again.json(), await loadCounts());
 }
 
 async function download() {
@@ -156,5 +186,13 @@ gate.addEventListener("submit", async (event) => {
     show("I could not load the responses.");
     return;
   }
-  render(await response.json());
+  render(await response.json(), await loadCounts());
 });
+
+async function loadCounts() {
+  const response = await fetch("/api/counts", {
+    headers: { "X-Passphrase": key, Accept: "application/json" },
+  });
+  if (!response.ok) return null;
+  return response.json();
+}
