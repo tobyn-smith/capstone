@@ -6,13 +6,13 @@ Checklist for Tobyn. Structure only. TODO for Tobyn means you decide. This is no
 
 - `advice` — ORACLE advises, officials decide and issue the measures. New unforced sits use this when assigned this arm. `night_kind` is `matched`. `who_executed` is `officials`.
 - `agent` — officials delegate; ORACLE issues the same measures. `night_kind` is `matched`. `who_executed` is `oracle`.
-- `sequence` — old pilot. Advice, then the upgrade, then ORACLE acts. Keep those rows readable. Do not write `sequence` on new sits (unless the two-arm switch is explicitly off).
+- `sequence` — old pilot. Advice, then the upgrade, then ORACLE acts. Keep those rows readable. Do not write `sequence` on new sits.
 
 The Methods Final comparison is `advice` vs `agent` on matched nights. Use `in_main_comparison` on the download: `advice` or `agent`, not forced, `night_kind` is `matched`. Drop `sequence` and any older unmatched `advice` rows (two-scene prototype, empty `final_actions`) from that table.
 
 ## Starts and findings
 
-The register shows starts, findings, and starts with no finding, by condition. `/api/counts` is the same numbers. Least-count assignment tallies unforced starts, including starts that never filed.
+The register shows starts, findings, and starts with no finding, by condition. `/admin/tools` has the same numbers plus night_kind, forced, in_main_comparison, who_executed, and the assignment audit. `/api/counts` is the payload for both. Least-count assignment tallies unforced starts, including starts that never filed.
 
 TODO for Tobyn: keep or drop starts that never filed a finding.
 

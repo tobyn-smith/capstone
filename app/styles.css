@@ -1492,10 +1492,67 @@ body.register { background: #d6d2c4; }
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  gap: 0.7rem;
+  flex-wrap: wrap;
   margin: 1.35rem 0 0.2rem;
 }
 
-.register-sheet button.secondary {
+.register-bar-start { justify-content: flex-start; }
+
+.register-nav {
+  display: flex;
+  gap: 1.4rem;
+  margin: 0.2rem 0 1.1rem;
+}
+
+.register-nav a {
+  color: #000;
+  font-family: "Merriweather Sans", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  padding-bottom: 0.15rem;
+}
+
+.register-nav a.is-current { border-bottom-color: #000; }
+
+.register-lede {
+  margin: 0 0 1.1rem;
+  max-width: 42rem;
+  color: #554f47;
+  font-family: Merriweather, Georgia, serif;
+  font-size: 1.02rem;
+  line-height: 1.55;
+}
+
+.register-note {
+  margin: 1.4rem 0 0;
+  max-width: 42rem;
+  color: #ba0c2f;
+  font-family: "Merriweather Sans", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.tools-block { margin: 1.6rem 0 0; }
+
+.tools-head {
+  margin: 0 0 0.55rem;
+  color: #000;
+  font-family: "Merriweather Sans", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.register-sheet button.secondary,
+.register-sheet a.secondary {
   margin: 0;
   min-width: 0;
   padding: 0.55rem 0.9rem;
@@ -1508,7 +1565,13 @@ body.register { background: #d6d2c4; }
   letter-spacing: 0.04em;
 }
 
-.register-sheet button.secondary:focus-visible { outline-color: #000; }
+.register-sheet button.secondary:focus-visible,
+.register-sheet a.secondary:focus-visible { outline-color: #000; }
+
+.register-sheet a.secondary {
+  display: inline-block;
+  text-decoration: none;
+}
 
 .register-sheet button.remove {
   margin: 0;

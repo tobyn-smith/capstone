@@ -13,6 +13,7 @@ const ACTORS = {
   none: "can't pick one",
 };
 
+const ADMIN_KEY = "oracle-admin-key";
 const gate = document.querySelector("#gate");
 const out = document.querySelector("#out");
 const message = document.querySelector("#message");
@@ -49,6 +50,13 @@ function head() {
   return h("thead", {}, h("tr", {}, HEADS.map((label) => h("th", {}, label))));
 }
 
+function nav() {
+  return h("nav", { class: "register-nav", "aria-label": "Admin" }, [
+    h("a", { href: "/admin", class: "is-current" }, "Register"),
+    h("a", { href: "/admin/tools" }, "Study tools"),
+  ]);
+}
+
 function countsTable(counts) {
   if (!counts || !counts.starts) return null;
   const keys = ["advice", "agent", "sequence"];
@@ -74,6 +82,9 @@ function render(rows, counts) {
   gate.classList.add("is-open");
   document.querySelector(".register-sheet")?.classList.add("is-open");
   document.querySelector(".register-desk")?.classList.add("is-open");
+  out.append(nav());
+  out.append(h("p", { class: "register-lede" },
+    "Findings as filed. Study tools has the breakdowns and the two downloads. Remove sitting deletes that start and finding. There is no bulk wipe."));
   const tally = countsTable(counts);
   if (tally) out.append(tally);
   if (!rows.length) {
@@ -100,7 +111,7 @@ function render(rows, counts) {
         class: "remove",
         type: "button",
         onClick: () => removeRow(row.session_id),
-      }, "Remove")),
+      }, "Remove sitting")),
     ]));
   }
   table.append(body);
@@ -127,6 +138,9 @@ function render(rows, counts) {
 
 async function removeRow(sessionId) {
   if (!sessionId) return;
+  if (!window.confirm("Remove this sitting from the register? The start and the finding both go. This cannot be undone.")) {
+    return;
+  }
   const response = await fetch("/api/responses/remove", {
     method: "POST",
     headers: { "Content-Type": "application/json", "X-Passphrase": key },
@@ -167,27 +181,39 @@ function show(text) {
   message.textContent = text || "";
 }
 
-gate.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  key = new FormData(gate).get("key") || "";
+async function openWith(pass) {
+  key = pass || "";
   show("");
   const response = await fetch("/api/responses", {
     headers: { "X-Passphrase": key, Accept: "application/json" },
   });
   if (response.status === 401) {
     show("That passphrase is not right.");
+    sessionStorage.removeItem(ADMIN_KEY);
     gate.classList.remove("is-open");
     document.querySelector(".register-sheet")?.classList.remove("is-open");
     document.querySelector(".register-desk")?.classList.remove("is-open");
     out.replaceChildren();
-    return;
+    return false;
   }
   if (!response.ok) {
     show("I could not load the responses.");
-    return;
+    return false;
   }
+  sessionStorage.setItem(ADMIN_KEY, key);
   render(await response.json(), await loadCounts());
+  return true;
+}
+
+gate.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  await openWith(new FormData(gate).get("key") || "");
 });
+
+const remembered = sessionStorage.getItem(ADMIN_KEY);
+if (remembered) {
+  openWith(remembered);
+}
 
 async function loadCounts() {
   const response = await fetch("/api/counts", {

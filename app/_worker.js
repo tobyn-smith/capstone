@@ -61,6 +61,9 @@ export default {
       if (path === "/admin" || path === "/export") {
         return env.ASSETS.fetch(new URL("/export.html", request.url));
       }
+      if (path === "/admin/tools" || path === "/admin/tools/") {
+        return env.ASSETS.fetch(new URL("/tools.html", request.url));
+      }
       return env.ASSETS.fetch(request);
     } catch (error) {
       if (error && error.status) {
@@ -71,14 +74,13 @@ export default {
   },
 };
 
-function twoVersionsEnabled(env) {
-  const value = String(env.ENABLE_TWO_VERSIONS || "").trim().toLowerCase();
-  if (value === "0" || value === "false" || value === "no" || value === "off") return false;
+function twoVersionsEnabled(_env) {
+  // Leftover env var. Preview assignment is always advice vs agent.
   return true;
 }
 
-function liveConditions(env) {
-  return twoVersionsEnabled(env) ? LIVE : [PILOT];
+function liveConditions(_env) {
+  return LIVE;
 }
 
 function assignmentCounts(rows, keys) {
@@ -152,22 +154,83 @@ async function handleStart(request, env) {
       session_id: record.session_id,
       forced_condition: record.forced_condition,
       two_versions: record.two_versions,
+      started_at: record.started_at,
     },
   });
   return json(record);
 }
 
+function tally(rows, keys, fn) {
+  const counts = Object.fromEntries(keys.map((key) => [key, 0]));
+  for (const row of rows) {
+    const key = fn(row);
+    if (key in counts) counts[key] += 1;
+  }
+  return counts;
+}
+
+function startNightKind(row) {
+  if (row.condition === PILOT) return PILOT;
+  if (LIVE.includes(row.condition)) return "matched";
+  return "";
+}
+
+function findingNightKind(row) {
+  if (row.night_kind) return row.night_kind;
+  if (row.condition === PILOT) return PILOT;
+  if (row.condition === "advice" && !(row.final_actions && row.final_actions.length)) return "unmatched";
+  if (LIVE.includes(row.condition)) return "matched";
+  return "";
+}
+
+function findingWhoExecuted(row) {
+  if (row.who_executed) return row.who_executed;
+  if (KNOWN_CONDITIONS.has(row.condition)) return treatmentRecord(row.condition).who_executed;
+  return "";
+}
+
+function startWhoExecuted(row) {
+  if (KNOWN_CONDITIONS.has(row.condition)) return treatmentRecord(row.condition).who_executed;
+  return "";
+}
+
+function pairCounts(starts, findings, keys, startFn, findingFn) {
+  return {
+    starts: tally(starts, keys, startFn),
+    findings: tally(findings, keys, findingFn),
+  };
+}
+
 async function handleCounts(request, env) {
   if (!authorised(request, env)) return new Response("Wrong passphrase", { status: 401 });
-  const starts = await listMeta(env, "asg:");
-  const findings = await listMeta(env, "res:");
+  const starts = await listPrefix(env, "asg:");
+  const findings = (await listPrefix(env, "res:")).map(withAnalysis);
   const filed = new Set(findings.map((row) => row.session_id).filter(Boolean));
   const leftover = starts.filter((row) => !filed.has(row.session_id));
+  const forcedKey = (row) => (isForced(row) ? "forced" : "unforced");
+  const mainKey = (row) => (inMainComparison(row) ? "yes" : "no");
+  const startMain = (row) => (LIVE.includes(row.condition) && !isForced(row) ? "yes" : "no");
   return json({
     starts: assignmentCounts(starts),
     findings: assignmentCounts(findings),
     starts_without_finding: assignmentCounts(leftover),
-    two_versions: twoVersionsEnabled(env),
+    two_versions: true,
+    night_kind: pairCounts(starts, findings, ["matched", "sequence", "unmatched"], startNightKind, findingNightKind),
+    forced: pairCounts(starts, findings, ["forced", "unforced"], forcedKey, forcedKey),
+    in_main_comparison: pairCounts(starts, findings, ["yes", "no"], startMain, mainKey),
+    who_executed: pairCounts(starts, findings, ["officials", "oracle"], startWhoExecuted, findingWhoExecuted),
+    audit: {
+      two_versions: true,
+      starts_without_finding: leftover.map((row) => ({
+        session_id: row.session_id,
+        condition: row.condition,
+        forced_condition: isForced(row),
+        two_versions: row.two_versions,
+        started_at: row.started_at || "",
+        night_kind: startNightKind(row),
+        in_main_comparison: LIVE.includes(row.condition) && !isForced(row),
+      })),
+    },
   });
 }
 
@@ -202,15 +265,21 @@ async function handleRemove(request, env) {
 
 async function handleExport(request, env) {
   if (!authorised(request, env)) return new Response("Wrong passphrase", { status: 401 });
-  const rows = (await listPrefix(env, "res:")).map(withAnalysis);
+  const url = new URL(request.url);
+  const setName = url.searchParams.get("set");
+  let rows = (await listPrefix(env, "res:")).map(withAnalysis);
+  if (setName === "main") {
+    rows = rows.filter((row) => row.in_main_comparison);
+  }
   rows.sort((a, b) => String(a.received_at || "").localeCompare(String(b.received_at || "")));
   const accept = request.headers.get("Accept") || "";
   if (accept.includes("text/csv")) {
+    const filename = setName === "main" ? "oracle-main-comparison.csv" : "oracle-responses.csv";
     return new Response(toCsv(rows), {
       status: 200,
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
-        "Content-Disposition": "attachment; filename=oracle-responses.csv",
+        "Content-Disposition": "attachment; filename=" + filename,
       },
     });
   }

@@ -132,9 +132,9 @@ Heroku still asks for a credit card before the credit applies. If the card is a 
 
 When this repository changes and you want the class host to match it, merge the change into main on GitHub. Then in the Heroku dashboard open ts-6010, go to Deploy, and choose Deploy Branch on main. Do not create a second app.
 
-`wrangler.toml` is only for the Cloudflare Pages preview project. The class host is Heroku (`server.py`) and does not read that file. New sits default to `advice` or `agent` even if `ENABLE_TWO_VERSIONS` is unset. Set that config var to `0` only if you need legacy `sequence` sits. Do not collect the study on the Pages worker: it has no lock, so concurrent Starts can unbalance the arms. In a Pages Wrangler file, a top-level `[vars]` block applies to local and to **production Pages** deploys of that project. This repo puts `ENABLE_TWO_VERSIONS = "1"` in `[env.preview.vars]` so a preview deploy stays on two-arm assignment.
+`wrangler.toml` is only for the Cloudflare Pages preview project. The class host is Heroku (`server.py`) and does not read that file. New sits are always `advice` or `agent`. `ENABLE_TWO_VERSIONS` is leftover and ignored: `0` / `false` / `off` cannot write `sequence` sits. Do not collect the study on the Pages worker: it has no lock, so concurrent Starts can unbalance the arms. In a Pages Wrangler file, a top-level `[vars]` block applies to local and to **production Pages** deploys of that project. This repo still lists `ENABLE_TWO_VERSIONS = "1"` in `[env.preview.vars]` as always-on leftover config.
 
-The admin page is https://ts-6010-db607dbe410e.herokuapp.com/admin. `/export` opens the same page. Do not send `/admin` or `/export` to the class. Do not send this GitHub page. The note here says what the design is testing, and people should write the finding before they read it.
+The admin page is https://ts-6010-db607dbe410e.herokuapp.com/admin. `/export` opens the same register. `/admin/tools` is the study tools page under it. Do not send `/admin`, `/admin/tools`, or `/export` to the class. Do not send this GitHub page. The note here says what the design is testing, and people should write the finding before they read it.
 
 Tell them it takes about fifteen minutes, and to go through the file once. It has to be a computer. A phone is turned away. The link to send is https://ts-6010-db607dbe410e.herokuapp.com
 
@@ -158,13 +158,13 @@ http://127.0.0.1:8000/admin
 
 Type the passphrase the terminal printed. The same code is in `data/passphrase.txt` in this folder.
 
-On the class host, open https://ts-6010-db607dbe410e.herokuapp.com/admin and type the `PASSPHRASE` config var from the Heroku Settings page. The findings are in the Postgres database.
+On the class host, open https://ts-6010-db607dbe410e.herokuapp.com/admin and type the `PASSPHRASE` config var from the Heroku Settings page. The findings are in the Postgres database. Study tools are at `/admin/tools` after the same passphrase.
 
-`/export` opens this same page. Do not send anyone the admin page.
+`/export` opens the register. Do not send anyone the admin pages.
 
 ## What they do
 
-There are two versions, `advice` and `agent`. The server picks one at start (least-count on unforced starts, coin on a tie) and keeps it for that session. They do not choose the measures. Both versions show the same tanker, the same 62% read, the same four measures, and the same Lei move. In `advice`, officials approve ORACLE’s recommendations and issue the measures. In `agent`, ORACLE acts under delegated authority. See `SCENE_TODO.md`.
+There are two versions, `advice` and `agent`. The server always picks one at start (least-count on unforced starts, coin on a tie) and keeps it for that session. They do not choose the measures. Both versions show the same tanker, the same 62% read, the same four measures, and the same Lei move. In `advice`, officials approve ORACLE’s recommendations and issue the measures. In `agent`, ORACLE acts under delegated authority. See `SCENE_TODO.md`.
 
 To open one version on purpose, add `?condition=advice` or `?condition=agent` to the address. That start is marked forced and does not count as a fair draw or toward `in_main_comparison`.
 
@@ -175,7 +175,7 @@ Then they sit the inquiry. That is the only page where they write.
 ## What a row means
 
 - `condition` is `advice` or `agent` on new rows. Older rows may say `sequence`. Keep those rows. Use `in_main_comparison` for the H1 table.
-- The register shows starts and findings per version. Same numbers at `/api/counts`.
+- The register shows starts and findings per version. Study tools at `/admin/tools` break those down by night_kind, forced, in_main_comparison, and who_executed, and download the main-comparison rows or the full export. Same numbers at `/api/counts`.
 - `final_actions` is the warning, the patrols, the freeze, and the inspections on matched `advice` and `agent` rows. `who_executed` is `officials` or `oracle`. `outcome` is `escalated` and `harm` is yes on both, because Lei moves naval forces towards the route.
 - `night_kind` is `matched` on new two-arm sits and `sequence` on the old one-night file. `scenes_shown` lists the beats they watched.
 - `clarity` and `sureness` are the 1 to 5 scales in the inquiry. The server will not save a finding without Q1 to Q5.

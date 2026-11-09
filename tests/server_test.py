@@ -45,6 +45,12 @@ class ResolveTests(unittest.TestCase):
         self.assertEqual(found.resolve(), server.resolve_app_file("/export").resolve())
         self.assertTrue(found.is_file())
 
+    def test_admin_tools_page(self):
+        found = server.resolve_app_file("/admin/tools")
+        self.assertEqual(found.name, "tools.html")
+        self.assertTrue(found.is_file())
+        self.assertNotEqual(found.resolve(), server.resolve_app_file("/admin").resolve())
+
     def test_absolute_form_request_is_the_class_page(self):
         found = server.resolve_app_file("http://127.0.0.1:8000/")
         self.assertEqual(found.resolve(), (server.APP / "index.html").resolve())
@@ -253,12 +259,16 @@ class AssignmentTests(unittest.TestCase):
         self.p_assign.stop()
         self.env.stop()
 
-    def test_flag_off_assigns_sequence_only(self):
-        with patch.dict(os.environ, {"ENABLE_TWO_VERSIONS": "0", "DATABASE_URL": ""}):
-            rows = []
-            for _ in range(12):
-                rows.append({"condition": server.pick_condition(rows)})
-            self.assertTrue(all(row["condition"] == "sequence" for row in rows))
+    def test_flag_off_still_assigns_advice_or_agent(self):
+        for value in ("0", "false", "off", "no"):
+            with patch.dict(os.environ, {"ENABLE_TWO_VERSIONS": value, "DATABASE_URL": ""}):
+                rows = []
+                for _ in range(20):
+                    rows.append({"condition": server.pick_condition(rows)})
+                live = [row["condition"] for row in rows]
+                self.assertTrue(all(key in ("advice", "agent") for key in live), value)
+                self.assertLessEqual(abs(live.count("advice") - live.count("agent")), 1, value)
+                self.assertTrue(server.two_versions_enabled())
 
     def test_unset_flag_assigns_advice_or_agent(self):
         with patch.dict(os.environ, {"ENABLE_TWO_VERSIONS": "", "DATABASE_URL": ""}):
@@ -479,6 +489,18 @@ class AssignmentTests(unittest.TestCase):
         self.assertEqual(counts["findings"]["sequence"], 1)
         self.assertEqual(counts["starts_without_finding"]["agent"], 2)
         self.assertEqual(counts["starts_without_finding"]["advice"], 0)
+        self.assertTrue(counts["two_versions"])
+        self.assertEqual(counts["night_kind"]["starts"]["matched"], 3)
+        self.assertEqual(counts["night_kind"]["starts"]["sequence"], 1)
+        self.assertEqual(counts["night_kind"]["findings"]["unmatched"], 1)
+        self.assertEqual(counts["night_kind"]["findings"]["sequence"], 1)
+        self.assertEqual(counts["forced"]["starts"]["unforced"], 4)
+        self.assertEqual(counts["in_main_comparison"]["starts"]["yes"], 3)
+        self.assertEqual(counts["in_main_comparison"]["findings"]["yes"], 0)
+        self.assertEqual(counts["who_executed"]["starts"]["officials"], 1)
+        self.assertEqual(counts["who_executed"]["starts"]["oracle"], 3)
+        leftover_ids = {row["session_id"] for row in counts["audit"]["starts_without_finding"]}
+        self.assertEqual(leftover_ids, {"bbbbbbbbbbbbbbbb", "cccccccccccccccc"})
 
     def test_a_second_finding_for_the_same_session_is_kept_as_the_first(self):
         sid = "ab" * 8
@@ -567,6 +589,16 @@ class ServeTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(admin, export)
 
+    def test_admin_tools_is_a_second_page(self):
+        status, tools = self.fetch("/admin/tools")
+        self.assertEqual(status, 200)
+        self.assertIn(b"Study tools", tools)
+        self.assertIn(b'src="/tools.js"', tools)
+        self.assertIn(b'href="/styles.css"', tools)
+        self.assertNotIn(b"Register of findings", tools)
+        status, admin = self.fetch("/admin")
+        self.assertNotEqual(tools, admin)
+
     def test_static_files_load(self):
         status, css = self.fetch("/styles.css")
         self.assertEqual(status, 200)
@@ -610,7 +642,7 @@ class ServeTests(unittest.TestCase):
         self.assertIn(first["condition"], ("advice", "agent"))
         self.assertTrue(first["two_versions"])
 
-    def test_start_is_sequence_when_the_second_night_is_off(self):
+    def test_start_is_still_two_arm_when_the_flag_is_off(self):
         import tempfile
 
         folder = Path(tempfile.mkdtemp())
@@ -619,8 +651,9 @@ class ServeTests(unittest.TestCase):
                 server, "RESPONSES", folder / "responses.jsonl"
             ):
                 first = self._start(b"{}")
-        self.assertEqual(first["condition"], "sequence")
-        self.assertFalse(first["two_versions"])
+        self.assertIn(first["condition"], ("advice", "agent"))
+        self.assertTrue(first["two_versions"])
+        self.assertFalse(first["forced_condition"])
 
     def test_start_defaults_to_advice_or_agent(self):
         import tempfile
@@ -734,6 +767,15 @@ class ServeTests(unittest.TestCase):
         else:
             self.fail("a finding with no session should be refused")
 
+    def test_export_and_counts_need_the_passphrase(self):
+        for path in ("/api/responses", "/api/responses?set=main", "/api/counts"):
+            try:
+                urllib.request.urlopen("http://127.0.0.1:%s%s" % (self.port, path))
+            except urllib.error.HTTPError as error:
+                self.assertEqual(error.code, 401, path)
+            else:
+                self.fail("%s should need the passphrase" % path)
+
     def test_a_full_register_refuses_another_start(self):
         with patch.object(server, "too_many_sessions", return_value=True):
             try:
@@ -783,6 +825,59 @@ class InquiryFormTests(unittest.TestCase):
         chrome = source.split("function paintChrome()", 1)[1].split("function render()", 1)[0]
         self.assertIn('next.hidden = state.step === "inquiry"', chrome)
         self.assertNotIn('"File the finding"', chrome)
+
+
+class ToolsExportTests(unittest.TestCase):
+    def setUp(self):
+        import tempfile
+
+        self.folder = Path(tempfile.mkdtemp())
+        self.assignments = self.folder / "assignments.jsonl"
+        self.responses = self.folder / "responses.jsonl"
+        self.env = patch.dict(os.environ, {"DATABASE_URL": ""}, clear=False)
+        self.env.start()
+        self.p_assign = patch.object(server, "ASSIGNMENTS", self.assignments)
+        self.p_resp = patch.object(server, "RESPONSES", self.responses)
+        self.p_assign.start()
+        self.p_resp.start()
+
+    def tearDown(self):
+        self.p_resp.stop()
+        self.p_assign.stop()
+        self.env.stop()
+
+    def test_main_export_drops_forced_sequence_and_unmatched_advice(self):
+        main = server.clean_response(
+            {"condition": "advice", "session_id": "aa" * 8, "inquiry": inquiry(single="me")},
+            "t1",
+            {"session_id": "aa" * 8, "condition": "advice", "forced_condition": False},
+        )
+        forced = server.clean_response(
+            {"condition": "agent", "session_id": "bb" * 8, "inquiry": inquiry(), "forced_condition": True},
+            "t2",
+            {"session_id": "bb" * 8, "condition": "agent", "forced_condition": True},
+        )
+        sequence = server.clean_response(
+            {"condition": "sequence", "session_id": "cc" * 8, "inquiry": inquiry()},
+            "t3",
+            {"session_id": "cc" * 8, "condition": "sequence"},
+        )
+        unmatched = {
+            "session_id": "dd" * 8,
+            "condition": "advice",
+            "forced_condition": False,
+            "final_actions": [],
+            "night_kind": "",
+        }
+        self.responses.write_text(
+            "".join(json.dumps(row) + "\n" for row in (main, forced, sequence, unmatched)),
+            encoding="utf-8",
+        )
+        rows = server.export_rows("main")
+        self.assertEqual([row["session_id"] for row in rows], ["aa" * 8])
+        self.assertTrue(rows[0]["in_main_comparison"])
+        all_rows = server.export_rows()
+        self.assertEqual(len(all_rows), 4)
 
 
 if __name__ == "__main__":
