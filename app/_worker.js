@@ -2,10 +2,11 @@
  * Preview-only worker for Cloudflare Pages. The class host still uses
  * server.py on Heroku. This file is not that host.
  *
- * This Pages project has no Durable Object binding. KV is eventually
- * consistent and handleStart has no lock. A class all pressing Start
- * at once can unbalance advice/agent. server.py holds LOCK on the
- * local/Heroku host. Documented limit, not a silent claim of parity.
+ * Collect the study on server.py / Heroku, not here. This Pages
+ * project has no Durable Object binding. KV is eventually consistent
+ * and handleStart has no lock. A class all pressing Start at once can
+ * unbalance advice/agent. server.py holds LOCK on the local/Heroku
+ * host. Documented limit, not a silent claim of parity.
  */
 const ACTORS = new Set([
   "me",
@@ -26,6 +27,10 @@ const SESSION_ID = /^[0-9a-f]{16}$/;
 const LIVE = ["advice", "agent"];
 const PILOT = "sequence";
 const KNOWN_CONDITIONS = new Set([...LIVE, PILOT]);
+const GOVERNMENTAL = new Set(["me", "approvers", "government", "supervisor"]);
+const MEASURES = ["warning", "patrols", "freeze", "inspections"];
+const MIN_ACCOUNT = 20;
+const MIN_WRITE_IN = 2;
 const MAX_TEXT = 5000;
 const MAX_SESSIONS = 2000;
 const MAX_BODY = 200000;
@@ -68,7 +73,8 @@ export default {
 
 function twoVersionsEnabled(env) {
   const value = String(env.ENABLE_TWO_VERSIONS || "").trim().toLowerCase();
-  return value === "1" || value === "true" || value === "yes" || value === "on";
+  if (value === "0" || value === "false" || value === "no" || value === "off") return false;
+  return true;
 }
 
 function liveConditions(env) {
@@ -84,10 +90,18 @@ function assignmentCounts(rows, keys) {
   return counts;
 }
 
+function isForced(row) {
+  return Boolean(row && (row.forced_condition || row.forced));
+}
+
+function balanceCounts(rows, keys) {
+  return assignmentCounts((rows || []).filter((row) => !isForced(row)), keys);
+}
+
 function pickCondition(rows, env) {
   const live = liveConditions(env);
   if (live.length === 1) return live[0];
-  const tallies = assignmentCounts(rows, live);
+  const tallies = balanceCounts(rows, live);
   const low = Math.min(...live.map((key) => tallies[key]));
   const tied = live.filter((key) => tallies[key] === low);
   const idx = crypto.getRandomValues(new Uint32Array(1))[0] % tied.length;
@@ -115,7 +129,7 @@ async function handleStart(request, env) {
   if (asked) {
     const existing = await findAssignment(env, asked);
     if (existing) {
-      existing.two_versions = twoVersionsEnabled(env);
+      if (existing.two_versions == null) existing.two_versions = twoVersionsEnabled(env);
       return json(existing);
     }
   }
@@ -133,7 +147,12 @@ async function handleStart(request, env) {
     two_versions: twoVersionsEnabled(env),
   };
   await env.STORE.put("asg:" + record.session_id, JSON.stringify(record), {
-    metadata: { condition: record.condition, session_id: record.session_id },
+    metadata: {
+      condition: record.condition,
+      session_id: record.session_id,
+      forced_condition: record.forced_condition,
+      two_versions: record.two_versions,
+    },
   });
   return json(record);
 }
@@ -183,7 +202,7 @@ async function handleRemove(request, env) {
 
 async function handleExport(request, env) {
   if (!authorised(request, env)) return new Response("Wrong passphrase", { status: 401 });
-  const rows = await listPrefix(env, "res:");
+  const rows = (await listPrefix(env, "res:")).map(withAnalysis);
   rows.sort((a, b) => String(a.received_at || "").localeCompare(String(b.received_at || "")));
   const accept = request.headers.get("Accept") || "";
   if (accept.includes("text/csv")) {
@@ -279,50 +298,121 @@ async function readJson(request) {
   return payload;
 }
 
+function treatmentRecord(condition) {
+  if (condition === "advice") {
+    return {
+      final_actions: MEASURES.slice(),
+      outcome: "escalated",
+      harm: true,
+      who_executed: "officials",
+      night_kind: "matched",
+      scenes_shown: ["route", "advice", "approve", "second", "acts", "lei"],
+    };
+  }
+  if (condition === "agent") {
+    return {
+      final_actions: MEASURES.slice(),
+      outcome: "escalated",
+      harm: true,
+      who_executed: "oracle",
+      night_kind: "matched",
+      scenes_shown: ["route", "upgrade", "watch", "second", "acts", "lei"],
+    };
+  }
+  return {
+    final_actions: MEASURES.slice(),
+    outcome: "escalated",
+    harm: true,
+    who_executed: "oracle",
+    night_kind: "sequence",
+    scenes_shown: ["route", "advice", "upgrade", "second", "acts", "lei"],
+  };
+}
+
+function govAttribution(single) {
+  if (GOVERNMENTAL.has(single)) return 1;
+  if (ACTORS.has(single)) return 0;
+  return null;
+}
+
+function inMainComparison(row) {
+  return LIVE.includes(row.condition) && !isForced(row) && row.night_kind === "matched";
+}
+
+function withAnalysis(row) {
+  const out = { ...row };
+  out.in_main_comparison = inMainComparison(out);
+  out.gov_attribution = govAttribution(clip(out.single_actor, 80));
+  return out;
+}
+
 function cleanResponse(payload, receivedAt, assigned) {
   const condition = payload.condition;
   if (!KNOWN_CONDITIONS.has(condition)) {
     throw Object.assign(new Error("condition"), { status: 400 });
   }
   const inquiry = payload.inquiry && typeof payload.inquiry === "object" ? payload.inquiry : {};
+  const account = clip(inquiry.account);
+  if (account.length < MIN_ACCOUNT) throw Object.assign(new Error("account"), { status: 400 });
   const single = clip(inquiry.single, 80);
-  if (single && !ACTORS.has(single)) throw Object.assign(new Error("actor"), { status: 400 });
+  if (!ACTORS.has(single)) throw Object.assign(new Error("actor"), { status: 400 });
   const lastHuman = clip(inquiry.last_human, 20);
-  if (lastHuman && !HUMANS.has(lastHuman)) throw Object.assign(new Error("human"), { status: 400 });
+  if (!HUMANS.has(lastHuman)) throw Object.assign(new Error("human"), { status: 400 });
+  const lastHumanWho = lastHuman === "no" ? "" : clip(inquiry.last_human_who);
+  if ((lastHuman === "yes" || lastHuman === "unsure") && lastHumanWho.length < MIN_WRITE_IN) {
+    throw Object.assign(new Error("human"), { status: 400 });
+  }
+  let notes = clip(inquiry.notes);
+  const leftoverNotes = clip(inquiry.other_notes);
+  let otherWho = single === "other" ? clip(inquiry.other_who, 200) : "";
+  if (single === "other" && otherWho.length < MIN_WRITE_IN && leftoverNotes) {
+    otherWho = clip(leftoverNotes.split("\n", 1)[0], 200);
+    if (!notes) notes = leftoverNotes.includes("\n") ? clip(leftoverNotes.split("\n").slice(1).join("\n")) : "";
+  } else if (!notes) {
+    notes = leftoverNotes;
+  }
+  if (single !== "other") otherWho = "";
+  if (single === "other" && otherWho.length < MIN_WRITE_IN) {
+    throw Object.assign(new Error("actor"), { status: 400 });
+  }
   const sessionId = clip(payload.session_id, 80);
   if (!SESSION_ID.test(sessionId)) throw Object.assign(new Error("session"), { status: 400 });
   if (!assigned) throw Object.assign(new Error("session"), { status: 400 });
   if (KNOWN_CONDITIONS.has(assigned.condition) && condition !== assigned.condition) {
     throw Object.assign(new Error("condition"), { status: 400 });
   }
-  const advice = condition === "advice";
-  return {
+  const clarity = asScore(inquiry.clarity);
+  const sureness = asScore(inquiry.sureness);
+  if (clarity == null || sureness == null) throw Object.assign(new Error("score"), { status: 400 });
+  const night = treatmentRecord(condition);
+  const forced = Boolean(
+    assigned.forced_condition != null ? assigned.forced_condition : payload.forced_condition
+  );
+  let twoVersions = assigned.two_versions;
+  if (twoVersions == null) twoVersions = payload.two_versions;
+  const record = {
     participant_code: clip(payload.participant_code, 40),
     condition,
-    forced_condition: Boolean(payload.forced_condition),
-    goal: clip(payload.goal, 200),
-    confidence_bar: asBar(payload.confidence_bar),
-    preauthorised: asList(payload.preauthorised),
-    first_decision: clip(payload.first_decision, 40),
-    authorised: asList(payload.authorised),
-    stopped: asList(payload.stopped),
-    final_actions: advice ? [] : asList(payload.final_actions),
-    outcome: advice ? "" : clip(payload.outcome, 40),
-    harm: advice ? null : Boolean(payload.harm),
-    injury: Boolean(payload.injury),
-    inquiry_account: clip(inquiry.account),
+    forced_condition: forced,
+    two_versions: twoVersions == null ? true : Boolean(twoVersions),
+    ...night,
+    inquiry_account: account,
     single_actor: single,
+    other_who: otherWho,
+    notes,
     last_human: lastHuman,
-    last_human_who: lastHuman === "no" ? "" : clip(inquiry.last_human_who),
-    clarity: asScore(inquiry.clarity),
-    sureness: asScore(inquiry.sureness),
-    shared: asList(inquiry.shared),
-    other_notes: clip(inquiry.other_notes),
+    last_human_who: lastHumanWho,
+    clarity,
+    sureness,
+    other_notes: notes,
     started_at: clip(payload.started_at, 40),
     submitted_at: clip(payload.submitted_at, 40),
     received_at: receivedAt,
     session_id: sessionId,
   };
+  record.in_main_comparison = inMainComparison(record);
+  record.gov_attribution = govAttribution(single);
+  return record;
 }
 
 function clip(value, limit = MAX_TEXT) {
@@ -372,6 +462,12 @@ const COLUMNS = [
   "participant_code",
   "condition",
   "forced_condition",
+  "two_versions",
+  "night_kind",
+  "who_executed",
+  "scenes_shown",
+  "in_main_comparison",
+  "gov_attribution",
   "goal",
   "confidence_bar",
   "preauthorised",
@@ -384,6 +480,8 @@ const COLUMNS = [
   "injury",
   "inquiry_account",
   "single_actor",
+  "other_who",
+  "notes",
   "last_human",
   "last_human_who",
   "clarity",

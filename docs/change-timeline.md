@@ -10,9 +10,9 @@ PR numbers in this file are **`tobyn-smith/capstone`** unless a row says otherwi
 
 | Version | What the player sees | When it is assigned |
 | --- | --- | --- |
-| Single-night (`sequence`) | One night: advice, then the upgrade, then ORACLE acts. The earlier class sitting. | `ENABLE_TWO_VERSIONS` off (or not a truthy value), on this branch. |
-| Two-version · `advice` | Route + advice scenes only, until he writes more. | Flag on; least-count vs `agent`, coin on a tie. |
-| Two-version · `agent` | The same full night as `sequence`. | Flag on; least-count vs `advice`, coin on a tie. |
+| Single-night (`sequence`) | One night: advice, then the upgrade, then ORACLE acts. The earlier class sitting. | `ENABLE_TWO_VERSIONS` explicitly off (`0` / `false` / `no` / `off`). |
+| Two-version · `advice` | Matched night: officials approve ORACLE’s recommendations and issue the four measures. | Default; least-count vs `agent`, coin on a tie. |
+| Two-version · `agent` | Matched night: ORACLE issues the same four measures under delegated authority. | Default; least-count vs `advice`, coin on a tie. |
 | Style pass | Same words and logic as the sitting it sits on. Editorial / museum look. | Visual only. Not a stored condition. |
 
 `sequence` and `agent` use the same scenes. They are stored as different versions so the earlier sitting can be compared with the two-version sitting. That identity is intended.

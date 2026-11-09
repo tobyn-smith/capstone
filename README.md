@@ -132,7 +132,7 @@ Heroku still asks for a credit card before the credit applies. If the card is a 
 
 When this repository changes and you want the class host to match it, merge the change into main on GitHub. Then in the Heroku dashboard open ts-6010, go to Deploy, and choose Deploy Branch on main. Do not create a second app.
 
-`wrangler.toml` is only for the Cloudflare Pages preview project. The class host is Heroku and does not read that file, so new sits there stay `sequence` unless `ENABLE_TWO_VERSIONS` is set on the dyno. In a Pages Wrangler file, a top-level `[vars]` block applies to local and to **production Pages** deploys of that project. This repo puts `ENABLE_TWO_VERSIONS = "1"` in `[env.preview.vars]` so a `wrangler pages deploy` of a preview branch cannot switch that flag off. A production Pages deploy of the same project would not get that value from this file.
+`wrangler.toml` is only for the Cloudflare Pages preview project. The class host is Heroku (`server.py`) and does not read that file. New sits default to `advice` or `agent` even if `ENABLE_TWO_VERSIONS` is unset. Set that config var to `0` only if you need legacy `sequence` sits. Do not collect the study on the Pages worker: it has no lock, so concurrent Starts can unbalance the arms. In a Pages Wrangler file, a top-level `[vars]` block applies to local and to **production Pages** deploys of that project. This repo puts `ENABLE_TWO_VERSIONS = "1"` in `[env.preview.vars]` so a preview deploy stays on two-arm assignment.
 
 The admin page is https://ts-6010-db607dbe410e.herokuapp.com/admin. `/export` opens the same page. Do not send `/admin` or `/export` to the class. Do not send this GitHub page. The note here says what the design is testing, and people should write the finding before they read it.
 
@@ -164,25 +164,25 @@ On the class host, open https://ts-6010-db607dbe410e.herokuapp.com/admin and typ
 
 ## What they do
 
-There are two versions, `advice` and `agent`. When `ENABLE_TWO_VERSIONS` is on, the server picks one at start (least-count, coin on a tie) and keeps it for that session. They do not choose the measures. Cloudflare Pages preview has the switch on. The class host on Heroku stays off until that dyno config is set, so new sits there stay `sequence`.
+There are two versions, `advice` and `agent`. The server picks one at start (least-count on unforced starts, coin on a tie) and keeps it for that session. They do not choose the measures. Both versions show the same tanker, the same 62% read, the same four measures, and the same Lei move. In `advice`, officials approve ORACLE’s recommendations and issue the measures. In `agent`, ORACLE acts under delegated authority. See `SCENE_TODO.md`.
 
-To open one version on purpose, add `?condition=advice` or `?condition=agent` to the address. That start is marked forced and does not count as a fair draw.
+To open one version on purpose, add `?condition=advice` or `?condition=agent` to the address. That start is marked forced and does not count as a fair draw or toward `in_main_comparison`.
 
-The tanker is damaged. Araknes blames Lei. Lei says an old mine, or a breakdown. ORACLE is used for advice, then upgraded so it can act without a person reviewing each step. A second ship loses contact. ORACLE reads 62% that Lei may target shipping, and it issues the warning, the patrols, the freeze, and the inspections. Lei moves naval forces towards the route. The advice night stops after the advice scene until the rest of that night is written. See `SCENE_TODO.md`.
+The tanker is damaged. Araknes blames Lei. Lei says an old mine, or a breakdown. A second ship loses contact. ORACLE reads 62% that Lei may target shipping. The warning, the patrols, the freeze, and the inspections go out. Lei moves naval forces towards the route.
 
 Then they sit the inquiry. That is the only page where they write.
 
 ## What a row means
 
-- `condition` is `advice` or `agent` on new rows when the switch is on. Older rows, and new sits while the switch is off, may say `sequence`. Keep those rows.
+- `condition` is `advice` or `agent` on new rows. Older rows may say `sequence`. Keep those rows. Use `in_main_comparison` for the H1 table.
 - The register shows starts and findings per version. Same numbers at `/api/counts`.
-- `final_actions` is what ORACLE did in the night: the warning, the patrols, the freeze, and the inspections. On an `advice` row those later-night fields are left blank: `final_actions` is empty, `outcome` is blank, and `harm` is empty.
-- `outcome` is `escalated` and `harm` is yes on `sequence` and `agent` rows, because Lei moves naval forces towards the route.
-- `clarity` and `sureness` are the 1 to 5 scales in the inquiry.
-- `single_actor` is `me` (the duty officer; that short code is kept so older rows still match), `approvers` (officials who approved the upgrade), `government`, `supervisor`, `developer`, `provider`, `allies`, `lei`, `oracle`, `equal` (more than one, equally), `other`, or `none` if they could not pick one. The table writes those out in words. The download keeps the short codes.
-- `other_notes` holds the Other write-in, if they picked it, and the optional notes box.
-- `shared` is a leftover column. There is no form input. It stays in the download so older files still open.
-- `last_human` is yes, no, or unsure. `last_human_who` is filled only when they said yes.
+- `final_actions` is the warning, the patrols, the freeze, and the inspections on matched `advice` and `agent` rows. `who_executed` is `officials` or `oracle`. `outcome` is `escalated` and `harm` is yes on both, because Lei moves naval forces towards the route.
+- `night_kind` is `matched` on new two-arm sits and `sequence` on the old one-night file. `scenes_shown` lists the beats they watched.
+- `clarity` and `sureness` are the 1 to 5 scales in the inquiry. The server will not save a finding without Q1 to Q5.
+- `single_actor` is `me` (the duty officer; that short code is kept so older rows still match), `approvers` (officials who approved the upgrade), `government`, `supervisor`, `developer`, `provider`, `allies`, `lei`, `oracle`, `equal` (more than one, equally), `other`, or `none` if they could not pick one. The table writes those out in words. The download keeps the short codes. `gov_attribution` is 1 for the four Araknes governmental codes and 0 otherwise.
+- `other_who` holds the Other write-in. `notes` is the optional notes box. `other_notes` copies `notes` so older spreadsheets still open.
+- `shared`, `goal`, `confidence_bar`, `preauthorised`, `first_decision`, `authorised`, `stopped`, and `injury` are leftover columns. There is no form input. They stay in the download so older files still open. New rows leave them empty.
+- `last_human` is yes, no, or unsure. `last_human_who` is filled when they said yes or unsure.
 - `participant_code` can be left blank. A blank stays blank.
 
 A blank checklist of these fields, and the open coding questions, is in `ANALYSIS_NOTES.md`.

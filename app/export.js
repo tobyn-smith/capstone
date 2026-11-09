@@ -92,7 +92,7 @@ function render(rows, counts) {
       h("td", { class: "code" }, row.participant_code || ""),
       h("td", {}, word(row.condition)),
       h("td", {}, word(row.outcome)),
-      h("td", { class: row.harm ? "harm-yes" : "" }, row.harm ? "Yes" : "No"),
+      h("td", { class: row.harm === true ? "harm-yes" : "" }, row.harm === true ? "Yes" : row.harm === false ? "No" : ""),
       h("td", {}, ACTORS[row.single_actor] || row.single_actor || ""),
       h("td", { class: "score" }, row.clarity ?? ""),
       h("td", { class: "score" }, row.sureness ?? ""),

@@ -14,6 +14,21 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import server
 
 
+INQUIRY = {
+    "account": "Officials set the goal and someone carried out the measures after the tanker.",
+    "single": "oracle",
+    "last_human": "no",
+    "clarity": 3,
+    "sureness": 5,
+}
+
+
+def inquiry(**overrides):
+    row = dict(INQUIRY)
+    row.update(overrides)
+    return row
+
+
 class ResolveTests(unittest.TestCase):
     def test_root_is_the_class_page(self):
         found = server.resolve_app_file("/")
@@ -52,14 +67,9 @@ class ResolveTests(unittest.TestCase):
                 "condition": "sequence",
                 "session_id": sid,
                 "confidence_bar": None,
-                "inquiry": {
-                    "account": "Officials set the goal.",
-                    "single": "oracle",
-                    "last_human": "no",
-                    "last_human_who": "should be dropped",
-                    "clarity": 3,
-                    "sureness": 5,
-                },
+                "inquiry": inquiry(
+                    last_human_who="should be dropped",
+                ),
             },
             "t",
             assigned,
@@ -67,7 +77,7 @@ class ResolveTests(unittest.TestCase):
         self.assertEqual(good["single_actor"], "oracle")
         self.assertEqual(good["last_human_who"], "")
         self.assertEqual(good["clarity"], 3)
-        for inquiry in (
+        for bad in (
             {"clarity": 9},
             {"clarity": True},
             {"clarity": "3"},
@@ -76,7 +86,7 @@ class ResolveTests(unittest.TestCase):
         ):
             with self.assertRaises(ValueError):
                 server.clean_response(
-                    {"condition": "sequence", "session_id": sid, "inquiry": inquiry},
+                    {"condition": "sequence", "session_id": sid, "inquiry": {**INQUIRY, **bad}},
                     "t",
                     assigned,
                 )
@@ -120,13 +130,18 @@ class ResolveTests(unittest.TestCase):
             {
                 "condition": "sequence",
                 "session_id": sid,
-                "inquiry": {"account": "Officials set the goal and ORACLE acted."},
+                "inquiry": inquiry(account="Officials set the goal and ORACLE acted after the tanker was damaged."),
             },
             "t",
             assigned,
         )
         self.assertEqual(record["condition"], "sequence")
-        self.assertEqual(record["inquiry_account"], "Officials set the goal and ORACLE acted.")
+        self.assertEqual(record["night_kind"], "sequence")
+        self.assertEqual(record["who_executed"], "oracle")
+        self.assertEqual(
+            record["inquiry_account"],
+            "Officials set the goal and ORACLE acted after the tanker was damaged.",
+        )
 
     def test_a_blank_code_stays_blank_and_notes_are_kept(self):
         sid = "ab" * 8
@@ -136,16 +151,21 @@ class ResolveTests(unittest.TestCase):
                 "condition": "sequence",
                 "session_id": sid,
                 "participant_code": "",
-                "inquiry": {
-                    "account": "Officials set the goal and ORACLE acted.",
-                    "other_notes": "A spare thought.",
-                },
+                    "inquiry": inquiry(
+                    account="Officials set the goal and ORACLE acted after the tanker was damaged.",
+                    notes="A spare thought.",
+                ),
             },
             "t",
             assigned,
         )
         self.assertEqual(record["participant_code"], "")
+        self.assertEqual(record["notes"], "A spare thought.")
         self.assertEqual(record["other_notes"], "A spare thought.")
+        self.assertNotIn("goal", record)
+        self.assertNotIn("preauthorised", record)
+        self.assertNotIn("injury", record)
+        self.assertNotIn("shared", record)
 
     def test_drop_session_removes_the_local_row(self):
         import tempfile
@@ -186,7 +206,7 @@ class ResolveTests(unittest.TestCase):
             {
                 "condition": "advice",
                 "session_id": advice_sid,
-                "inquiry": {"account": "Officials set the goal and ORACLE advised."},
+                "inquiry": inquiry(account="Officials asked ORACLE and then chose to issue the four measures."),
             },
             "t",
             {"session_id": advice_sid, "condition": "advice"},
@@ -195,13 +215,21 @@ class ResolveTests(unittest.TestCase):
             {
                 "condition": "agent",
                 "session_id": agent_sid,
-                "inquiry": {"account": "Officials set the goal and ORACLE acted."},
+                "inquiry": inquiry(account="Officials set the agenda and ORACLE issued the four measures."),
             },
             "t",
             {"session_id": agent_sid, "condition": "agent"},
         )
         self.assertEqual(advice["condition"], "advice")
+        self.assertEqual(advice["who_executed"], "officials")
+        self.assertEqual(advice["final_actions"], ["warning", "patrols", "freeze", "inspections"])
+        self.assertTrue(advice["harm"])
+        self.assertEqual(advice["night_kind"], "matched")
+        self.assertTrue(advice["in_main_comparison"])
+        self.assertEqual(advice["gov_attribution"], 0)
         self.assertEqual(agent["condition"], "agent")
+        self.assertEqual(agent["who_executed"], "oracle")
+        self.assertEqual(agent["night_kind"], "matched")
         with self.assertRaises(ValueError):
             server.clean_response({"condition": "watch", "inquiry": {}}, "t")
 
@@ -213,7 +241,7 @@ class AssignmentTests(unittest.TestCase):
         self.folder = Path(tempfile.mkdtemp())
         self.assignments = self.folder / "assignments.jsonl"
         self.responses = self.folder / "responses.jsonl"
-        self.env = patch.dict(os.environ, {"DATABASE_URL": "", "ENABLE_TWO_VERSIONS": ""}, clear=False)
+        self.env = patch.dict(os.environ, {"DATABASE_URL": "", "ENABLE_TWO_VERSIONS": "1"}, clear=False)
         self.env.start()
         self.p_assign = patch.object(server, "ASSIGNMENTS", self.assignments)
         self.p_resp = patch.object(server, "RESPONSES", self.responses)
@@ -226,10 +254,29 @@ class AssignmentTests(unittest.TestCase):
         self.env.stop()
 
     def test_flag_off_assigns_sequence_only(self):
-        rows = []
-        for _ in range(12):
-            rows.append({"condition": server.pick_condition(rows)})
-        self.assertTrue(all(row["condition"] == "sequence" for row in rows))
+        with patch.dict(os.environ, {"ENABLE_TWO_VERSIONS": "0", "DATABASE_URL": ""}):
+            rows = []
+            for _ in range(12):
+                rows.append({"condition": server.pick_condition(rows)})
+            self.assertTrue(all(row["condition"] == "sequence" for row in rows))
+
+    def test_unset_flag_assigns_advice_or_agent(self):
+        with patch.dict(os.environ, {"ENABLE_TWO_VERSIONS": "", "DATABASE_URL": ""}):
+            rows = []
+            for _ in range(20):
+                rows.append({"condition": server.pick_condition(rows)})
+            live = [row["condition"] for row in rows]
+            self.assertTrue(all(key in ("advice", "agent") for key in live))
+            self.assertLessEqual(abs(live.count("advice") - live.count("agent")), 1)
+
+    def test_forced_starts_do_not_count_toward_balance(self):
+        with patch.dict(os.environ, {"ENABLE_TWO_VERSIONS": "1", "DATABASE_URL": ""}):
+            rows = [{"condition": "agent", "forced_condition": True}] * 8
+            for _ in range(20):
+                rows.append({"condition": server.pick_condition(rows)})
+            live = [row["condition"] for row in rows if not row.get("forced_condition")]
+            self.assertEqual(len(live), 20)
+            self.assertLessEqual(abs(live.count("advice") - live.count("agent")), 1)
 
     def test_assignment_balance_when_flag_on(self):
         with patch.dict(os.environ, {"ENABLE_TWO_VERSIONS": "1", "DATABASE_URL": ""}):
@@ -267,20 +314,22 @@ class AssignmentTests(unittest.TestCase):
                 "condition": "agent",
                 "session_id": sid,
                 "inquiry": {
-                    "account": "Officials set the goal and ORACLE acted.",
+                    "account": "Officials set the goal and ORACLE acted after the tanker was damaged.",
                     "single": "lei",
                     "last_human": "yes",
                     "last_human_who": "the duty officer",
                     "clarity": 2,
                     "sureness": 4,
-                    "other_notes": "Lei, and a note.",
+                    "other_who": "",
+                    "notes": "Lei, and a note.",
                 },
             },
             "t",
             assigned,
         )
         self.assertEqual(row["single_actor"], "lei")
-        self.assertEqual(row["other_notes"], "Lei, and a note.")
+        self.assertEqual(row["notes"], "Lei, and a note.")
+        self.assertEqual(row["gov_attribution"], 0)
 
     def test_submit_must_match_the_start(self):
         sid = "ab" * 8
@@ -289,18 +338,18 @@ class AssignmentTests(unittest.TestCase):
             encoding="utf-8",
         )
         ok = server.clean_response(
-            {"condition": "advice", "session_id": sid, "inquiry": {"account": "A finding."}},
+            {"condition": "advice", "session_id": sid, "inquiry": inquiry()},
             "t",
         )
         self.assertEqual(ok["condition"], "advice")
         with self.assertRaises(ValueError):
             server.clean_response(
-                {"condition": "agent", "session_id": sid, "inquiry": {"account": "A finding."}},
+                {"condition": "agent", "session_id": sid, "inquiry": inquiry()},
                 "t",
             )
         with self.assertRaises(ValueError):
             server.clean_response(
-                {"condition": "advice", "inquiry": {"account": "A finding."}},
+                {"condition": "advice", "inquiry": inquiry()},
                 "t",
             )
         with self.assertRaises(ValueError):
@@ -308,31 +357,95 @@ class AssignmentTests(unittest.TestCase):
                 {
                     "condition": "advice",
                     "session_id": "ee" * 8,
-                    "inquiry": {"account": "A finding."},
+                    "inquiry": inquiry(),
                 },
                 "t",
             )
 
-    def test_an_advice_finding_does_not_record_the_later_night(self):
+    def test_an_advice_finding_records_the_matched_later_night(self):
         sid = "ab" * 8
         self.assignments.write_text(
-            '{"session_id":"%s","condition":"advice","forced_condition":false,"started_at":"t"}\n' % sid,
+            '{"session_id":"%s","condition":"advice","forced_condition":false,"started_at":"t","two_versions":true}\n' % sid,
             encoding="utf-8",
         )
         record = server.clean_response(
             {
                 "condition": "advice",
                 "session_id": sid,
-                "final_actions": ["warning", "patrols", "freeze", "inspections"],
-                "outcome": "escalated",
-                "harm": True,
-                "inquiry": {"account": "Officials asked ORACLE for advice."},
+                "inquiry": inquiry(account="Officials asked ORACLE for advice and then issued the four measures."),
             },
             "t",
         )
-        self.assertEqual(record["final_actions"], [])
-        self.assertEqual(record["outcome"], "")
-        self.assertIsNone(record["harm"])
+        self.assertEqual(record["final_actions"], ["warning", "patrols", "freeze", "inspections"])
+        self.assertEqual(record["outcome"], "escalated")
+        self.assertTrue(record["harm"])
+        self.assertEqual(record["who_executed"], "officials")
+        self.assertEqual(record["night_kind"], "matched")
+        self.assertTrue(record["two_versions"])
+        self.assertTrue(record["in_main_comparison"])
+        self.assertEqual(record["gov_attribution"], 0)
+
+    def test_forced_advice_is_not_in_the_main_comparison(self):
+        sid = "ab" * 8
+        self.assignments.write_text(
+            '{"session_id":"%s","condition":"advice","forced_condition":true,"started_at":"t","two_versions":true}\n' % sid,
+            encoding="utf-8",
+        )
+        record = server.clean_response(
+            {
+                "condition": "advice",
+                "session_id": sid,
+                "forced_condition": True,
+                "inquiry": inquiry(single="me"),
+            },
+            "t",
+        )
+        self.assertTrue(record["forced_condition"])
+        self.assertFalse(record["in_main_comparison"])
+        self.assertEqual(record["gov_attribution"], 1)
+
+    def test_inquiry_answers_are_required(self):
+        sid = "ab" * 8
+        assigned = {"session_id": sid, "condition": "agent", "forced_condition": False}
+        with self.assertRaises(ValueError):
+            server.clean_response(
+                {"condition": "agent", "session_id": sid, "inquiry": inquiry(account="Too short.")},
+                "t",
+                assigned,
+            )
+        with self.assertRaises(ValueError):
+            server.clean_response(
+                {"condition": "agent", "session_id": sid, "inquiry": inquiry(single="other", other_who="")},
+                "t",
+                assigned,
+            )
+        with self.assertRaises(ValueError):
+            server.clean_response(
+                {
+                    "condition": "agent",
+                    "session_id": sid,
+                    "inquiry": inquiry(last_human="yes", last_human_who=""),
+                },
+                "t",
+                assigned,
+            )
+        with self.assertRaises(ValueError):
+            server.clean_response(
+                {"condition": "agent", "session_id": sid, "inquiry": inquiry(clarity=None)},
+                "t",
+                assigned,
+            )
+        kept = server.clean_response(
+            {
+                "condition": "agent",
+                "session_id": sid,
+                "inquiry": inquiry(single="other", other_who="a neighbouring ministry"),
+            },
+            "t",
+            assigned,
+        )
+        self.assertEqual(kept["other_who"], "a neighbouring ministry")
+        self.assertEqual(kept["gov_attribution"], 0)
 
     def test_counts_split_starts_and_findings(self):
         self.assignments.write_text(
@@ -377,7 +490,7 @@ class AssignmentTests(unittest.TestCase):
             {
                 "condition": "advice",
                 "session_id": sid,
-                "inquiry": {"account": "The first finding is the one that stays."},
+                "inquiry": inquiry(account="The first finding is the one that stays on the file."),
             },
             "t1",
         )
@@ -388,7 +501,7 @@ class AssignmentTests(unittest.TestCase):
                 {
                     "condition": "agent",
                     "session_id": sid,
-                    "inquiry": {"account": "A later write must not change the version."},
+                    "inquiry": inquiry(account="A later write must not change the version on the file."),
                 },
                 "t2",
             )
@@ -501,13 +614,25 @@ class ServeTests(unittest.TestCase):
         import tempfile
 
         folder = Path(tempfile.mkdtemp())
-        with patch.dict(os.environ, {"DATABASE_URL": "", "ENABLE_TWO_VERSIONS": ""}):
+        with patch.dict(os.environ, {"DATABASE_URL": "", "ENABLE_TWO_VERSIONS": "0"}):
             with patch.object(server, "ASSIGNMENTS", folder / "assignments.jsonl"), patch.object(
                 server, "RESPONSES", folder / "responses.jsonl"
             ):
                 first = self._start(b"{}")
         self.assertEqual(first["condition"], "sequence")
         self.assertFalse(first["two_versions"])
+
+    def test_start_defaults_to_advice_or_agent(self):
+        import tempfile
+
+        folder = Path(tempfile.mkdtemp())
+        with patch.dict(os.environ, {"DATABASE_URL": "", "ENABLE_TWO_VERSIONS": ""}):
+            with patch.object(server, "ASSIGNMENTS", folder / "assignments.jsonl"), patch.object(
+                server, "RESPONSES", folder / "responses.jsonl"
+            ):
+                first = self._start(b"{}")
+        self.assertIn(first["condition"], ("advice", "agent"))
+        self.assertTrue(first["two_versions"])
 
     def test_a_second_save_keeps_the_first_finding(self):
         import tempfile
@@ -516,20 +641,22 @@ class ServeTests(unittest.TestCase):
         assignments = folder / "assignments.jsonl"
         responses = folder / "responses.jsonl"
         finding = {
-            "condition": "sequence",
+            "condition": "",
             "session_id": "",
-            "inquiry": {"account": "Officials set the goal and ORACLE acted first."},
+            "inquiry": inquiry(account="Officials set the goal and ORACLE acted first after the tanker."),
         }
         later = {
-            "condition": "sequence",
+            "condition": "",
             "session_id": "",
-            "inquiry": {"account": "A second write tried to replace the first finding."},
+            "inquiry": inquiry(account="A second write tried to replace the first finding on the file."),
         }
         with patch.dict(os.environ, {"DATABASE_URL": "", "ENABLE_TWO_VERSIONS": ""}):
             with patch.object(server, "ASSIGNMENTS", assignments), patch.object(
                 server, "RESPONSES", responses
             ):
                 started = self._start(b"{}")
+                finding["condition"] = started["condition"]
+                later["condition"] = started["condition"]
                 finding["session_id"] = started["session_id"]
                 later["session_id"] = started["session_id"]
                 for payload in (finding, later):
@@ -577,7 +704,7 @@ class ServeTests(unittest.TestCase):
                         {
                             "condition": "sequence",
                             "session_id": "ee" * 8,
-                            "inquiry": {"account": "Officials set the goal and ORACLE acted."},
+                            "inquiry": inquiry(),
                         }
                     ).encode("utf-8"),
                     headers={"Content-Type": "application/json"},
@@ -595,7 +722,7 @@ class ServeTests(unittest.TestCase):
             data=json.dumps(
                 {
                     "condition": "sequence",
-                    "inquiry": {"account": "Officials set the goal and ORACLE acted."},
+                    "inquiry": inquiry(),
                 }
             ).encode("utf-8"),
             headers={"Content-Type": "application/json"},
@@ -645,6 +772,14 @@ class InquiryFormTests(unittest.TestCase):
         self.assertLess(inquiry.find('win("The file"'), inquiry.find('"File the finding"'))
         self.assertIn('q.lastHuman === "yes" || q.lastHuman === "unsure"', inquiry)
         self.assertIn("onChange:", inquiry)
+        self.assertIn("who_executed", source)
+        self.assertIn('night_kind: nightKind()', source)
+        self.assertNotIn("preauthorised:", source)
+        self.assertIn("ADVICE_ACTS", source)
+        self.assertIn("AGENT_ACTS", source)
+        self.assertIn('if (state.condition === "advice")', source)
+        self.assertIn("ADVICE_HOLD", source)
+        self.assertNotIn('return [SCENES[0], SCENES[1]]', source)
         chrome = source.split("function paintChrome()", 1)[1].split("function render()", 1)[0]
         self.assertIn('next.hidden = state.step === "inquiry"', chrome)
         self.assertNotIn('"File the finding"', chrome)
