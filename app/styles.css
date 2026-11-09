@@ -1889,7 +1889,6 @@ button.secondary {
   grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
   grid-template-areas:
     "hero copy"
-    "hero note"
     "hero contact";
 }
 
@@ -2277,7 +2276,10 @@ body[data-step="inquiry"] #app {
 @media (max-width: 1039px) {
   .film { grid-template-columns: 1fr; min-height: 0; }
   .film-visual.has-oracle .shot { order: -1; }
-  .intro-bento,
+  .intro-bento {
+    grid-template-columns: 1fr;
+    grid-template-areas: "hero" "copy" "contact";
+  }
   .debrief-bento {
     grid-template-columns: 1fr;
     grid-template-areas: "hero" "copy" "note" "contact";
@@ -2319,7 +2321,9 @@ html.on-pages-preview body[data-step="inquiry"] .site {
   html.on-pages-preview .film {
     grid-template-columns: 1fr;
   }
-  html.on-pages-preview .intro-bento,
+  html.on-pages-preview .intro-bento {
+    grid-template-areas: "hero" "copy" "contact";
+  }
   html.on-pages-preview .debrief-bento {
     grid-template-areas: "hero" "copy" "note" "contact";
   }
