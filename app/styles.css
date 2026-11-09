@@ -2329,6 +2329,11 @@ html.on-pages-preview body[data-step="inquiry"] .site {
 
 .page-foot {
   flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.65rem 1.1rem;
   margin: 0;
   padding: 0.7rem 1.5rem 1rem;
   color: var(--muted);
@@ -2339,8 +2344,27 @@ html.on-pages-preview body[data-step="inquiry"] .site {
 
 .page-foot a { color: #ba0c2f; }
 
+.page-foot .admin-link {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+}
+
+.page-foot .admin-link:hover,
+.page-foot .admin-link:focus-visible {
+  color: var(--ink);
+  text-decoration: underline;
+}
+
+body[data-step="night"] .page-foot .contact,
+body[data-step="inquiry"] .page-foot .contact { display: none; }
+
 body[data-step="night"] .page-foot,
-body[data-step="inquiry"] .page-foot { display: none; }
+body[data-step="inquiry"] .page-foot {
+  padding: 0.35rem 1.5rem 0.55rem;
+}
 
 .follow {
   margin: 0.55rem 0 0 1.35rem;
