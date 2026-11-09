@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>INTL 6010 · Study tools</title>
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Merriweather+Sans:wght@400;500&family=Merriweather:wght@400;700&family=Oswald:wght@300;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="register">
+  <div class="computer-only class-gate">
+    <img class="uga-logo" src="/uga-logo.png" alt="University of Georgia" width="1024" height="158">
+    <p class="brand">INTL 6010</p>
+    <h1>Sorry, for aesthetic reasons, this page was not created for phones!</h1>
+  </div>
+  <div class="before register-desk">
+    <section class="welcome register-sheet">
+      <img class="uga-logo" src="/uga-logo.png" alt="University of Georgia" width="1024" height="158">
+      <h1 class="question">Study tools</h1>
+      <form id="gate" class="register-gate">
+        <label for="key">Passphrase</label>
+        <input id="key" name="key" type="password" autocomplete="current-password">
+        <button class="primary" type="submit">Open the tools</button>
+      </form>
+      <p id="message" class="error" hidden></p>
+      <div id="out"></div>
+    </section>
+  </div>
+  <script type="module" src="/tools.js"></script>
+</body>
+</html>

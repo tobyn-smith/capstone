@@ -9,7 +9,7 @@
       "generator": "secret"
     },
     "ENABLE_TWO_VERSIONS": {
-      "description": "Two-arm assignment is the default (advice vs agent). Set to 0/false/off only to write legacy sequence sits. Do not turn it off on the class host.",
+      "description": "Leftover. Assignment is always advice vs agent. This var cannot turn two-arm assignment off, including 0/false/off or unset.",
       "required": false
     }
   },

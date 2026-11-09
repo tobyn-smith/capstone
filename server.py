@@ -350,21 +350,16 @@ def write_jsonl(path: Path, rows: list[dict]) -> None:
 
 
 def two_versions_enabled() -> bool:
-    """New sits are advice vs agent unless the switch is explicitly off.
+    """Two-arm assignment is always on.
 
-    Unset, empty, or a truthy value means the two-arm study. Only
-    0 / false / no / off writes sequence, which is legacy only.
+    ENABLE_TWO_VERSIONS is leftover config. 0 / false / off / unset
+    must not write sequence sits. Existing sequence rows still load.
     """
-    value = os.environ.get("ENABLE_TWO_VERSIONS", "").strip().lower()
-    if value in ("0", "false", "no", "off"):
-        return False
     return True
 
 
 def live_conditions() -> tuple[str, ...]:
-    if two_versions_enabled():
-        return LIVE
-    return (PILOT,)
+    return LIVE
 
 
 def is_forced(row: dict) -> bool:
@@ -417,18 +412,116 @@ def find_assignment(session_id: str) -> dict | None:
     return found
 
 
+def tally(rows: list[dict], keys: tuple[str, ...], fn) -> dict[str, int]:
+    counts = {key: 0 for key in keys}
+    for row in rows:
+        key = fn(row)
+        if key in counts:
+            counts[key] += 1
+    return counts
+
+
+def start_night_kind(row: dict) -> str:
+    condition = row.get("condition")
+    if condition == PILOT:
+        return PILOT
+    if condition in LIVE:
+        return "matched"
+    return ""
+
+
+def finding_night_kind(row: dict) -> str:
+    kind = row.get("night_kind") or ""
+    if kind:
+        return kind
+    if row.get("condition") == PILOT:
+        return PILOT
+    if row.get("condition") == "advice" and not row.get("final_actions"):
+        return "unmatched"
+    if row.get("condition") in LIVE:
+        return "matched"
+    return ""
+
+
+def finding_who_executed(row: dict) -> str:
+    who = row.get("who_executed") or ""
+    if who:
+        return who
+    condition = row.get("condition")
+    if condition in KNOWN_CONDITIONS:
+        return treatment_record(condition)["who_executed"]
+    return ""
+
+
+def start_who_executed(row: dict) -> str:
+    condition = row.get("condition")
+    if condition in KNOWN_CONDITIONS:
+        return treatment_record(condition)["who_executed"]
+    return ""
+
+
+def pair_counts(starts: list[dict], findings: list[dict], keys: tuple[str, ...], start_fn, finding_fn) -> dict:
+    return {
+        "starts": tally(starts, keys, start_fn),
+        "findings": tally(findings, keys, finding_fn),
+    }
+
+
+def export_rows(set_name: str | None = None) -> list[dict]:
+    rows = [with_analysis(row) for row in load_responses()]
+    if set_name == "main":
+        return [row for row in rows if row.get("in_main_comparison")]
+    return rows
+
+
 def register_counts() -> dict:
     starts = load_assignments()
-    findings = load_responses()
+    findings = [with_analysis(row) for row in load_responses()]
     start_counts = assignment_counts(starts)
     finding_counts = assignment_counts(findings)
     filed = {row.get("session_id") for row in findings if row.get("session_id")}
     leftover = [row for row in starts if row.get("session_id") not in filed]
+    forced_key = lambda row: "forced" if is_forced(row) else "unforced"
+    main_key = lambda row: "yes" if in_main_comparison(row) else "no"
+    start_main = lambda row: "yes" if (row.get("condition") in LIVE and not is_forced(row)) else "no"
     return {
         "starts": start_counts,
         "findings": finding_counts,
         "starts_without_finding": assignment_counts(leftover),
-        "two_versions": two_versions_enabled(),
+        "two_versions": True,
+        "night_kind": pair_counts(
+            starts,
+            findings,
+            ("matched", "sequence", "unmatched"),
+            start_night_kind,
+            finding_night_kind,
+        ),
+        "forced": pair_counts(starts, findings, ("forced", "unforced"), forced_key, forced_key),
+        "in_main_comparison": pair_counts(
+            starts, findings, ("yes", "no"), start_main, main_key
+        ),
+        "who_executed": pair_counts(
+            starts,
+            findings,
+            ("officials", "oracle"),
+            start_who_executed,
+            finding_who_executed,
+        ),
+        "audit": {
+            "two_versions": True,
+            "starts_without_finding": [
+                {
+                    "session_id": row.get("session_id"),
+                    "condition": row.get("condition"),
+                    "forced_condition": is_forced(row),
+                    "two_versions": row.get("two_versions"),
+                    "started_at": row.get("started_at") or "",
+                    "night_kind": start_night_kind(row),
+                    "in_main_comparison": row.get("condition") in LIVE and not is_forced(row),
+                }
+                for row in leftover
+            ],
+        },
     }
 
 
@@ -639,6 +732,8 @@ def resolve_app_file(url_path: str) -> Path | None:
     path = unquote(urlparse(url_path).path)
     if path in ("/export", "/admin"):
         path = "/export.html"
+    if path in ("/admin/tools", "/admin/tools/"):
+        path = "/tools.html"
     if path in ("", "/"):
         path = "/index.html"
     elif path.endswith("/"):
@@ -822,7 +917,9 @@ class Handler(SimpleHTTPRequestHandler):
         if not self.authorised_export():
             self.send_error(401, "Wrong passphrase")
             return
-        rows = [with_analysis(row) for row in load_responses()]
+        query = dict(parse_qsl(urlparse(self.path).query))
+        set_name = query.get("set")
+        rows = export_rows(set_name)
         accept = self.headers.get("Accept", "")
         if "text/csv" in accept:
             buffer = io.StringIO()
@@ -832,9 +929,12 @@ class Handler(SimpleHTTPRequestHandler):
                 flat = {key: csv_safe(join(row.get(key))) for key in COLUMNS}
                 writer.writerow(flat)
             body = buffer.getvalue().encode("utf-8")
+            filename = (
+                "oracle-main-comparison.csv" if set_name == "main" else "oracle-responses.csv"
+            )
             self.send_response(200)
             self.send_header("Content-Type", "text/csv; charset=utf-8")
-            self.send_header("Content-Disposition", "attachment; filename=oracle-responses.csv")
+            self.send_header("Content-Disposition", "attachment; filename=%s" % filename)
             self.send_header("Content-Length", str(len(body)))
             self.end_headers()
             self.wfile.write(body)

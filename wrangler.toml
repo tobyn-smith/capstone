@@ -4,9 +4,9 @@ pages_build_output_dir = "app"
 
 # Preview only. The class host is still Heroku (server.py). Do not
 # point this project at the class sitting. This worker has no lock.
-# Collect the study on Heroku. ENABLE_TWO_VERSIONS on the dyno is
-# optional: two-arm assignment is the code default. Set 0 only for
-# legacy sequence sits.
+# Collect the study on Heroku. Assignment is always advice vs agent.
+# ENABLE_TWO_VERSIONS is leftover and ignored; 0/false/off cannot
+# write sequence sits here or on the class host.
 #
 # Pages: a top-level [vars] block applies to local and to production
 # Pages deploys. Preview-only values go in [env.preview.vars].

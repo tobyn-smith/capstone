@@ -10,7 +10,7 @@ PR numbers in this file are **`tobyn-smith/capstone`** unless a row says otherwi
 
 | Version | What the player sees | When it is assigned |
 | --- | --- | --- |
-| Single-night (`sequence`) | One night: advice, then the upgrade, then ORACLE acts. The earlier class sitting. | `ENABLE_TWO_VERSIONS` explicitly off (`0` / `false` / `no` / `off`). |
+| Single-night (`sequence`) | One night: advice, then the upgrade, then ORACLE acts. The earlier class sitting. | Legacy only. New sits do not write it. |
 | Two-version · `advice` | Matched night: officials approve ORACLE’s recommendations and issue the four measures. | Default; least-count vs `agent`, coin on a tie. |
 | Two-version · `agent` | Matched night: ORACLE issues the same four measures under delegated authority. | Default; least-count vs `advice`, coin on a tie. |
 | Style pass | Same words and logic as the sitting it sits on. Editorial / museum look. | Visual only. Not a stored condition. |
