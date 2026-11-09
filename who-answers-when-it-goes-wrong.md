@@ -6,6 +6,8 @@ Supervisor: Dr Ryan Powers
 
 Working note. This is where the capstone has got to, not a finished chapter.
 
+The Methods Research Design Final (November 2026) overrides the single-night plan below. The live file assigns `advice` or `agent`, with matched nights. Do not put this older “everyone watches the same night” design back on the class host.
+
 ## The question I actually want to ask
 
 Who is actually in control, and who answers when it goes wrong?

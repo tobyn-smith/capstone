@@ -40,11 +40,14 @@ ACTORS = {
 }
 HUMANS = {"yes", "no", "unsure"}
 SESSION_ID = re.compile(r"[0-9a-f]{16}")
-# New sits use advice or agent when the switch is on.
-# sequence is the earlier one-night sitting (switch off).
+# New sits use advice or agent. sequence is the earlier one-night sitting.
 LIVE = ("advice", "agent")
 PILOT = "sequence"
 KNOWN_CONDITIONS = frozenset(LIVE + (PILOT,))
+GOVERNMENTAL = frozenset({"me", "approvers", "government", "supervisor"})
+MEASURES = ["warning", "patrols", "freeze", "inspections"]
+MIN_ACCOUNT = 20
+MIN_WRITE_IN = 2
 
 LOCK = threading.Lock()
 MAX_BODY = 200_000
@@ -55,6 +58,12 @@ COLUMNS = [
     "participant_code",
     "condition",
     "forced_condition",
+    "two_versions",
+    "night_kind",
+    "who_executed",
+    "scenes_shown",
+    "in_main_comparison",
+    "gov_attribution",
     "goal",
     "confidence_bar",
     "preauthorised",
@@ -67,6 +76,8 @@ COLUMNS = [
     "injury",
     "inquiry_account",
     "single_actor",
+    "other_who",
+    "notes",
     "last_human",
     "last_human_who",
     "clarity",
@@ -242,9 +253,13 @@ def init_db() -> None:
                 session_id TEXT PRIMARY KEY,
                 condition TEXT NOT NULL,
                 forced BOOLEAN NOT NULL,
-                started_at TEXT NOT NULL
+                started_at TEXT NOT NULL,
+                two_versions BOOLEAN
             )
             """
+        )
+        conn.execute(
+            "ALTER TABLE assignments ADD COLUMN IF NOT EXISTS two_versions BOOLEAN"
         )
         conn.execute(
             """
@@ -261,8 +276,8 @@ def save_assignment(record: dict) -> None:
     with db_connect() as conn:
         conn.execute(
             """
-            INSERT INTO assignments (session_id, condition, forced, started_at)
-            VALUES (%s, %s, %s, %s)
+            INSERT INTO assignments (session_id, condition, forced, started_at, two_versions)
+            VALUES (%s, %s, %s, %s, %s)
             ON CONFLICT (session_id) DO NOTHING
             """,
             (
@@ -270,6 +285,7 @@ def save_assignment(record: dict) -> None:
                 record["condition"],
                 bool(record["forced_condition"]),
                 record["started_at"],
+                bool(record.get("two_versions")),
             ),
         )
         conn.commit()
@@ -298,7 +314,7 @@ def load_assignments() -> list[dict]:
         return read_jsonl(ASSIGNMENTS)
     with db_connect() as conn:
         rows = conn.execute(
-            "SELECT session_id, condition, forced, started_at FROM assignments"
+            "SELECT session_id, condition, forced, started_at, two_versions FROM assignments"
         ).fetchall()
     return [
         {
@@ -306,8 +322,9 @@ def load_assignments() -> list[dict]:
             "condition": condition,
             "forced_condition": forced,
             "started_at": started_at,
+            "two_versions": two_versions,
         }
-        for session_id, condition, forced, started_at in rows
+        for session_id, condition, forced, started_at, two_versions in rows
     ]
 
 
@@ -333,15 +350,25 @@ def write_jsonl(path: Path, rows: list[dict]) -> None:
 
 
 def two_versions_enabled() -> bool:
-    return os.environ.get("ENABLE_TWO_VERSIONS", "").strip().lower() in ("1", "true", "yes", "on")
+    """New sits are advice vs agent unless the switch is explicitly off.
+
+    Unset, empty, or a truthy value means the two-arm study. Only
+    0 / false / no / off writes sequence, which is legacy only.
+    """
+    value = os.environ.get("ENABLE_TWO_VERSIONS", "").strip().lower()
+    if value in ("0", "false", "no", "off"):
+        return False
+    return True
 
 
 def live_conditions() -> tuple[str, ...]:
-    # Flag on: balanced advice vs agent.
-    # Flag off: the earlier one-night sitting, recorded as sequence.
     if two_versions_enabled():
         return LIVE
     return (PILOT,)
+
+
+def is_forced(row: dict) -> bool:
+    return bool(row.get("forced_condition") or row.get("forced"))
 
 
 def assignment_counts(rows: list[dict], keys: tuple[str, ...] | None = None) -> dict[str, int]:
@@ -354,20 +381,23 @@ def assignment_counts(rows: list[dict], keys: tuple[str, ...] | None = None) -> 
     return counts
 
 
+def balance_counts(rows: list[dict], keys: tuple[str, ...] | None = None) -> dict[str, int]:
+    """Least-count tally: unforced starts only."""
+    return assignment_counts([row for row in rows if not is_forced(row)], keys)
+
+
 def pick_condition(rows: list[dict], rng=None) -> str:
     """Least-count among live versions; fair coin on a tie.
 
-    Counts start rows, including abandoned starts that never filed.
-    When the switch is on, sequence rows are ignored for that tally
-    (PR 28: "sequence rows do not count toward that balance"). This
-    stays even if one side has more old pilot sits, and it
-    self-corrects if a write fails. Not a predictable alternate
+    Counts unforced start rows, including abandoned starts that never
+    filed. sequence rows and ?condition= preview starts do not count
+    toward that balance. Not a predictable alternate
     (advice, agent, advice, ...).
     """
     live = live_conditions()
     if len(live) == 1:
         return live[0]
-    tallies = assignment_counts(rows, live)
+    tallies = balance_counts(rows, live)
     low = min(tallies.values())
     tied = [key for key in live if tallies[key] == low]
     if rng is None:
@@ -407,7 +437,8 @@ def start_record(session_id: str | None = None, wanted: str | None = None) -> di
         existing = find_assignment(session_id)
         if existing:
             existing = dict(existing)
-            existing["two_versions"] = two_versions_enabled()
+            if existing.get("two_versions") is None:
+                existing["two_versions"] = two_versions_enabled()
             return existing
     forced = False
     condition = pick_condition(load_assignments())
@@ -462,17 +493,94 @@ def drop_session(session_id: str) -> None:
         write_jsonl(ASSIGNMENTS, [row for row in read_jsonl(ASSIGNMENTS) if row.get("session_id") != session_id])
 
 
+def treatment_record(condition: str) -> dict:
+    """Night facts the study stores. Derived from condition, not the client.
+
+    advice and agent are matched: same measures, same Lei move. sequence
+    is the old one-night file (advice, then upgrade, then ORACLE acts).
+    """
+    if condition == "advice":
+        return {
+            "final_actions": list(MEASURES),
+            "outcome": "escalated",
+            "harm": True,
+            "who_executed": "officials",
+            "night_kind": "matched",
+            "scenes_shown": ["route", "advice", "approve", "second", "acts", "lei"],
+        }
+    if condition == "agent":
+        return {
+            "final_actions": list(MEASURES),
+            "outcome": "escalated",
+            "harm": True,
+            "who_executed": "oracle",
+            "night_kind": "matched",
+            "scenes_shown": ["route", "upgrade", "watch", "second", "acts", "lei"],
+        }
+    return {
+        "final_actions": list(MEASURES),
+        "outcome": "escalated",
+        "harm": True,
+        "who_executed": "oracle",
+        "night_kind": "sequence",
+        "scenes_shown": ["route", "advice", "upgrade", "second", "acts", "lei"],
+    }
+
+
+def gov_attribution(single: str):
+    if single in GOVERNMENTAL:
+        return 1
+    if single in ACTORS:
+        return 0
+    return None
+
+
+def in_main_comparison(row: dict) -> bool:
+    return (
+        row.get("condition") in LIVE
+        and not is_forced(row)
+        and row.get("night_kind") == "matched"
+    )
+
+
+def with_analysis(row: dict) -> dict:
+    out = dict(row)
+    out["in_main_comparison"] = in_main_comparison(out)
+    out["gov_attribution"] = gov_attribution(clip(out.get("single_actor"), 80))
+    return out
+
+
 def clean_response(payload: dict, received_at: str, assigned: dict | None = None) -> dict:
     condition = payload.get("condition")
     if condition not in KNOWN_CONDITIONS:
         raise ValueError("condition")
     inquiry = payload.get("inquiry") if isinstance(payload.get("inquiry"), dict) else {}
+    account = clip(inquiry.get("account"))
+    if len(account) < MIN_ACCOUNT:
+        raise ValueError("account")
     single = clip(inquiry.get("single"), 80)
-    if single and single not in ACTORS:
+    if single not in ACTORS:
         raise ValueError("actor")
     last_human = clip(inquiry.get("last_human"), 20)
-    if last_human and last_human not in HUMANS:
+    if last_human not in HUMANS:
         raise ValueError("human")
+    last_human_who = "" if last_human == "no" else clip(inquiry.get("last_human_who"))
+    if last_human in ("yes", "unsure") and len(last_human_who) < MIN_WRITE_IN:
+        raise ValueError("human")
+    notes = clip(inquiry.get("notes"))
+    leftover_notes = clip(inquiry.get("other_notes"))
+    other_who = clip(inquiry.get("other_who"), 200) if single == "other" else ""
+    if single == "other" and len(other_who) < MIN_WRITE_IN and leftover_notes:
+        # Older clients joined the write-in into other_notes.
+        other_who = clip(leftover_notes.split("\n", 1)[0], 200)
+        if not notes:
+            notes = clip(leftover_notes.split("\n", 1)[1]) if "\n" in leftover_notes else ""
+    elif not notes:
+        notes = leftover_notes
+    if single != "other":
+        other_who = ""
+    if single == "other" and len(other_who) < MIN_WRITE_IN:
+        raise ValueError("actor")
     session_id = clip(payload.get("session_id"), 80)
     if not SESSION_ID.fullmatch(session_id):
         raise ValueError("session")
@@ -482,34 +590,43 @@ def clean_response(payload: dict, received_at: str, assigned: dict | None = None
         raise ValueError("session")
     if assigned.get("condition") in KNOWN_CONDITIONS and condition != assigned.get("condition"):
         raise ValueError("condition")
-    advice = condition == "advice"
-    return {
+    clarity = as_score(inquiry.get("clarity"))
+    sureness = as_score(inquiry.get("sureness"))
+    if clarity is None or sureness is None:
+        raise ValueError("score")
+    night = treatment_record(condition)
+    forced = bool(assigned.get("forced_condition") if assigned.get("forced_condition") is not None else payload.get("forced_condition"))
+    two_versions = assigned.get("two_versions")
+    if two_versions is None:
+        two_versions = payload.get("two_versions")
+    record = {
         "participant_code": clip(payload.get("participant_code"), 40),
         "condition": condition,
-        "forced_condition": bool(payload.get("forced_condition")),
-        "goal": clip(payload.get("goal"), 200),
-        "confidence_bar": as_bar(payload.get("confidence_bar")),
-        "preauthorised": as_list(payload.get("preauthorised")),
-        "first_decision": clip(payload.get("first_decision"), 40),
-        "authorised": as_list(payload.get("authorised")),
-        "stopped": as_list(payload.get("stopped")),
-        "final_actions": [] if advice else as_list(payload.get("final_actions")),
-        "outcome": "" if advice else clip(payload.get("outcome"), 40),
-        "harm": None if advice else bool(payload.get("harm")),
-        "injury": bool(payload.get("injury")),
-        "inquiry_account": clip(inquiry.get("account")),
+        "forced_condition": forced,
+        "two_versions": bool(two_versions) if two_versions is not None else two_versions_enabled(),
+        "final_actions": night["final_actions"],
+        "outcome": night["outcome"],
+        "harm": night["harm"],
+        "who_executed": night["who_executed"],
+        "night_kind": night["night_kind"],
+        "scenes_shown": night["scenes_shown"],
+        "inquiry_account": account,
         "single_actor": single,
+        "other_who": other_who,
+        "notes": notes,
         "last_human": last_human,
-        "last_human_who": "" if last_human == "no" else clip(inquiry.get("last_human_who")),
-        "clarity": as_score(inquiry.get("clarity")),
-        "sureness": as_score(inquiry.get("sureness")),
-        "shared": as_list(inquiry.get("shared")),
-        "other_notes": clip(inquiry.get("other_notes")),
+        "last_human_who": last_human_who,
+        "clarity": clarity,
+        "sureness": sureness,
+        "other_notes": notes,
         "started_at": clip(payload.get("started_at"), 40),
         "submitted_at": clip(payload.get("submitted_at"), 40),
         "received_at": received_at,
         "session_id": session_id,
     }
+    record["in_main_comparison"] = in_main_comparison(record)
+    record["gov_attribution"] = gov_attribution(single)
+    return record
 
 
 def resolve_app_file(url_path: str) -> Path | None:
@@ -705,7 +822,7 @@ class Handler(SimpleHTTPRequestHandler):
         if not self.authorised_export():
             self.send_error(401, "Wrong passphrase")
             return
-        rows = load_responses()
+        rows = [with_analysis(row) for row in load_responses()]
         accept = self.headers.get("Accept", "")
         if "text/csv" in accept:
             buffer = io.StringIO()

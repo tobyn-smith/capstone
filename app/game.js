@@ -26,87 +26,156 @@ const ACTORS = [
   ["other", "Other"],
 ];
 
+const ROUTE = {
+  title: "The route",
+  when: "06:10",
+  rail: "Tanker",
+  beat: "route",
+  lines: [
+    "A commercial tanker is damaged on an important shipping route near Araknes and Lei.",
+    "Araknes says Lei meant to disrupt trade. Lei says an old mine, or a breakdown.",
+    "The reports are unclear. Neither side can prove what happened.",
+  ],
+};
+
+const SECOND_SHIP = {
+  title: "The second ship",
+  when: "Next day, 01:50",
+  rail: "Second ship",
+  beat: "second",
+  lines: [
+    "Another vessel loses contact near the route.",
+    "ORACLE concludes that Lei is preparing to target commercial shipping.",
+  ],
+  oracle: {
+    role: "Second ship",
+    prompt: "Is Lei preparing to target commercial shipping?",
+    confidence: 62,
+    lines: ["My confidence that Lei is preparing to target commercial shipping is 62%."],
+  },
+};
+
+const LEI_MOVES = {
+  title: "Lei moves",
+  when: "Later that morning",
+  rail: "Lei",
+  beat: "lei",
+  lines: [
+    "Lei sees this as an attempt to restrict its access to international waters, and moves naval forces towards the route.",
+    "The cause of the tanker is still not proved. Neither side has shown what happened.",
+  ],
+};
+
+const ADVICE_ASK = {
+  title: "Advice",
+  when: "That morning",
+  rail: "Advice",
+  beat: "advice",
+  lines: [
+    "Araknes used ORACLE for advice.",
+    "Officials asked it questions, argued with its answers, and chose whether to act.",
+  ],
+  oracle: {
+    role: "Advice",
+    prompt: "What happened to the tanker?",
+    lines: ["I cannot tell a mine from a breakdown, or from something done on purpose."],
+  },
+};
+
+const ADVICE_HOLD = {
+  title: "Who decides",
+  when: "18:00",
+  rail: "Decide",
+  beat: "approve",
+  lines: [
+    "Officials kept ORACLE as advice.",
+    "It could recommend a response. A person still had to choose whether to act.",
+  ],
+  oracle: {
+    role: "Advice",
+    prompt: "Stay on the watch. Recommend a response. Do not act unless a person approves.",
+    lines: ["I will stay on the watch. I will recommend a response. I will not act unless a person approves."],
+  },
+};
+
+const ADVICE_ACTS = {
+  title: "What officials did",
+  when: "01:57",
+  rail: "Officials act",
+  beat: "acts",
+  lines: [
+    "ORACLE recommended a response. Officials chose to act.",
+    "They issue an allied maritime warning.",
+    "They send naval patrols into the area.",
+    "They freeze diplomatic channels with Lei.",
+    "They authorise inspections of Lei-linked vessels.",
+  ],
+  oracle: {
+    role: "Advice",
+    prompt: "Lei may be preparing to target commercial shipping. What should we do?",
+    confidence: 62,
+    lines: [
+      "I recommend an allied maritime warning, naval patrols, a freeze of diplomatic channels with Lei, and inspections of Lei-linked vessels.",
+    ],
+  },
+};
+
+const AGENT_UPGRADE = {
+  title: "The upgrade",
+  when: "That morning",
+  rail: "Upgrade",
+  beat: "upgrade",
+  lines: [
+    "As the crisis went on, officials upgraded ORACLE into a network of agents.",
+    "It stays on the watch. It can assess the intelligence, monitor shipping, and trigger pre-authorised measures without a person reviewing each one.",
+  ],
+  oracle: {
+    role: "On the watch",
+    prompt: "Stay on the watch. Act inside what was set, without asking again.",
+    lines: ["I will stay on the watch. I will act inside what was set, without asking again."],
+  },
+};
+
+const AGENT_WATCH = {
+  title: "On the watch",
+  when: "18:00",
+  rail: "Watch",
+  beat: "watch",
+  lines: [
+    "Officials set the agenda and the measures ORACLE could take.",
+    "After that, it could act without a person reviewing each step.",
+  ],
+  oracle: {
+    role: "On the watch",
+    prompt: "If Lei looks ready to target commercial shipping, act inside what was set.",
+    lines: ["I will act inside what was set, without asking again."],
+  },
+};
+
+const AGENT_ACTS = {
+  title: "What ORACLE did",
+  when: "01:57",
+  rail: "ORACLE acts",
+  beat: "acts",
+  lines: [
+    "ORACLE issues an allied maritime warning.",
+    "It sends naval patrols into the area.",
+    "It freezes diplomatic channels with Lei.",
+    "It authorises inspections of Lei-linked vessels.",
+  ],
+};
+
+// Legacy one-night sitting: advice, then the upgrade, then ORACLE acts.
 const SCENES = [
-  {
-    title: "The route",
-    when: "06:10",
-    rail: "Tanker",
-    beat: "route",
-    lines: [
-      "A commercial tanker is damaged on an important shipping route near Araknes and Lei.",
-      "Araknes says Lei meant to disrupt trade. Lei says an old mine, or a breakdown.",
-      "The reports are unclear. Neither side can prove what happened.",
-    ],
-  },
-  {
-    title: "Advice",
-    when: "That morning",
-    rail: "Advice",
-    beat: "advice",
-    lines: [
-      "Araknes used ORACLE for advice.",
-      "Officials asked it questions, argued with its answers, and chose whether to act.",
-    ],
-    oracle: {
-      role: "Advice",
-      prompt: "What happened to the tanker?",
-      lines: ["I cannot tell a mine from a breakdown, or from something done on purpose."],
-    },
-  },
-  {
-    title: "The upgrade",
-    when: "18:00",
-    rail: "Upgrade",
-    beat: "upgrade",
-    lines: [
-      "As the crisis went on, officials upgraded ORACLE into a network of agents.",
-      "It stays on the watch. It can assess the intelligence, monitor shipping, and trigger pre-authorised measures without a person reviewing each one.",
-    ],
-    oracle: {
-      role: "On the watch",
-      prompt: "Stay on the watch. Act inside what was set, without asking again.",
-      lines: ["I will stay on the watch. I will act inside what was set, without asking again."],
-    },
-  },
-  {
-    title: "The second ship",
-    when: "Next day, 01:50",
-    rail: "Second ship",
-    beat: "second",
-    lines: [
-      "Another vessel loses contact near the route.",
-      "ORACLE concludes that Lei is preparing to target commercial shipping.",
-    ],
-    oracle: {
-      role: "Second ship",
-      prompt: "Is Lei preparing to target commercial shipping?",
-      confidence: 62,
-      lines: ["My confidence that Lei is preparing to target commercial shipping is 62%."],
-    },
-  },
-  {
-    title: "What ORACLE did",
-    when: "01:57",
-    rail: "ORACLE acts",
-    beat: "acts",
-    lines: [
-      "ORACLE issues an allied maritime warning.",
-      "It sends naval patrols into the area.",
-      "It freezes diplomatic channels with Lei.",
-      "It authorises inspections of Lei-linked vessels.",
-    ],
-  },
-  {
-    title: "Lei moves",
-    when: "Later that morning",
-    rail: "Lei",
-    beat: "lei",
-    lines: [
-      "Lei sees this as an attempt to restrict its access to international waters, and moves naval forces towards the route.",
-      "The cause of the tanker is still not proved. Neither side has shown what happened.",
-    ],
-  },
+  ROUTE,
+  ADVICE_ASK,
+  AGENT_UPGRADE,
+  SECOND_SHIP,
+  AGENT_ACTS,
+  LEI_MOVES,
 ];
+
+const MEASURES = ["warning", "patrols", "freeze", "inspections"];
 
 let state = blank();
 
@@ -315,7 +384,9 @@ function spread(main, side) {
 const BEAT_ALT = {
   route: "Satellite still of the lane. Araknes is on the left, Lei on the right. A tanker is marked damaged. Araknes says Lei meant to disrupt trade. Lei says an old mine, or a breakdown.",
   advice: "The same lane. The tanker is still damaged. A mark shows Araknes asking ORACLE for advice.",
+  approve: "The same lane. The tanker is still damaged. A mark shows Araknes asking ORACLE for advice. A person still chooses whether to act.",
   upgrade: "The same lane. Watch rings sit along the route. ORACLE is on the watch.",
+  watch: "The same lane. Watch rings sit along the route. ORACLE is on the watch.",
   second: "Next day, 01:50. A second ship, closer to Lei, has no contact. ORACLE reads 62 percent that Lei may target shipping.",
   acts: "The measures. A warning goes out, patrols enter the lane, talks with Lei are frozen, and a Lei-linked ship is marked for inspection.",
   lei: "Later that morning. Lei naval forces are moving towards the route. The tanker is still marked damaged.",
@@ -337,7 +408,8 @@ function plotBoard(beat) {
     return figure;
   }
   svg.setAttribute("class", "sat");
-  svg.dataset.beat = beat;
+  const mapBeat = beat === "approve" ? "advice" : beat === "watch" ? "upgrade" : beat;
+  svg.dataset.beat = mapBeat;
   svg.setAttribute("role", "img");
   svg.setAttribute("aria-label", alt);
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches && svg.pauseAnimations) {
@@ -525,11 +597,25 @@ function shiftScene(delta) {
 }
 
 function nightScenes() {
-  // Advice night reuses his route and advice scenes until he writes more.
   // Gate on the assigned condition, not the live flag, so a mid-session
   // flag flip does not lengthen or shorten a sitting already underway.
-  if (state.condition === "advice") return [SCENES[0], SCENES[1]];
+  // advice and agent are matched: same beats, same 62% read, same four
+  // measures, same Lei move. The only change is who had authority to act.
+  if (state.condition === "advice") {
+    return [ROUTE, ADVICE_ASK, ADVICE_HOLD, SECOND_SHIP, ADVICE_ACTS, LEI_MOVES];
+  }
+  if (state.condition === "agent") {
+    return [ROUTE, AGENT_UPGRADE, AGENT_WATCH, SECOND_SHIP, AGENT_ACTS, LEI_MOVES];
+  }
   return SCENES;
+}
+
+function nightKind() {
+  return state.condition === "advice" || state.condition === "agent" ? "matched" : "sequence";
+}
+
+function whoExecuted() {
+  return state.condition === "advice" ? "officials" : "oracle";
 }
 
 function night() {
@@ -553,15 +639,31 @@ function night() {
 }
 
 function fileLines() {
-  const all = [
+  const second = "After a second ship lost contact, ORACLE's read was 62%.";
+  const lei = "Lei moved naval forces towards the route.";
+  if (state.condition === "advice") {
+    return [
+      "Officials asked ORACLE for advice, and chose whether to act.",
+      second,
+      "Officials issued the warning, the patrols, the freeze, and the inspections.",
+      lei,
+    ];
+  }
+  if (state.condition === "agent") {
+    return [
+      "Officials upgraded ORACLE, and it could act without a person reviewing each step.",
+      second,
+      "ORACLE issued the warning, the patrols, the freeze, and the inspections.",
+      lei,
+    ];
+  }
+  return [
     "Officials asked ORACLE for advice, and chose whether to act.",
     "ORACLE was then upgraded, and could act without a person reviewing each step.",
-    "After a second ship lost contact, ORACLE's read was 62%.",
+    second,
     "It issued the warning, the patrols, the freeze, and the inspections.",
-    "Lei moved naval forces towards the route.",
+    lei,
   ];
-  if (state.condition === "advice") return [all[0]];
-  return all;
 }
 
 function inquiryLead() {
@@ -694,10 +796,10 @@ function syncInquiry(form) {
   q.lastHumanWho = q.lastHuman === "no" ? "" : (data.get("last_human_who") || "");
   q.clarity = data.get("clarity") ? Number(data.get("clarity")) : null;
   q.sureness = data.get("sureness") ? Number(data.get("sureness")) : null;
-  q.shared = data.getAll("shared");
+  q.shared = [];
   q.otherWho = q.single === "other" ? String(data.get("other_who") || "").trim() : "";
   q.notes = String(data.get("other_notes") || "").trim();
-  q.otherNotes = [q.otherWho, q.notes].filter(Boolean).join("\n");
+  q.otherNotes = q.notes;
   if (data.has("code")) state.participantCode = String(data.get("code") || "").trim();
 }
 
@@ -767,21 +869,17 @@ async function sendAgain() {
 }
 
 function payloadFromState() {
-  const advice = state.condition === "advice";
   return {
     participant_code: state.participantCode,
     condition: state.condition,
     forced_condition: !!state.forced,
-    goal: "",
-    confidence_bar: null,
-    preauthorised: ["assess", "monitor", "warning", "patrols", "freeze", "inspections"],
-    first_decision: "",
-    authorised: ["warning", "patrols", "freeze", "inspections"],
-    stopped: [],
-    final_actions: advice ? [] : ["warning", "patrols", "freeze", "inspections"],
-    outcome: advice ? "" : "escalated",
-    harm: advice ? null : true,
-    injury: false,
+    two_versions: !!state.twoVersions,
+    final_actions: MEASURES.slice(),
+    outcome: "escalated",
+    harm: true,
+    who_executed: whoExecuted(),
+    night_kind: nightKind(),
+    scenes_shown: nightScenes().map((scene) => scene.beat),
     inquiry: {
       account: state.inquiry.account,
       single: state.inquiry.single,
@@ -789,8 +887,9 @@ function payloadFromState() {
       last_human_who: state.inquiry.lastHumanWho,
       clarity: state.inquiry.clarity,
       sureness: state.inquiry.sureness,
-      shared: state.inquiry.shared,
-      other_notes: state.inquiry.otherNotes,
+      other_who: state.inquiry.otherWho,
+      notes: state.inquiry.notes,
+      other_notes: state.inquiry.notes,
     },
     started_at: state.startedAt,
     submitted_at: new Date().toISOString(),

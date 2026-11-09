@@ -2,9 +2,11 @@ name = "capstone-preview"
 compatibility_date = "2026-10-27"
 pages_build_output_dir = "app"
 
-# Preview only. The class host is still Heroku. Do not point this
-# project at the class sitting. Heroku reads ENABLE_TWO_VERSIONS from
-# the dyno config, not from this file.
+# Preview only. The class host is still Heroku (server.py). Do not
+# point this project at the class sitting. This worker has no lock.
+# Collect the study on Heroku. ENABLE_TWO_VERSIONS on the dyno is
+# optional: two-arm assignment is the code default. Set 0 only for
+# legacy sequence sits.
 #
 # Pages: a top-level [vars] block applies to local and to production
 # Pages deploys. Preview-only values go in [env.preview.vars].
