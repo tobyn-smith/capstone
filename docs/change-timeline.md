@@ -17,6 +17,8 @@ PR numbers in this file are **`tobyn-smith/capstone`** unless a row says otherwi
 
 `sequence` and `agent` use the same scenes. They are stored as different versions so the earlier sitting can be compared with the two-version sitting. That identity is intended.
 
+Current main (after PRs 36–37): new sits are always `advice` or `agent`. `ENABLE_TWO_VERSIONS` is leftover and cannot write `sequence`. The PR 31 notes below describe that branch at the time, including flag-off = `sequence`, which is not live behaviour now.
+
 ## Why flag-off and the `sequence` label differ from PR 28
 
 Quoted from **capstone PR 28** body (`c3b9e5c`, created 2026-10-26):
@@ -80,7 +82,7 @@ Presentations PR 5 (`tobyn-smith/presentations`, `ts/reading-discussion-weeks-93
 
 Not yet a separate merged PR. Recorded here because it is the sitting the screenshots show.
 
-- Switch: `ENABLE_TWO_VERSIONS` in `1` / `true` / `yes` / `on`. Off → new starts are `sequence`. On → `advice` or `agent` by least-count, coin on a tie. `sequence` rows do not count toward that balance (quoted from capstone PR 28). Abandoned starts still count toward that balance (same rule: it tallies start rows).
+- Switch on this PR: `ENABLE_TWO_VERSIONS` in `1` / `true` / `yes` / `on`. Off → new starts are `sequence`. On → `advice` or `agent` by least-count, coin on a tie. `sequence` rows do not count toward that balance (quoted from capstone PR 28). Abandoned starts still count toward that balance (same rule: it tallies start rows). **Superseded on main:** flag-off can no longer write `sequence`; assignment is always the two live arms.
 - Version is on every start and finding, in the export, and in `/admin` counts.
 - One sitting per browser is unchanged. A failed save keeps the same `session_id` so a retry does not draw a new version.
 - Advice night still uses only his first two scenes. No new participant sentences.

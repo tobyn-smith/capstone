@@ -128,9 +128,10 @@ async function handleStart(request, env) {
   if (asked && !SESSION_ID.test(asked)) {
     return new Response("Bad start", { status: 400 });
   }
+  const wanted = clip(payload.condition, 20);
   if (asked) {
     const existing = await findAssignment(env, asked);
-    if (existing) {
+    if (existing && !(LIVE.includes(wanted) && existing.condition !== wanted)) {
       if (existing.two_versions == null) existing.two_versions = twoVersionsEnabled(env);
       return json(existing);
     }
@@ -139,7 +140,6 @@ async function handleStart(request, env) {
   if (starts.length >= MAX_SESSIONS) {
     return new Response("The register is full", { status: 429 });
   }
-  const wanted = clip(payload.condition, 20);
   const forced = LIVE.includes(wanted);
   const record = {
     session_id: tokenHex(8),
@@ -410,6 +410,8 @@ function inMainComparison(row) {
 
 function withAnalysis(row) {
   const out = { ...row };
+  out.night_kind = findingNightKind(out);
+  out.who_executed = findingWhoExecuted(out);
   out.in_main_comparison = inMainComparison(out);
   out.gov_attribution = govAttribution(clip(out.single_actor, 80));
   return out;
@@ -474,7 +476,7 @@ function cleanResponse(payload, receivedAt, assigned) {
     clarity,
     sureness,
     other_notes: notes,
-    started_at: clip(payload.started_at, 40),
+    started_at: clip(assigned.started_at, 40) || clip(payload.started_at, 40),
     submitted_at: clip(payload.submitted_at, 40),
     received_at: receivedAt,
     session_id: sessionId,

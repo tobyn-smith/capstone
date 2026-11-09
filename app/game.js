@@ -468,19 +468,25 @@ function readConsentCode() {
   if (field) state.participantCode = field.value.trim();
 }
 
+function previewMismatches(saved) {
+  const wanted = wantedCondition();
+  return Boolean(wanted && saved && saved.condition && saved.condition !== wanted);
+}
+
 function begin() {
   readConsentCode();
   const typed = state.participantCode;
   const saved = loadSaved();
+  const previewOtherArm = previewMismatches(saved);
   const alreadySat = filedHere() || (state.submitted && state.savedOk) || (saved && saved.submitted && saved.savedOk);
-  if (alreadySat && !(saved && saved.step === "debrief" && saved.savedOk === false)) {
+  if (!previewOtherArm && alreadySat && !(saved && saved.step === "debrief" && saved.savedOk === false)) {
     state.step = "already";
     state.formError = "";
     render();
     window.scrollTo(0, 0);
     return;
   }
-  if (saved && saved.sessionId && saved.step === "debrief") {
+  if (!previewOtherArm && saved && saved.sessionId && saved.step === "debrief") {
     if (typed) saved.participantCode = typed;
     state = saved;
     save();
@@ -488,7 +494,7 @@ function begin() {
     window.scrollTo(0, 0);
     return;
   }
-  if (saved && saved.sessionId && (saved.step === "night" || saved.step === "inquiry")) {
+  if (!previewOtherArm && saved && saved.sessionId && (saved.step === "night" || saved.step === "inquiry")) {
     if (typed) saved.participantCode = typed;
     sessionStorage.setItem(STORAGE, JSON.stringify(saved));
     state = blank();
@@ -497,6 +503,9 @@ function begin() {
     render();
     window.scrollTo(0, 0);
     return;
+  }
+  if (previewOtherArm) {
+    state.sessionId = null;
   }
   startNight();
 }
@@ -508,9 +517,9 @@ async function startNight() {
   render();
   try {
     const body = {};
+    const wanted = wantedCondition();
     const known = state.sessionId || openSid();
     if (known) body.session_id = known;
-    const wanted = wantedCondition();
     if (wanted) body.condition = wanted;
     const response = await fetch("/api/start", {
       method: "POST",
@@ -810,7 +819,7 @@ function inquiryProblems() {
   if (!q.single) errors.single = "Name one actor, or say you can't.";
   if (!q.lastHuman) errors.lastHuman = "Say whether a person could still have stopped this.";
   if ((q.lastHuman === "yes" || q.lastHuman === "unsure") && q.lastHumanWho.trim().length < 2) errors.lastHumanWho = "Say who you have in mind.";
-  if (q.single === "other" && !(q.otherWho || "").trim()) errors.otherWho = "Say who you have in mind.";
+  if (q.single === "other" && (q.otherWho || "").trim().length < 2) errors.otherWho = "Say who you have in mind.";
   if (!q.clarity) errors.clarity = "Mark how clear it was who was responsible.";
   if (!q.sureness) errors.sureness = "Mark how sure you are.";
   return errors;
@@ -1049,7 +1058,8 @@ function loadSaved() {
 
 const KNOWN = new Set(["consent", "landing", "already", "waiting", "night", "inquiry", "debrief"]);
 const existing = loadSaved();
-if (existing && existing.sessionId && existing.step && existing.step !== "consent" && existing.step !== "waiting") {
+const previewOtherArm = previewMismatches(existing);
+if (!previewOtherArm && existing && existing.sessionId && existing.step && existing.step !== "consent" && existing.step !== "waiting") {
   if (!KNOWN.has(existing.step)) {
     existing.step = "night";
     existing.scene = 0;
@@ -1062,7 +1072,7 @@ if (existing && existing.sessionId && existing.step && existing.step !== "consen
   if (state.step === "night" && !(state.scene >= 0 && state.scene < nightScenes().length)) state.scene = 0;
 }
 const alreadySat = filedHere() || (state.submitted && state.savedOk);
-if (alreadySat && state.step !== "debrief") {
+if (alreadySat && state.step !== "debrief" && !wantedCondition()) {
   state.step = "already";
 }
 try {
