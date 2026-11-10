@@ -557,6 +557,9 @@ class ServeTests(unittest.TestCase):
         self.assertEqual(response.status, 200)
         self.assertIn(b"INTL 6010", body)
         self.assertIn(b"game.js", body)
+        self.assertIn(b'href="/admin"', body)
+        self.assertIn(b"[admin]", body)
+        self.assertNotIn(b"Passphrase", body)
         self.assertEqual(headers["X-Content-Type-Options"], "nosniff")
         self.assertEqual(headers["X-Frame-Options"], "DENY")
         self.assertIn("script-src 'self'", headers["Content-Security-Policy"])
@@ -806,12 +809,15 @@ class InquiryFormTests(unittest.TestCase):
             'qhead(4, "How clear was it who was responsible?")',
             'qhead(5, "How sure are you?")',
             '"Notes, if you want"',
+            "codeField()",
             'win("The file"',
             '"File the finding"',
         ):
             self.assertIn(line, inquiry)
-        self.assertLess(inquiry.find('"Notes, if you want"'), inquiry.find('win("The file"'))
+        self.assertLess(inquiry.find('"Notes, if you want"'), inquiry.find("codeField()"))
+        self.assertLess(inquiry.find("codeField()"), inquiry.find('win("The file"'))
         self.assertLess(inquiry.find('win("The file"'), inquiry.find('"File the finding"'))
+        self.assertIn("Participant code, if you were given one", source)
         self.assertIn('q.lastHuman === "yes" || q.lastHuman === "unsure"', inquiry)
         self.assertIn("onChange:", inquiry)
         self.assertIn("who_executed", source)
@@ -825,6 +831,13 @@ class InquiryFormTests(unittest.TestCase):
         chrome = source.split("function paintChrome()", 1)[1].split("function render()", 1)[0]
         self.assertIn('next.hidden = state.step === "inquiry"', chrome)
         self.assertNotIn('"File the finding"', chrome)
+        consent = source.split("function consent()", 1)[1].split("function codeField", 1)[0]
+        self.assertNotIn("codeField()", consent)
+        self.assertNotIn("real name", consent)
+        self.assertIn("Please answer truthfully.", consent)
+        self.assertIn("fifteen minutes", consent)
+        self.assertIn("tile-contact", consent)
+        self.assertNotIn("tile-note", consent)
 
 
 class ToolsExportTests(unittest.TestCase):

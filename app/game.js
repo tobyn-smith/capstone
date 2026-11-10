@@ -428,15 +428,11 @@ function consent() {
         h("img", { class: "uga-logo", src: "uga-logo.png", alt: "University of Georgia", width: "1024", height: "158" }),
         h("h1", { class: "question" }, "INTL 6010, Research Methods"),
         h("p", { class: "byline" }, "A project by Tobyn Smith"),
-        codeField(),
         state.formError ? h("p", { class: "error" }, state.formError) : null,
         h("button", { class: "primary", type: "button", onClick: begin }, "Start"),
       ])),
       h("div", { class: "tile tile-copy tile-statement" }, prose(
-        "This will take about fifteen minutes to complete, and by clicking 'Start', you agree that I can save your choices and inquiry answers for this project."
-      )),
-      h("div", { class: "tile tile-note tile-statement" }, prose(
-        "Please don't use your real name and answer truthfully!"
+        "This will take about fifteen minutes to complete, and by clicking 'Start', you agree that I can save your choices and inquiry answers for this project. Please answer truthfully."
       )),
       h("div", { class: "tile tile-contact" }, [
         h("p", { class: "reach" }, [
@@ -779,6 +775,7 @@ function inquiry() {
             h("label", { htmlFor: "other_notes" }, "Notes, if you want"),
             h("textarea", { id: "other_notes", name: "other_notes", value: q.notes || "" }),
           ]),
+          codeField(),
         ],
         win("The file", h("ul", {}, fileLines().map((line) => h("li", {}, line))), "file")
       ),
