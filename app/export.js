@@ -58,7 +58,7 @@ function head() {
 
 function nav() {
   return h("nav", { class: "register-nav", "aria-label": "Admin" }, [
-    h("a", { href: "/admin", class: "is-current" }, "Register"),
+    h("a", { href: "/admin", class: "is-current" }, "Admin"),
     h("a", { href: "/admin/tools" }, "Study tools"),
   ]);
 }
@@ -144,7 +144,7 @@ function render(rows, counts) {
 
 async function removeRow(sessionId) {
   if (!sessionId) return;
-  if (!window.confirm("Remove this sitting from the register? The start and the finding both go. This cannot be undone.")) {
+  if (!window.confirm("Remove this sitting from the dashboard? The start and the finding both go. This cannot be undone.")) {
     return;
   }
   const response = await fetch("/api/responses/remove", {

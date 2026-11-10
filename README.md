@@ -134,7 +134,7 @@ When this repository changes and you want the class host to match it, merge the 
 
 `wrangler.toml` is only for the Cloudflare Pages preview project. The class host is Heroku (`server.py`) and does not read that file. New sits are always `advice` or `agent`. `ENABLE_TWO_VERSIONS` is leftover and ignored: `0` / `false` / `off` cannot write `sequence` sits. Do not collect the study on the Pages worker: it has no lock, so concurrent Starts can unbalance the arms. In a Pages Wrangler file, a top-level `[vars]` block applies to local and to **production Pages** deploys of that project. This repo still lists `ENABLE_TWO_VERSIONS = "1"` in `[env.preview.vars]` as always-on leftover config.
 
-The admin page is https://ts-6010-db607dbe410e.herokuapp.com/admin. `/export` opens the same register. `/admin/tools` is the study tools page under it. Do not send `/admin`, `/admin/tools`, or `/export` to the class. Do not send this GitHub page. The note here says what the design is testing, and people should write the finding before they read it.
+The admin dashboard is https://ts-6010-db607dbe410e.herokuapp.com/admin. `/export` redirects to that page. `/admin/tools` is the study tools page under it. Do not send `/admin`, `/admin/tools`, or `/export` to the class. Do not send this GitHub page. The note here says what the design is testing, and people should write the finding before they read it.
 
 Tell them it takes about fifteen minutes, and to go through the file once. It has to be a computer. A phone is turned away. The link to send is https://ts-6010-db607dbe410e.herokuapp.com
 
@@ -160,7 +160,7 @@ Type the passphrase the terminal printed. The same code is in `data/passphrase.t
 
 On the class host, open https://ts-6010-db607dbe410e.herokuapp.com/admin and type the `PASSPHRASE` config var from the Heroku Settings page. The findings are in the Postgres database. Study tools are at `/admin/tools` after the same passphrase.
 
-`/export` opens the register. Do not send anyone the admin pages.
+`/export` redirects to the admin dashboard. Do not send anyone the admin pages.
 
 ## What they do
 
@@ -175,7 +175,7 @@ Then they sit the inquiry. That is the only page where they write.
 ## What a row means
 
 - `condition` is `advice` or `agent` on new rows. Older rows may say `sequence`. Keep those rows. Use `in_main_comparison` for the H1 table.
-- The register shows starts and findings per version. Study tools at `/admin/tools` break those down by night_kind, forced, in_main_comparison, and who_executed, and download the main-comparison rows or the full export. Same numbers at `/api/counts`.
+- The admin dashboard shows starts and findings per version. Study tools at `/admin/tools` break those down by night_kind, forced, in_main_comparison, and who_executed, and download the main-comparison rows or the full export. Same numbers at `/api/counts`.
 - `final_actions` is the warning, the patrols, the freeze, and the inspections on matched `advice` and `agent` rows. `who_executed` is `officials` or `oracle`. `outcome` is `escalated` and `harm` is yes on both, because Lei moves naval forces towards the route.
 - `night_kind` is `matched` on new two-arm sits and `sequence` on the old one-night file. `scenes_shown` lists the beats they watched.
 - `clarity` and `sureness` are the 1 to 5 scales in the inquiry. The server will not save a finding without Q1 to Q5.

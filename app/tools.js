@@ -33,7 +33,7 @@ function word(value) {
 
 function nav() {
   return h("nav", { class: "register-nav", "aria-label": "Admin" }, [
-    h("a", { href: "/admin" }, "Register"),
+    h("a", { href: "/admin" }, "Admin"),
     h("a", { href: "/admin/tools", class: "is-current" }, "Study tools"),
   ]);
 }
@@ -65,7 +65,7 @@ function render(counts) {
   document.querySelector(".register-desk")?.classList.add("is-open");
   out.append(nav());
   out.append(h("p", { class: "register-lede" },
-    "Breakdowns for the Methods Final. The register keeps the findings table and the sitting-remove tool. New sits are always advice or agent. Forced preview starts stay out of the least-count tally and in_main_comparison."));
+    "Breakdowns for the Methods Final. The admin dashboard keeps the findings table and the sitting-remove tool. New sits are always advice or agent. Forced preview starts stay out of the least-count tally and in_main_comparison."));
   const two = counts && counts.two_versions;
   out.append(h("section", { class: "tools-block" }, [
     h("h2", { class: "tools-head" }, "Assignment"),
@@ -126,12 +126,12 @@ function render(counts) {
     ]));
   }
   out.append(h("p", { class: "register-note" },
-    "Remove sitting on a leftover start, or on a finding on the register, deletes that start and any finding. There is no bulk wipe on this host."));
+    "Remove sitting on a leftover start, or on a finding on the admin dashboard, deletes that start and any finding. There is no bulk wipe on this host."));
 }
 
 async function removeSitting(sessionId) {
   if (!sessionId) return;
-  if (!window.confirm("Remove this sitting from the register? The start and the finding both go. This cannot be undone.")) {
+  if (!window.confirm("Remove this sitting from the dashboard? The start and the finding both go. This cannot be undone.")) {
     return;
   }
   const response = await fetch("/api/responses/remove", {
