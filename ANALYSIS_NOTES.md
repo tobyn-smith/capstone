@@ -12,7 +12,7 @@ The Methods Final comparison is `advice` vs `agent` on matched nights. Use `in_m
 
 ## Starts and findings
 
-The register shows starts, findings, and starts with no finding, by condition. `/admin/tools` has the same numbers plus night_kind, forced, in_main_comparison, who_executed, and the assignment audit. `/api/counts` is the payload for both. Least-count assignment tallies unforced starts, including starts that never filed.
+The admin dashboard shows starts, findings, and starts with no finding, by condition. `/admin/tools` has the same numbers plus night_kind, forced, in_main_comparison, who_executed, and the assignment audit. `/api/counts` is the payload for both. Least-count assignment tallies unforced starts, including starts that never filed.
 
 TODO for Tobyn: keep or drop starts that never filed a finding.
 

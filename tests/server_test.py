@@ -1,3 +1,4 @@
+import http.client
 import json
 import os
 import socket
@@ -35,14 +36,13 @@ class ResolveTests(unittest.TestCase):
         self.assertEqual(found.resolve(), (server.APP / "index.html").resolve())
         self.assertTrue(found.is_file())
 
-    def test_export_page(self):
+    def test_export_path_is_not_the_admin_file(self):
         found = server.resolve_app_file("/export")
-        self.assertEqual(found.name, "export.html")
-        self.assertTrue(found.is_file())
+        self.assertTrue(found is None or found.name != "export.html")
 
     def test_admin_page(self):
         found = server.resolve_app_file("/admin")
-        self.assertEqual(found.resolve(), server.resolve_app_file("/export").resolve())
+        self.assertEqual(found.name, "export.html")
         self.assertTrue(found.is_file())
 
     def test_admin_tools_page(self):
@@ -630,14 +630,29 @@ class ServeTests(unittest.TestCase):
         self.assertIn("function namedActor(row)", source)
         self.assertIn("row.other_who", source)
 
-    def test_admin_and_export_are_the_same_page(self):
+    def test_admin_page_is_the_dashboard(self):
         status, admin = self.fetch("/admin")
         self.assertEqual(status, 200)
-        self.assertIn(b"Register of findings", admin)
+        self.assertIn(b"Admin dashboard", admin)
+        self.assertIn(b"INTL 6010 \xc2\xb7 Admin dashboard", admin)
+        self.assertNotIn(b"Register of findings", admin)
         self.assertNotIn(b"Commission of Inquiry", admin)
-        status, export = self.fetch("/export")
+        source = (Path(__file__).resolve().parents[1] / "app" / "export.js").read_text(encoding="utf-8")
+        self.assertIn('h("a", { href: "/admin", class: "is-current" }, "Admin")', source)
+        self.assertNotIn('"Register"', source)
+
+    def test_export_redirects_to_admin(self):
+        conn = http.client.HTTPConnection("127.0.0.1", self.port)
+        conn.request("GET", "/export")
+        response = conn.getresponse()
+        body = response.read()
+        conn.close()
+        self.assertEqual(response.status, 302)
+        self.assertEqual(response.getheader("Location"), "/admin")
+        self.assertEqual(body, b"")
+        status, followed = self.fetch("/export")
         self.assertEqual(status, 200)
-        self.assertEqual(admin, export)
+        self.assertIn(b"Admin dashboard", followed)
 
     def test_admin_tools_is_a_second_page(self):
         status, tools = self.fetch("/admin/tools")
@@ -646,6 +661,9 @@ class ServeTests(unittest.TestCase):
         self.assertIn(b'src="/tools.js"', tools)
         self.assertIn(b'href="/styles.css"', tools)
         self.assertNotIn(b"Register of findings", tools)
+        self.assertNotIn(b"Admin dashboard", tools)
+        source = (Path(__file__).resolve().parents[1] / "app" / "tools.js").read_text(encoding="utf-8")
+        self.assertIn('h("a", { href: "/admin" }, "Admin")', source)
         status, admin = self.fetch("/admin")
         self.assertNotEqual(tools, admin)
 

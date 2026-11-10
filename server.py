@@ -733,7 +733,7 @@ def resolve_app_file(url_path: str) -> Path | None:
     file ourselves instead.
     """
     path = unquote(urlparse(url_path).path)
-    if path in ("/export", "/admin"):
+    if path in ("/admin", "/admin/"):
         path = "/export.html"
     if path in ("/admin/tools", "/admin/tools/"):
         path = "/tools.html"
@@ -784,8 +784,17 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         super().end_headers()
 
+    def send_redirect(self, location: str, status: int = 302):
+        self.send_response(status)
+        self.send_header("Location", location)
+        self.send_header("Content-Length", "0")
+        self.end_headers()
+
     def do_GET(self):
         parsed = urlparse(self.path)
+        if parsed.path in ("/export", "/export/"):
+            self.send_redirect("/admin")
+            return
         if parsed.path == "/api/responses":
             self.handle_export()
             return

@@ -58,7 +58,10 @@ export default {
       if (path === "/_worker.js" || path.startsWith("/_")) {
         return new Response("Not found", { status: 404 });
       }
-      if (path === "/admin" || path === "/export") {
+      if (path === "/export" || path === "/export/") {
+        return Response.redirect(new URL("/admin", request.url), 302);
+      }
+      if (path === "/admin") {
         return env.ASSETS.fetch(new URL("/export.html", request.url));
       }
       if (path === "/admin/tools" || path === "/admin/tools/") {

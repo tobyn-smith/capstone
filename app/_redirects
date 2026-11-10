@@ -1,3 +1,4 @@
 /admin /export.html 200
-/export /export.html 200
+/export /admin 302
+/export/ /admin 302
 /admin/tools /tools.html 200
