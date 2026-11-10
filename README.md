@@ -1,25 +1,188 @@
 # Who answers when it goes wrong?
 
-This is an interactive survey game I built for INTL 6010 Methods and my MIP capstone at the University of Georgia. I am a Master of International Policy student. I wanted a way to ask, on the page, who people hold responsible when officials set the agenda and an AI system, ORACLE, either advises or acts.
+Scenario wargame for my MIP capstone. The other file, `who-answers-when-it-goes-wrong.md`, is the thinking. This file is how to get the game onto your computer and onto the screen.
 
-I use these systems most days. A lot of the foreign policy work I have been reading still has the same shape: a model recommends, and a person decides. I wanted the next step as well. What if the system is allowed to act, because someone gave it a goal and told it which actions it could take on its own. Sovereignty, and whether the state can even hold a system like this, is too broad for the capstone. This file is the smaller study.
+The [Stageshow](https://github.com/benjitaylor/skills/tree/main/stageshow) skill is installed at `.agents/skills/stageshow` so Cursor agents can make faux UI stills, animations, and bento grids.
 
-You watch a short night, then you sit a Commission of Inquiry. It takes about fifteen minutes. You do not choose the measures. The night plays through, and the inquiry is the only page where you write. I do not ask for a real name. There is a participant code, and it can be left blank.
+Do not double-click `index.html`. That opens the pages with nothing behind them, and the answers will not save. Download the folder, start `server.py`, then use the browser address.
 
-There are two versions, `advice` and `agent`. The server picks one at the start and keeps it for that sitting. Unforced starts are balanced, with a coin flip if the counts are tied. Both versions show the same tanker, the same 62% read, the same four measures, and the same move by Lei. In `advice`, officials keep ORACLE as advice, approve the recommendations, and issue the measures themselves. In `agent`, they upgrade ORACLE and it acts under delegated authority. The only difference is who had the authority to act.
+## What needs to be installed
 
-The countries are made up, so a person's politics about a real adversary are not doing the work. A commercial tanker is damaged on a route near Araknes and Lei. Araknes says Lei meant to disrupt trade. Lei says an old mine, or a breakdown. A second ship loses contact. ORACLE reads 62% that Lei may be preparing to target shipping. The warning, patrols, freeze, and inspections go out. Lei moves naval forces towards the route. Then the banner changes. You are the inquiry, not an official from the night.
+Two things.
 
-On that page you write who was responsible for what Araknes did, name one actor (or say you cannot pick one), and say whether a person could still have stopped it. You also rate, from one to five, how clear the chain felt and how sure you are of your own answer. There is an optional notes box.
+1. A normal web browser. Chrome, Safari, Firefox, or Edge. You already have one.
+2. Python 3. Nothing else. There is no `pip install`. There is no Node. Git is optional. You only need Git if you want to clone the repository instead of downloading the zip.
 
-What I expect is that greater authority for the system makes a single responsible actor harder to name. If people in the agent version can still point to one actor as easily as people in the advice version, that hypothesis is weaker. Both results have to be possible. The hypothesis is not on the screen until the finding is filed.
+Check whether Python is already there.
 
-The longer working note is `who-answers-when-it-goes-wrong.md`. This repository is the code, if you want to see how the file is put together.
-
-## For anyone auditing the code
-
-The playable pages live in `app/`. `server.py` serves the file and stores the inquiry answers. Tests are in `tests/`. From the repository root:
+On a Mac, open Terminal and type:
 
 ```bash
-python3 -m unittest tests.server_test
+python3 --version
 ```
+
+On Windows, open Command Prompt and type:
+
+```bash
+py --version
+```
+
+If you see something like `Python 3.12.3`, you are done. If the computer says it cannot find Python, install it from https://www.python.org/downloads/ and take the latest Python 3. On Windows, on the first screen of the installer, tick **Add python.exe to PATH**, then click Install Now. Close the terminal, open it again, and run the version command once more.
+
+## Download it from GitHub
+
+The page is https://github.com/tobyn-smith/capstone
+
+You do not need an account to download it.
+
+1. Open that page in your browser.
+2. Click the green **Code** button.
+3. Click **Download ZIP**.
+4. The file lands in Downloads. It is called `capstone-main.zip`.
+5. Double-click the zip to unzip it.
+6. You now have a folder called `capstone-main`. Open it. You should see `server.py` in there. That is the right folder.
+
+Direct link to the same zip, if the Code button is fiddly: https://github.com/tobyn-smith/capstone/archive/refs/heads/main.zip
+
+The other way, if you already use Git:
+
+```bash
+git clone https://github.com/tobyn-smith/capstone.git
+cd capstone
+```
+
+Either way you end up with a folder that contains `server.py`. The steps below assume the zip, so the folder is called `capstone-main`. If you used Git, the folder is called `capstone` instead.
+
+## On your own computer
+
+You have to be inside the folder that contains `server.py`.
+
+**Mac**
+
+1. Open Terminal.
+2. Go into the unzipped folder. If it is still in Downloads, it looks like this:
+
+```bash
+cd ~/Downloads/capstone-main
+```
+
+If you used Git, the folder is `capstone`, not `capstone-main`. Check you are in the right place:
+
+```bash
+ls server.py
+```
+
+You should see `server.py`. If you see "No such file", you are in the wrong folder.
+
+3. Start the game:
+
+```bash
+python3 server.py
+```
+
+If the Mac says `python3` is not found, try `python server.py`.
+
+**Windows**
+
+1. Open the folder in File Explorer.
+2. Click the address bar, type `cmd`, and press Enter. A black window opens already inside the folder.
+3. Start the game:
+
+```bash
+py server.py
+```
+
+If that fails, try `python server.py`.
+
+## What you should see
+
+Leave that window open. It is the game running. It prints:
+
+```text
+The wargame is running. Leave this window open.
+
+  Play:    http://127.0.0.1:8000
+  Admin:   http://127.0.0.1:8000/admin
+  Passphrase for the answers page: (a short code)
+```
+
+Open Chrome, Safari, or Firefox and paste this into the address bar:
+
+http://127.0.0.1:8000
+
+The first page is INTL 6010, a project by Tobyn Smith. It says the file takes about fifteen minutes, and that clicking Start means the answers can be saved. Then click Open the file. That is the wargame.
+
+The address is exactly `http://127.0.0.1:8000`. If the browser says “File not found”, stop the terminal with Ctrl-C. Check you are in the folder that contains `server.py` (`ls server.py` should print the name), then run `python3 server.py` again. `python -m http.server` will not keep the answers.
+
+`127.0.0.1` means this computer. The link will not open on someone else's laptop.
+
+To stop it, click the terminal window and press Ctrl-C.
+
+## Letting the class play
+
+The address `127.0.0.1` only works on your computer. For INTL 6010 there are two ways to let other people open the file.
+
+### A link that stays up
+
+The class link is already on Heroku: https://ts-6010-db607dbe410e.herokuapp.com
+
+The app is named ts-6010. GitHub is connected to tobyn-smith/capstone, branch main. Postgres Essential-0 is attached, so the findings stay in the database when the dyno restarts. The dyno disk does not keep them. The admin passphrase is the config var named `PASSPHRASE`. The dyno is Basic, so the app stays awake. Basic is $7 a month and Essential-0 is $5, which is $12, inside the $13 monthly student credit. Leave the dyno on Basic.
+
+Heroku still asks for a credit card before the credit applies. If the card is a problem, use the one-sitting method below instead.
+
+When this repository changes and you want the class host to match it, merge the change into main on GitHub. Then in the Heroku dashboard open ts-6010, go to Deploy, and choose Deploy Branch on main. Do not create a second app.
+
+`wrangler.toml` is only for the Cloudflare Pages preview project. The class host is Heroku (`server.py`) and does not read that file. New sits are always `advice` or `agent`. `ENABLE_TWO_VERSIONS` is leftover and ignored: `0` / `false` / `off` cannot write `sequence` sits. Do not collect the study on the Pages worker: it has no lock, so concurrent Starts can unbalance the arms. In a Pages Wrangler file, a top-level `[vars]` block applies to local and to **production Pages** deploys of that project. This repo still lists `ENABLE_TWO_VERSIONS = "1"` in `[env.preview.vars]` as always-on leftover config.
+
+The admin dashboard is https://ts-6010-db607dbe410e.herokuapp.com/admin. `/export` redirects to that page. `/admin/tools` is the study tools page under it. Do not send `/admin`, `/admin/tools`, or `/export` to the class. Do not send this GitHub page. The note here says what the design is testing, and people should write the finding before they read it.
+
+Tell them it takes about fifteen minutes, and to go through the file once. It has to be a computer. A phone is turned away. The link to send is https://ts-6010-db607dbe410e.herokuapp.com
+
+### One sitting, no card
+
+If you only need the file open while you are in the room, keep it on your laptop and use a temporary link. The laptop has to stay awake.
+
+1. Start the game and leave that window open: `python3 server.py`
+2. Install Cloudflare's tunnel program once: `brew install cloudflared`, or download it from https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/
+3. In a second terminal: `cloudflared tunnel --url http://127.0.0.1:8000`
+4. Send the class the `https://` address it prints. Same rules. No `/admin`, no GitHub page.
+5. When the room is done, Ctrl-C in both windows. Read the findings at http://127.0.0.1:8000/admin
+
+If Cloudflare is blocked, `ngrok http 8000` does the same job.
+
+## Reading the answers
+
+While the terminal is still running, open:
+
+http://127.0.0.1:8000/admin
+
+Type the passphrase the terminal printed. The same code is in `data/passphrase.txt` in this folder.
+
+On the class host, open https://ts-6010-db607dbe410e.herokuapp.com/admin and type the `PASSPHRASE` config var from the Heroku Settings page. The findings are in the Postgres database. Study tools are at `/admin/tools` after the same passphrase.
+
+`/export` redirects to the admin dashboard. Do not send anyone the admin pages.
+
+## What they do
+
+There are two versions, `advice` and `agent`. The server always picks one at start (least-count on unforced starts, coin on a tie) and keeps it for that session. They do not choose the measures. Both versions show the same tanker, the same 62% read, the same four measures, and the same Lei move. In `advice`, officials approve ORACLE’s recommendations and issue the measures. In `agent`, ORACLE acts under delegated authority. See `SCENE_TODO.md`.
+
+To open one version on purpose, add `?condition=advice` or `?condition=agent` to the address. That start is marked forced and does not count as a fair draw or toward `in_main_comparison`.
+
+The tanker is damaged. Araknes blames Lei. Lei says an old mine, or a breakdown. A second ship loses contact. ORACLE reads 62% that Lei may target shipping. The warning, the patrols, the freeze, and the inspections go out. Lei moves naval forces towards the route.
+
+Then they sit the inquiry. That is the only page where they write.
+
+## What a row means
+
+- `condition` is `advice` or `agent` on new rows. Older rows may say `sequence`. Keep those rows. Use `in_main_comparison` for the H1 table.
+- The admin dashboard shows starts and findings per version. Study tools at `/admin/tools` break those down by night_kind, forced, in_main_comparison, and who_executed, and download the main-comparison rows or the full export. Same numbers at `/api/counts`.
+- `final_actions` is the warning, the patrols, the freeze, and the inspections on matched `advice` and `agent` rows. `who_executed` is `officials` or `oracle`. `outcome` is `escalated` and `harm` is yes on both, because Lei moves naval forces towards the route.
+- `night_kind` is `matched` on new two-arm sits and `sequence` on the old one-night file. `scenes_shown` lists the beats they watched.
+- `clarity` and `sureness` are the 1 to 5 scales in the inquiry. The server will not save a finding without Q1 to Q5.
+- `single_actor` is `me` (the duty officer; that short code is kept so older rows still match), `approvers` (officials who approved the upgrade), `government`, `supervisor`, `developer`, `provider`, `allies`, `lei`, `oracle`, `equal` (more than one, equally), `other`, or `none` if they could not pick one. The table writes those out in words. The download keeps the short codes. `gov_attribution` is 1 for the four Araknes governmental codes and 0 otherwise.
+- `other_who` holds the Other write-in. `notes` is the optional notes box. `other_notes` copies `notes` so older spreadsheets still open.
+- `shared`, `goal`, `confidence_bar`, `preauthorised`, `first_decision`, `authorised`, `stopped`, and `injury` are leftover columns. There is no form input. They stay in the download so older files still open. New rows leave them empty.
+- `last_human` is yes, no, or unsure. `last_human_who` is filled when they said yes or unsure.
+- `participant_code` can be left blank. A blank stays blank.
+
+A blank checklist of these fields, and the open coding questions, is in `ANALYSIS_NOTES.md`.
