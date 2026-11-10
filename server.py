@@ -528,7 +528,7 @@ def register_counts() -> dict:
 def start_record(session_id: str | None = None, wanted: str | None = None) -> dict:
     if session_id and SESSION_ID.fullmatch(session_id):
         existing = find_assignment(session_id)
-        if existing:
+        if existing and not (wanted in LIVE and existing.get("condition") != wanted):
             existing = dict(existing)
             if existing.get("two_versions") is None:
                 existing["two_versions"] = two_versions_enabled()
@@ -637,7 +637,10 @@ def in_main_comparison(row: dict) -> bool:
 
 
 def with_analysis(row: dict) -> dict:
+    """Fill derived fields for counts and export. Does not write the store."""
     out = dict(row)
+    out["night_kind"] = finding_night_kind(out)
+    out["who_executed"] = finding_who_executed(out)
     out["in_main_comparison"] = in_main_comparison(out)
     out["gov_attribution"] = gov_attribution(clip(out.get("single_actor"), 80))
     return out
@@ -712,7 +715,7 @@ def clean_response(payload: dict, received_at: str, assigned: dict | None = None
         "clarity": clarity,
         "sureness": sureness,
         "other_notes": notes,
-        "started_at": clip(payload.get("started_at"), 40),
+        "started_at": clip(assigned.get("started_at"), 40) or clip(payload.get("started_at"), 40),
         "submitted_at": clip(payload.get("submitted_at"), 40),
         "received_at": received_at,
         "session_id": session_id,
@@ -858,18 +861,17 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_error(400, "Bad start")
             return
         asked = clip(payload.get("session_id"), 80)
+        wanted = clip(payload.get("condition"), 20)
         if asked and not SESSION_ID.fullmatch(asked):
             self.send_error(400, "Bad start")
             return
         with LOCK:
-            if asked and find_assignment(asked):
-                record = start_record(asked)
-            else:
-                if too_many_sessions():
-                    self.send_error(429, "The register is full")
-                    return
-                wanted = clip(payload.get("condition"), 20)
-                record = start_record(None, wanted)
+            existing = find_assignment(asked) if asked else None
+            reuse = bool(existing) and not (wanted in LIVE and existing.get("condition") != wanted)
+            if not reuse and too_many_sessions():
+                self.send_error(429, "The register is full")
+                return
+            record = start_record(asked if reuse else None, wanted)
         self.send_json(record)
 
     def handle_counts(self):

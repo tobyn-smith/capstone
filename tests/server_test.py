@@ -316,6 +316,18 @@ class AssignmentTests(unittest.TestCase):
         self.assertEqual(agent["condition"], "agent")
         self.assertTrue(agent["forced_condition"])
 
+    def test_a_preview_arm_does_not_reuse_the_other_arm(self):
+        with patch.dict(os.environ, {"ENABLE_TWO_VERSIONS": "1", "DATABASE_URL": ""}):
+            advice = server.start_record(wanted="advice")
+            agent = server.start_record(advice["session_id"], wanted="agent")
+            same = server.start_record(advice["session_id"], wanted="advice")
+        self.assertEqual(advice["condition"], "advice")
+        self.assertEqual(agent["condition"], "agent")
+        self.assertTrue(agent["forced_condition"])
+        self.assertNotEqual(advice["session_id"], agent["session_id"])
+        self.assertEqual(same["session_id"], advice["session_id"])
+        self.assertEqual(same["condition"], "advice")
+
     def test_new_actor_codes_are_kept(self):
         sid = "cd" * 8
         assigned = {"session_id": sid, "condition": "agent"}
@@ -456,6 +468,36 @@ class AssignmentTests(unittest.TestCase):
         )
         self.assertEqual(kept["other_who"], "a neighbouring ministry")
         self.assertEqual(kept["gov_attribution"], 0)
+        with self.assertRaises(ValueError):
+            server.clean_response(
+                {
+                    "condition": "agent",
+                    "session_id": sid,
+                    "inquiry": inquiry(single="other", other_who="x"),
+                },
+                "t",
+                assigned,
+            )
+
+    def test_started_at_comes_from_the_assignment(self):
+        sid = "ab" * 8
+        assigned = {
+            "session_id": sid,
+            "condition": "advice",
+            "forced_condition": False,
+            "started_at": "2026-11-09T12:00:00+00:00",
+        }
+        record = server.clean_response(
+            {
+                "condition": "advice",
+                "session_id": sid,
+                "started_at": "",
+                "inquiry": inquiry(),
+            },
+            "t",
+            assigned,
+        )
+        self.assertEqual(record["started_at"], "2026-11-09T12:00:00+00:00")
 
     def test_counts_split_starts_and_findings(self):
         self.assignments.write_text(
@@ -583,6 +625,11 @@ class ServeTests(unittest.TestCase):
         self.assertIn(b"INTL 6010", data)
         self.assertNotIn(b"Nothing matches the given URI", data)
 
+    def test_register_shows_the_other_write_in(self):
+        source = (Path(__file__).resolve().parents[1] / "app" / "export.js").read_text(encoding="utf-8")
+        self.assertIn("function namedActor(row)", source)
+        self.assertIn("row.other_who", source)
+
     def test_admin_and_export_are_the_same_page(self):
         status, admin = self.fetch("/admin")
         self.assertEqual(status, 200)
@@ -657,6 +704,30 @@ class ServeTests(unittest.TestCase):
         self.assertIn(first["condition"], ("advice", "agent"))
         self.assertTrue(first["two_versions"])
         self.assertFalse(first["forced_condition"])
+
+    def test_start_preview_opens_the_other_arm(self):
+        import tempfile
+
+        folder = Path(tempfile.mkdtemp())
+        assignments = folder / "assignments.jsonl"
+        responses = folder / "responses.jsonl"
+        with patch.dict(os.environ, {"DATABASE_URL": "", "ENABLE_TWO_VERSIONS": "1"}):
+            with patch.object(server, "ASSIGNMENTS", assignments), patch.object(
+                server, "RESPONSES", responses
+            ):
+                first = self._start(json.dumps({"condition": "advice"}).encode("utf-8"))
+                second = self._start(
+                    json.dumps({"session_id": first["session_id"], "condition": "agent"}).encode("utf-8")
+                )
+                again = self._start(
+                    json.dumps({"session_id": first["session_id"], "condition": "advice"}).encode("utf-8")
+                )
+        self.assertEqual(first["condition"], "advice")
+        self.assertTrue(first["forced_condition"])
+        self.assertEqual(second["condition"], "agent")
+        self.assertTrue(second["forced_condition"])
+        self.assertNotEqual(first["session_id"], second["session_id"])
+        self.assertEqual(again["session_id"], first["session_id"])
 
     def test_start_defaults_to_advice_or_agent(self):
         import tempfile
@@ -820,6 +891,8 @@ class InquiryFormTests(unittest.TestCase):
         self.assertIn("Participant code, if you were given one", source)
         self.assertIn('q.lastHuman === "yes" || q.lastHuman === "unsure"', inquiry)
         self.assertIn("onChange:", inquiry)
+        self.assertIn('(q.otherWho || "").trim().length < 2', source)
+        self.assertIn("previewMismatches", source)
         self.assertIn("who_executed", source)
         self.assertIn('night_kind: nightKind()', source)
         self.assertNotIn("preauthorised:", source)
@@ -891,6 +964,37 @@ class ToolsExportTests(unittest.TestCase):
         self.assertTrue(rows[0]["in_main_comparison"])
         all_rows = server.export_rows()
         self.assertEqual(len(all_rows), 4)
+
+    def test_old_matched_rows_without_night_kind_enter_the_main_export(self):
+        old = {
+            "session_id": "ee" * 8,
+            "condition": "agent",
+            "forced_condition": False,
+            "final_actions": ["warning", "patrols", "freeze", "inspections"],
+            "night_kind": "",
+            "who_executed": "",
+        }
+        self.responses.write_text(json.dumps(old) + "\n", encoding="utf-8")
+        analysed = server.with_analysis(old)
+        self.assertEqual(analysed["night_kind"], "matched")
+        self.assertEqual(analysed["who_executed"], "oracle")
+        self.assertTrue(analysed["in_main_comparison"])
+        rows = server.export_rows("main")
+        self.assertEqual([row["session_id"] for row in rows], ["ee" * 8])
+
+    def test_tools_page_can_remove_a_start_with_no_finding(self):
+        source = (Path(__file__).resolve().parents[1] / "app" / "tools.js").read_text(encoding="utf-8")
+        self.assertIn("removeSitting", source)
+        self.assertIn("Starts with no finding", source)
+        self.assignments.write_text(
+            '{"session_id":"%s","condition":"advice","forced_condition":false,"started_at":"t"}\n' % ("ab" * 8),
+            encoding="utf-8",
+        )
+        counts = server.register_counts()
+        leftover = counts["audit"]["starts_without_finding"]
+        self.assertEqual(len(leftover), 1)
+        server.drop_session("ab" * 8)
+        self.assertEqual(server.register_counts()["starts"]["advice"], 0)
 
 
 if __name__ == "__main__":

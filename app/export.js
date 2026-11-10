@@ -46,6 +46,12 @@ function word(value) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+function namedActor(row) {
+  const label = ACTORS[row.single_actor] || row.single_actor || "";
+  if (row.single_actor === "other" && row.other_who) return label + ": " + row.other_who;
+  return label;
+}
+
 function head() {
   return h("thead", {}, h("tr", {}, HEADS.map((label) => h("th", {}, label))));
 }
@@ -104,7 +110,7 @@ function render(rows, counts) {
       h("td", {}, word(row.condition)),
       h("td", {}, word(row.outcome)),
       h("td", { class: row.harm === true ? "harm-yes" : "" }, row.harm === true ? "Yes" : row.harm === false ? "No" : ""),
-      h("td", {}, ACTORS[row.single_actor] || row.single_actor || ""),
+      h("td", {}, namedActor(row)),
       h("td", { class: "score" }, row.clarity ?? ""),
       h("td", { class: "score" }, row.sureness ?? ""),
       h("td", {}, h("button", {

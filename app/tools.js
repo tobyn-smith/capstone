@@ -107,6 +107,7 @@ function render(counts) {
             h("th", {}, "Forced"),
             h("th", {}, "Main"),
             h("th", {}, "Started"),
+            h("th", {}, ""),
           ])),
           h("tbody", {}, leftover.map((row) => h("tr", {}, [
             h("td", { class: "code" }, row.session_id || ""),
@@ -114,13 +115,43 @@ function render(counts) {
             h("td", {}, row.forced_condition ? "Forced" : "Unforced"),
             h("td", {}, row.in_main_comparison ? "Yes" : "No"),
             h("td", {}, row.started_at || ""),
+            h("td", {}, h("button", {
+              class: "remove",
+              type: "button",
+              onClick: () => removeSitting(row.session_id),
+            }, "Remove sitting")),
           ]))),
         ])
         : h("p", { class: "register-lede" }, "Every start has a finding, or there are no starts yet."),
     ]));
   }
   out.append(h("p", { class: "register-note" },
-    "To remove one sitting, use Remove sitting on the register. That deletes the start and the finding. There is no bulk wipe on this host."));
+    "Remove sitting on a leftover start, or on a finding on the register, deletes that start and any finding. There is no bulk wipe on this host."));
+}
+
+async function removeSitting(sessionId) {
+  if (!sessionId) return;
+  if (!window.confirm("Remove this sitting from the register? The start and the finding both go. This cannot be undone.")) {
+    return;
+  }
+  const response = await fetch("/api/responses/remove", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Passphrase": key },
+    body: JSON.stringify({ session_id: sessionId }),
+  });
+  if (!response.ok) {
+    show("I could not remove that row.");
+    return;
+  }
+  show("");
+  const again = await fetch("/api/counts", {
+    headers: { "X-Passphrase": key, Accept: "application/json" },
+  });
+  if (!again.ok) {
+    show("I could not load the tools.");
+    return;
+  }
+  render(await again.json());
 }
 
 async function download(setName) {
