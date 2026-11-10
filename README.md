@@ -1,6 +1,6 @@
 # Who answers when it goes wrong?
 
-This is an interactive survey game I built for INTL 6010 Methods and my MIP capstone at the University of Georgia. I am a Master of International Policy student. I wanted a way to ask, on the page, who people hold responsible when officials set the agenda and an AI system, ORACLE, either advises or acts.
+This is an interactive survey game I built for INTL 6010 Methods and my MIP capstone at the University of Georgia. I am a Master of International Policy student. I built it with help from Cursor. I wanted a way to ask, on the page, who people hold responsible when officials set the agenda and an AI system, ORACLE, either advises or acts.
 
 I use these systems most days. A lot of the foreign policy work I have been reading still has the same shape: a model recommends, and a person decides. I wanted the next step as well. What if the system is allowed to act, because someone gave it a goal and told it which actions it could take on its own. Sovereignty, and whether the state can even hold a system like this, is too broad for the capstone. This file is the smaller study.
 
